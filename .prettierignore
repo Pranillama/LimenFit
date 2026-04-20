@@ -1,0 +1,10 @@
+.next/
+.claude/
+node_modules/
+public/
+supabase/
+pnpm-lock.yaml
+coverage/
+.vercel/
+.turbo/
+next-env.d.ts

@@ -1,0 +1,30 @@
+# Node
+node_modules/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js build output
+.next/
+out/
+build/
+
+# TypeScript incremental
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Tooling caches
+.vercel/
+.turbo/
+coverage/
+.eslintcache
+
+# OS
+.DS_Store
+Thumbs.db
