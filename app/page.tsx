@@ -1,4 +1,8 @@
-// TODO(T1 styling phase + T17): replace with actual landing page
+// TODO(T1 landing-page phase + T17): replace with actual landing page
 export default function Page() {
-  return null;
+  return (
+    <main>
+      <h1 className="font-sans text-4xl font-semibold text-foreground">LimenFit</h1>
+    </main>
+  );
 }

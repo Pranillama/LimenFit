@@ -6,10 +6,11 @@ LimenFit is a minimal, high-speed fitness tracker built to prioritize the fastes
 
 ## Required versions
 
-| Tool | Version                                                  |
-| ---- | -------------------------------------------------------- |
-| Node | `>=20` (see `.nvmrc`)                                    |
-| pnpm | `9.15.0` (pinned via `packageManager` in `package.json`) |
+| Tool     | Version                                                                                                                                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Node     | `>=20` (see `.nvmrc`)                                                                                                                                                                                                          |
+| pnpm     | `9.15.0` (pinned via `packageManager` in `package.json`)                                                                                                                                                                       |
+| Tailwind | `v3.4.x` (pinned to v3 to match the shadcn `new-york` preset's `tailwind.config.ts` + `@tailwind` directive layout used in this project; v4 with `@theme` in CSS and `@tailwindcss/postcss` is intentionally not adopted here) |
 
 Install pnpm if needed: `corepack enable && corepack prepare pnpm@9.15.0 --activate`
 
@@ -32,7 +33,7 @@ Install pnpm if needed: `corepack enable && corepack prepare pnpm@9.15.0 --activ
 
 ## Where things live
 
-> **Note:** Most folders below are scaffolded in later phases of T1 and populated by the listed tickets. After this bootstrap phase only `app/layout.tsx`, `app/page.tsx`, and the config files at the root exist.
+> **Note:** Most folders below are scaffolded in later phases of T1 and populated by the listed tickets.
 
 ```
 limenfit/
@@ -45,29 +46,48 @@ limenfit/
 │   │   │   └── plans/
 │   │   └── profile/
 │   ├── api/                 # Route handlers — T7 (auth), T11 (workouts), T15 (AI)
-│   ├── layout.tsx            # Root layout (placeholder, replaced next phase)
-│   └── page.tsx              # Root page (placeholder, replaced next phase)
-├── components/              # Shared UI components — T5 onwards
+│   ├── fonts.ts             # Inter via next/font (--font-sans variable)
+│   ├── layout.tsx           # Root layout with font + CSS-variable wiring
+│   └── page.tsx             # Root page (Tailwind smoke probe, replaced next phase)
+├── components/
+│   └── ui/                  # shadcn primitives — current: Button
 ├── features/                # Feature-scoped components and logic — T5 onwards
 ├── hooks/                   # Shared custom React hooks — T5 onwards
 ├── lib/
+│   ├── utils.ts             # cn() helper (clsx + tailwind-merge)
 │   └── supabase/            # Supabase client + server helpers — T2
 ├── stores/                  # Zustand stores for client state — T6
-├── styles/                  # Global CSS and design tokens — T1 (styling phase)
+├── styles/
+│   └── globals.css          # Tailwind layers + shadcn new-york neutral theme variables
 ├── supabase/                # Supabase migrations and seed — T2 / T3
 │   ├── migrations/
 │   └── seed.sql
 ├── public/                  # Static assets
 ├── .github/
 │   └── workflows/           # CI/CD pipeline — T16
+├── components.json          # shadcn CLI manifest (style, aliases, icon library)
 ├── Dockerfile               # Container image — T2 / T16
 ├── docker-compose.yml       # Local dev services — T2 / T16
 ├── eslint.config.mjs
 ├── next.config.ts
 ├── package.json
+├── postcss.config.mjs       # tailwindcss + autoprefixer
+├── tailwind.config.ts       # Tailwind v3 config with shadcn token mapping
 ├── tsconfig.json
 └── README.md
 ```
+
+---
+
+## Adding shadcn components
+
+Future contributors should run the following to add new primitives:
+
+```bash
+pnpm dlx shadcn@latest add <component>
+```
+
+`components.json` already encodes the project conventions (style: `new-york`, CSS variables, neutral base color, `@/components/ui` alias), so the CLI will place files correctly without additional flags.
 
 ---
 
