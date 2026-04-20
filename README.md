@@ -48,6 +48,7 @@ limenfit/
 │   ├── api/                 # Route handlers — T7 (auth), T11 (workouts), T15 (AI)
 │   ├── fonts.ts             # Inter via next/font (--font-sans variable)
 │   ├── layout.tsx           # Root layout with font + CSS-variable wiring
+│   ├── providers.tsx        # Client boundary: QueryClientProvider + dev-only Devtools
 │   └── page.tsx             # Root page (Tailwind smoke probe, replaced next phase)
 ├── components/
 │   └── ui/                  # shadcn primitives — current: Button
@@ -88,6 +89,25 @@ pnpm dlx shadcn@latest add <component>
 ```
 
 `components.json` already encodes the project conventions (style: `new-york`, CSS variables, neutral base color, `@/components/ui` alias), so the CLI will place files correctly without additional flags.
+
+---
+
+## Phase 1 runtime libraries
+
+The following packages were installed in Phase 1. Most are reserved for later tickets and are unused in the current codebase.
+
+| Package                                     | Purpose                                                                                                                                                                     | Activated by                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `zustand ^5`                                | Client state management                                                                                                                                                     | T6 `useActiveWorkoutStore`, T15 settings wiring                          |
+| `@tanstack/react-query ^5`                  | Server-state fetching, caching, invalidation                                                                                                                                | Active: `QueryClientProvider` in `app/providers.tsx`; query hooks in T5+ |
+| `react-hook-form ^7`                        | Form state and validation                                                                                                                                                   | T4 auth forms, T5+ feature forms                                         |
+| `zod ^3`                                    | Schema validation and type inference                                                                                                                                        | T2 env schema, T4 form schemas                                           |
+| `@hookform/resolvers ^3`                    | RHF ↔ Zod adapter                                                                                                                                                           | T4 onwards, alongside `react-hook-form`                                  |
+| `framer-motion ^11`                         | Declarative animation primitives                                                                                                                                            | T5+ UI animation                                                         |
+| `recharts ^2`                               | Chart components — **installed but unused in Phase 1**, reserved for T18 Progress Engine (ticket:75146556-4dd0-418c-9f5e-1d0fc95d0981/2e98b1cb-c672-40ac-aa46-b4aa597a8603) | T18                                                                      |
+| `@tanstack/react-query-devtools ^5` _(dev)_ | Floating devtools panel — dynamically imported via `next/dynamic`, excluded from production bundles                                                                         | Dev server only                                                          |
+
+React Query Devtools are loaded via `next/dynamic` with `{ ssr: false }` and are **only included in non-production bundles**. The `process.env.NODE_ENV !== 'production'` guard is statically inlined by Next.js, so the devtools chunk is dead-code-eliminated in `pnpm build`.
 
 ---
 
