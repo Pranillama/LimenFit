@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 
 import { AuthCard } from '@/features/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { sanitizeNext } from './utils';
 
 export const metadata: Metadata = {
   title: 'Sign in — LimenFit',
@@ -10,12 +11,6 @@ export const metadata: Metadata = {
 
 interface Props {
   searchParams: Promise<{ next?: string | string[]; error?: string | string[] }>;
-}
-
-function sanitizeNext(value: string | string[] | undefined): string | undefined {
-  if (!value || Array.isArray(value)) return undefined;
-  if (value.startsWith('/') && !value.startsWith('//')) return value;
-  return undefined;
 }
 
 export default async function AuthPage({ searchParams }: Props) {
@@ -29,7 +24,7 @@ export default async function AuthPage({ searchParams }: Props) {
   }
 
   const { next: rawNext, error: rawError } = await searchParams;
-  const next = sanitizeNext(rawNext);
+  const next = Array.isArray(rawNext) ? undefined : sanitizeNext(rawNext);
   const error = Array.isArray(rawError) ? undefined : rawError;
 
   return <AuthCard next={next} authError={error} />;
