@@ -75,7 +75,7 @@ limenfit/
 │   ├── env.ts               # Zod env validation, fail-fast at import
 │   ├── utils/               # General-purpose utilities (cn helper)
 │   ├── auth/                # Auth helpers — placeholder session in T1, replaced by real Supabase helper in T4
-│   ├── supabase/            # Supabase client + server helpers — T2
+│   ├── supabase/            # Four typed client factories (server.ts, browser.ts, anon.ts, service-role.ts) + types.ts placeholder — T2
 │   ├── idempotency/         # Idempotency key helpers — T7
 │   └── schemas/             # Shared Zod schemas — T7, T8, T11, T15
 ├── middleware.ts             # Auth middleware stub — implemented by T4; public routes (/ and /plan/[slug]) must be excluded from its matcher
@@ -133,13 +133,20 @@ Copy `.env.example` to `.env.local` and fill in the values before running the de
 
 `lib/env.ts` validates all variables at import time and throws a single readable error listing every missing or invalid variable. The server variables are guarded by a browser Proxy that throws if accessed in client bundles.
 
-Removing `NEXT_PUBLIC_SUPABASE_URL` (or running with no `.env.local`) causes any module that imports `lib/env` to throw the readable Zod schema error at import time, listing every missing or invalid variable. The current `app/page.tsx` deliberately does **not** import `lib/env` (directly or transitively), so the landing page continues to render even without environment variables — only modules that actually need env will fail. T4 will introduce the first real consumer via `lib/supabase/server`.
+Removing `NEXT_PUBLIC_SUPABASE_URL` (or running with no `.env.local`) causes any module that imports `lib/env` to throw the readable Zod schema error at import time, listing every missing or invalid variable. The current `app/page.tsx` deliberately does **not** import `lib/env` (directly or transitively), so the landing page continues to render even without environment variables — only modules that actually need env will fail. As of T2, all four modules under `lib/supabase/` import `@/lib/env`, so any Server Component, Route Handler, or client bundle that transitively imports a Supabase client factory will now fail at boot if a required env var is missing. The T1 prediction that “T4 will introduce the first real consumer via `lib/supabase/server`” is now satisfied earlier by T2.
 
 ---
 
 ## Local Supabase backend
 
 The local backend (Postgres, Auth, Studio, Storage, Inbucket) is managed entirely by the Supabase CLI through Docker. There is no custom `docker-compose.yml` in this repo — `pnpm db:start` is the single command to bring everything up. Production Docker assets are owned by T16.
+
+First-time setup:
+
+1. Install and start **Docker Desktop**.
+2. Run `pnpm db:start` — the CLI boots the stack and prints the local API URL and anon key when ready.
+3. Copy the printed `API URL` and `anon key` values into `.env.local` (also set `SUPABASE_SERVICE_ROLE_KEY` from the printed service role key).
+4. Run `pnpm dev`.
 
 ```bash
 # Requires Docker Desktop to be running
@@ -188,6 +195,18 @@ React Query Devtools are loaded via `next/dynamic` with `{ ssr: false }` and are
 When the CV microservice lands in Phase 3, the repository will graduate to a monorepo layout with `apps/web/` and `apps/form-analysis/`. The Gemini AI wrapper will live at `apps/web/app/api/ai/` and `apps/web/lib/ai/`.
 
 **Do not pre-create an `apps/` directory in Phase 1** — the migration will be handled as a dedicated task when the microservice is ready.
+
+---
+
+## Verifying T2 acceptance
+
+Use this checklist to confirm the T2 acceptance criteria are met:
+
+1. `lib/supabase/browser.ts`, `server.ts`, `anon.ts`, and `service-role.ts` all exist and export their respective typed factory functions.
+2. `lib/supabase/types.ts` exports a `Database` type (placeholder `Record<string, unknown>` until T3 schema migrations land).
+3. **AC3 — NOT currently satisfied:** AC3 requires all four typed client factories to be importable from `@/lib/supabase`. The current `lib/supabase/index.ts` barrel exports only `createSupabaseBrowserClient` and `Database`. The server, anon, and service-role factories are intentionally absent from this barrel to prevent server secrets leaking into client bundles. They are available from `@/lib/supabase/server-exports` (all three together) or directly from their submodule paths (`@/lib/supabase/server`, `@/lib/supabase/anon`, `@/lib/supabase/service-role`). AC3 remains unmet against `@/lib/supabase` unless a future change re-exports the server-only helpers from `index.ts` with appropriate build-time safety guards (e.g., the `server-only` package).
+4. `server.ts`, `anon.ts`, and `service-role.ts` each call `assertServerOnly()` at module evaluation time — importing any of them from a Client Component or the `@/lib/supabase` barrel throws immediately.
+5. `pnpm type-check` passes with all four factory return types inferred as `SupabaseClient<Database>`.
 
 ---
 
