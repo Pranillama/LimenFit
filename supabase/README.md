@@ -39,3 +39,53 @@ pnpm db:reset
 ```
 
 **Delete the generated noop file** (`supabase/migrations/*_noop_check.sql`) before committing — it is intentionally transient and must not land in the repo. Real schema migrations are owned by T3.
+
+---
+
+## Phase 1 schema acceptance verification
+
+Run these checks after `pnpm db:reset` completes with no errors.
+
+### 1. Clean reset
+
+```bash
+pnpm db:reset
+# Expected: all 4 migrations apply with no errors
+```
+
+### 2. One-active-draft constraint
+
+```sql
+-- Insert a user first, then:
+INSERT INTO workouts (user_id, status) VALUES ('<uid>', 'in_progress');
+INSERT INTO workouts (user_id, status) VALUES ('<uid>', 'in_progress');
+-- Expected: ERROR: duplicate key value violates unique constraint
+--           "workouts_one_active_draft_per_user"
+```
+
+### 3. Constraint allows restart after completion
+
+```sql
+UPDATE workouts SET status = 'completed' WHERE user_id = '<uid>' AND status = 'in_progress';
+INSERT INTO workouts (user_id, status) VALUES ('<uid>', 'in_progress');
+-- Expected: INSERT succeeds — partial index only covers status = 'in_progress'
+```
+
+### 4. Anon-key visibility
+
+```sql
+-- With anon JWT (auth.uid() IS NULL):
+SELECT id FROM plans;
+-- Expected: only rows where is_public = true
+
+SELECT id FROM exercises;
+-- Expected: only rows where user_id IS NULL (global library)
+```
+
+### 5. Cross-user isolation
+
+```sql
+-- Authenticated as user A, reading user B's workouts:
+SELECT * FROM workouts;
+-- Expected: 0 rows (RLS filters to auth.uid() = user_id)
+```
