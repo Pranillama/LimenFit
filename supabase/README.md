@@ -89,3 +89,84 @@ SELECT id FROM exercises;
 SELECT * FROM workouts;
 -- Expected: 0 rows (RLS filters to auth.uid() = user_id)
 ```
+
+---
+
+## pg_cron jobs
+
+Both jobs are registered by `migrations/20260421150316_cron_jobs.sql` and run as the `postgres` role, which bypasses RLS by design — this is the intended privileged-server behaviour for background maintenance tasks.
+
+Cascade behaviour is correct by schema: deleting a `workouts` row cascades to `workout_exercises` and `sets`.
+
+### Registered jobs
+
+| Job name | Schedule (UTC) | Purpose |
+|---|---|---|
+| `limenfit_expire_inprogress_workouts` | `0 * * * *` (every hour) | Transition abandoned `in_progress` drafts to `expired` after 24 h of inactivity |
+| `limenfit_delete_expired_workouts` | `0 3 * * *` (daily 03:00) | Hard-delete `expired` workouts that have passed the 7-day grace period |
+
+### Job bodies
+
+```sql
+-- Job 1: expire abandoned drafts
+UPDATE public.workouts
+SET status = 'expired', expired_at = NOW()
+WHERE status = 'in_progress'
+  AND last_activity_at < NOW() - INTERVAL '24 hours';
+
+-- Job 2: permanently delete past grace period (cascades to workout_exercises / sets)
+DELETE FROM public.workouts
+WHERE status = 'expired'
+  AND expired_at < NOW() - INTERVAL '7 days';
+```
+
+### Introspection queries
+
+```sql
+-- List all registered cron jobs
+SELECT jobid, jobname, schedule, active FROM cron.job;
+
+-- View recent run history (pass/fail, duration)
+SELECT jobid, jobname, status, start_time, end_time, return_message
+FROM cron.job_run_details
+ORDER BY start_time DESC
+LIMIT 10;
+```
+
+### Manual verification
+
+```sql
+-- 1. Verify both jobs are registered after pnpm db:reset
+SELECT jobname, schedule FROM cron.job
+WHERE jobname IN (
+  'limenfit_expire_inprogress_workouts',
+  'limenfit_delete_expired_workouts'
+);
+-- Expected: 2 rows
+
+-- 2. Test the expiry job (run the body inline)
+UPDATE public.workouts
+SET last_activity_at = NOW() - INTERVAL '25 hours'
+WHERE id = '<test-workout-id>';
+
+-- Then run the job body inline:
+UPDATE public.workouts
+SET status = 'expired', expired_at = NOW()
+WHERE status = 'in_progress'
+  AND last_activity_at < NOW() - INTERVAL '24 hours';
+-- Expected: the row transitions to status = 'expired' with expired_at set
+
+-- 3. Test the deletion job (run the body inline)
+UPDATE public.workouts
+SET expired_at = NOW() - INTERVAL '8 days'
+WHERE id = '<test-workout-id>';
+
+DELETE FROM public.workouts
+WHERE status = 'expired'
+  AND expired_at < NOW() - INTERVAL '7 days';
+-- Expected: the row is deleted; workout_exercises and sets cascade-deleted
+```
+
+### Local development note
+
+The local Supabase stack (`pnpm db:start`) includes pg_cron. If a developer's local Docker image has pg_cron disabled, `pnpm db:reset` will surface a clear error at the `CREATE EXTENSION` step in this migration — no silent failure.
