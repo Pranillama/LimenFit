@@ -259,6 +259,7 @@ function LoginForm({ next }: { next?: string }) {
       setServerError(error.message);
       return;
     }
+    router.refresh();
     router.push(next ?? '/home');
   };
 

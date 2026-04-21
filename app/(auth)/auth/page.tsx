@@ -14,18 +14,18 @@ interface Props {
 }
 
 export default async function AuthPage({ searchParams }: Props) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (session) {
-    redirect('/home');
-  }
-
   const { next: rawNext, error: rawError } = await searchParams;
   const next = Array.isArray(rawNext) ? undefined : sanitizeNext(rawNext);
   const error = Array.isArray(rawError) ? undefined : rawError;
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect(next ?? '/home');
+  }
 
   return <AuthCard next={next} authError={error} />;
 }

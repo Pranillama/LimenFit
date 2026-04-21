@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import type { SetAllCookies } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -19,7 +20,7 @@ export async function middleware(req: NextRequest) {
         getAll() {
           return req.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: Parameters<SetAllCookies>[0]) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           // Rebuild response with updated request headers so downstream handlers
           // receive the refreshed state on every protected request.
@@ -38,8 +39,9 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    const pathname = req.nextUrl.pathname;
-    const redirectUrl = new URL(`/auth?next=${pathname}`, req.url);
+    const nextValue = req.nextUrl.pathname + req.nextUrl.search;
+    const redirectUrl = new URL('/auth', req.url);
+    redirectUrl.searchParams.set('next', nextValue);
     const redirectRes = NextResponse.redirect(redirectUrl);
     // Forward every pending cookie mutation with its original options so
     // expiry/invalidation semantics are preserved on the redirect response.
@@ -48,8 +50,6 @@ export async function middleware(req: NextRequest) {
     });
     return redirectRes;
   }
-
-  await supabase.auth.getSession();
 
   return res;
 }
