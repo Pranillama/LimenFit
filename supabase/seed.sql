@@ -1,0 +1,1 @@
+-- LimenFit seed data — populated in T3 (built-in exercises). Intentionally empty in T1.
