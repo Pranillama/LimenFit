@@ -25,6 +25,11 @@ build/
 coverage/
 .eslintcache
 
+# Supabase CLI local artifacts
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
 # OS
 .DS_Store
 Thumbs.db

@@ -18,16 +18,21 @@ Install pnpm if needed: `corepack enable && corepack prepare pnpm@9.15.0 --activ
 
 ## Scripts
 
-| Script              | Description                            |
-| ------------------- | -------------------------------------- |
-| `pnpm dev`          | Start the Next.js dev server           |
-| `pnpm build`        | Produce a production build             |
-| `pnpm start`        | Serve the production build locally     |
-| `pnpm lint`         | Run ESLint across the repo             |
-| `pnpm lint:fix`     | Run ESLint and auto-fix fixable issues |
-| `pnpm format`       | Format all files with Prettier         |
-| `pnpm format:check` | Check formatting without writing       |
-| `pnpm type-check`   | Run `tsc --noEmit` (no output files)   |
+| Script              | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| `pnpm dev`          | Start the Next.js dev server                                    |
+| `pnpm build`        | Produce a production build                                      |
+| `pnpm start`        | Serve the production build locally                              |
+| `pnpm lint`         | Run ESLint across the repo                                      |
+| `pnpm lint:fix`     | Run ESLint and auto-fix fixable issues                          |
+| `pnpm format`       | Format all files with Prettier                                  |
+| `pnpm format:check` | Check formatting without writing                                |
+| `pnpm type-check`   | Run `tsc --noEmit` (no output files)                            |
+| `pnpm db:start`     | Boot the local Supabase stack (Postgres + Auth + Studio + more) |
+| `pnpm db:stop`      | Stop the local Supabase stack                                   |
+| `pnpm db:reset`     | Re-apply all migrations and seed data against the local DB      |
+| `pnpm db:push`      | Apply pending local migrations to the linked remote project     |
+| `pnpm db:diff`      | Generate a new migration file from local schema drift           |
 
 ---
 
@@ -78,6 +83,7 @@ limenfit/
 ├── styles/
 │   └── globals.css          # Tailwind layers + shadcn new-york neutral theme variables
 ├── supabase/                # Supabase source artifacts
+│   ├── config.toml          # Supabase CLI project config — T2
 │   ├── migrations/          # SQL migrations — T2/T3
 │   ├── seed.sql             # Seed data — T3 (empty in T1)
 │   └── functions/           # Edge Functions — reserved, not used in Phase 1
@@ -86,7 +92,6 @@ limenfit/
 │   └── workflows/           # CI/CD pipeline — T16
 ├── .env.example             # Required environment variables (template)
 ├── components.json          # shadcn CLI manifest (style, aliases, icon library)
-├── docker-compose.yml       # Local Supabase orchestration — T2
 ├── Dockerfile               # Portable dev environment — T2/T16
 ├── eslint.config.mjs
 ├── next.config.ts
@@ -129,6 +134,21 @@ Copy `.env.example` to `.env.local` and fill in the values before running the de
 `lib/env.ts` validates all variables at import time and throws a single readable error listing every missing or invalid variable. The server variables are guarded by a browser Proxy that throws if accessed in client bundles.
 
 Removing `NEXT_PUBLIC_SUPABASE_URL` (or running with no `.env.local`) causes any module that imports `lib/env` to throw the readable Zod schema error at import time, listing every missing or invalid variable. The current `app/page.tsx` deliberately does **not** import `lib/env` (directly or transitively), so the landing page continues to render even without environment variables — only modules that actually need env will fail. T4 will introduce the first real consumer via `lib/supabase/server`.
+
+---
+
+## Local Supabase backend
+
+The local backend (Postgres, Auth, Studio, Storage, Inbucket) is managed entirely by the Supabase CLI through Docker. There is no custom `docker-compose.yml` in this repo — `pnpm db:start` is the single command to bring everything up. Production Docker assets are owned by T16.
+
+```bash
+# Requires Docker Desktop to be running
+pnpm db:start   # boots the local stack; prints connection URLs when ready
+pnpm db:stop    # shuts it down and releases ports
+pnpm db:reset   # re-runs all migrations + seed.sql (wipes local data)
+```
+
+See `supabase/README.md` for the full workflow including migration verification.
 
 ---
 
