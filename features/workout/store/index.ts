@@ -20,7 +20,7 @@ export type {
   SetEditMutation,
   SetDeleteMutation,
   QueuedMutation,
-} from './store';
+} from './types';
 
 export {
   buildWorkoutCreateMutation,
@@ -33,6 +33,9 @@ export {
   buildSetLogMutation,
   buildSetEditMutation,
   buildSetDeleteMutation,
+} from './mutationDescriptors';
+
+export {
   selectIsDirty,
   selectHasActiveDraft,
   selectActiveDraftMeta,
@@ -40,4 +43,4 @@ export {
   selectSyncBadge,
   selectExerciseById,
   selectSyncState,
-} from './store';
+} from './selectors';
