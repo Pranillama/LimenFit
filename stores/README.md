@@ -7,4 +7,6 @@ All Zustand stores are created via `createAppStore` from `./createStore`. This f
 | Store                   | Ticket                                                                                 |
 | ----------------------- | -------------------------------------------------------------------------------------- |
 | `useActiveWorkoutStore` | T6 — ticket:75146556-4dd0-418c-9f5e-1d0fc95d0981/6a59f852-8841-4a91-9307-c4869acbbb00  |
+
+The Active Workout store (T6) should expose an `isDirty` selector that returns `true` when the session has unsaved changes. Consumers drive `DiscardConfirmationDialog`'s `open` prop with this selector.
 | Settings client wiring  | T15 — ticket:75146556-4dd0-418c-9f5e-1d0fc95d0981/7141e09e-62ad-4c3c-96df-1fe6fd9df4b2 |

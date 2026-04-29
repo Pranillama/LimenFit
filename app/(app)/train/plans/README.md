@@ -1,3 +1,5 @@
 # app/(app)/train/plans
 
-Training plans list page. Implemented in T11/T12.
+Training plans list page.
+
+T5: shell + placeholder. Full content in T11/T12.
