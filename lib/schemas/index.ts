@@ -18,3 +18,7 @@ export const signUpSchema = z
 
 export type LoginValues = z.infer<typeof loginSchema>;
 export type SignUpValues = z.infer<typeof signUpSchema>;
+
+export * from './workout';
+export * from './workout-exercise';
+export * from './set';
