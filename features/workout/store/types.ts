@@ -49,6 +49,15 @@ export interface ActiveWorkoutExercise {
   restSecondsOverride?: number;
 }
 
+// ---------- Preloaded exercise for startDraft ----------
+
+export interface PreloadedExercise {
+  exerciseId: string;
+  targetSets?: number;
+  targetReps?: number;
+  restSecondsOverride?: number;
+}
+
 // ---------- Rest timer — keyed by exercise localId ----------
 
 export interface RestTimerEntry {
@@ -58,6 +67,20 @@ export interface RestTimerEntry {
 }
 
 export type RestTimerState = Record<string, RestTimerEntry>;
+
+// ---------- Deletion tombstones ----------
+
+export type TombstoneEntityKind = 'workout' | 'workoutExercise' | 'set';
+
+export interface DeletionTombstone {
+  localId: string;
+  entityKind: TombstoneEntityKind;
+  /** True when a parent entity's server-side delete is already queued and will cascade to this child. */
+  coveredByParentDelete: boolean;
+}
+
+/** localId → tombstone for entities deleted while an in-flight create may still be outstanding. */
+export type TombstoneMap = Record<string, DeletionTombstone>;
 
 // ---------- Sync state ----------
 
@@ -108,6 +131,7 @@ export interface WorkoutDiscardMutation extends QueuedMutationMeta {
   kind: 'workout.discard';
   payload: {
     localId: string;
+    workoutId: string | null; // server ID known at discard time; null if not yet synced
   };
 }
 
@@ -133,6 +157,7 @@ export interface WorkoutExerciseRemoveMutation extends QueuedMutationMeta {
   payload: {
     localId: string;
     workoutLocalId: string;
+    serverId: string | null; // known at enqueue time when entity was already synced
   };
 }
 
@@ -171,6 +196,7 @@ export interface SetDeleteMutation extends QueuedMutationMeta {
   kind: 'set.delete';
   payload: {
     localId: string;
+    serverId: string | null; // known at enqueue time when entity was already synced
   };
 }
 
@@ -194,6 +220,8 @@ export interface ActiveWorkoutState {
   restTimer: RestTimerState;
   sync: SyncState;
   queue: QueuedMutation[];
+  quarantine: QueuedMutation[];
+  tombstones: TombstoneMap;
 }
 
 // ---------- Store actions ----------

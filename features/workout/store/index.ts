@@ -44,3 +44,18 @@ export {
   selectExerciseById,
   selectSyncState,
 } from './selectors';
+
+export { useActiveWorkoutStore } from './useActiveWorkoutStore';
+export type {
+  ActiveWorkoutStoreActions,
+  ActiveWorkoutStoreState,
+  LogSetInput,
+  EditSetPatch,
+  SyncResult,
+  ServerWorkoutSnapshot,
+} from './useActiveWorkoutStore';
+
+export { createSafeStorage, isDegraded, subscribeDegrade } from './persistence';
+
+export { flushQueue, dispatchMutation, resolveRequest, cancelPendingRetry } from './queue';
+export type { FlushableStore, MutationResult, DispatchableRequest } from './queue';

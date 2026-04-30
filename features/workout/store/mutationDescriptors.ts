@@ -51,7 +51,10 @@ export function buildWorkoutDiscardMutation(
   payload: WorkoutDiscardMutation['payload'],
   extraDependencies: string[] = [],
 ): WorkoutDiscardMutation {
-  return { kind: 'workout.discard', ...baseMeta([payload.localId, ...extraDependencies]), payload };
+  // workoutId is embedded at enqueue time when the server already knows the workout,
+  // so we don't need to block on resolving localId from live state.
+  const deps = payload.workoutId !== null ? extraDependencies : [payload.localId, ...extraDependencies];
+  return { kind: 'workout.discard', ...baseMeta(deps), payload };
 }
 
 /**
@@ -88,9 +91,12 @@ export function buildWorkoutExerciseRemoveMutation(
   payload: WorkoutExerciseRemoveMutation['payload'],
   extraDependencies: string[] = [],
 ): WorkoutExerciseRemoveMutation {
+  // serverId is embedded when the entity was already synced, so no need to block
+  // on resolving the localId from live state (which is removed optimistically).
+  const deps = payload.serverId !== null ? extraDependencies : [payload.localId, ...extraDependencies];
   return {
     kind: 'workoutExercise.remove',
-    ...baseMeta([payload.localId, ...extraDependencies]),
+    ...baseMeta(deps),
     payload,
   };
 }
@@ -145,5 +151,8 @@ export function buildSetDeleteMutation(
   payload: SetDeleteMutation['payload'],
   extraDependencies: string[] = [],
 ): SetDeleteMutation {
-  return { kind: 'set.delete', ...baseMeta([payload.localId, ...extraDependencies]), payload };
+  // serverId is embedded when the entity was already synced, so no need to block
+  // on resolving the localId from live state (which is removed optimistically).
+  const deps = payload.serverId !== null ? extraDependencies : [payload.localId, ...extraDependencies];
+  return { kind: 'set.delete', ...baseMeta(deps), payload };
 }
