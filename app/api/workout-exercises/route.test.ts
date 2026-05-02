@@ -132,4 +132,75 @@ describe('POST /api/workout-exercises', () => {
     expect(json.id).toBe(RESOURCE_ID);
     expect(json.clientMutationId).toBe(CLIENT_MUTATION_ID);
   });
+
+  it('two calls with the same clientMutationId insert once and return the same body', async () => {
+    const insertSpy = vi.fn().mockReturnValue({
+      select: () => ({
+        single: async () => ({ data: { id: RESOURCE_ID }, error: null }),
+      }),
+    });
+
+    const supabase: any = {
+      from: (table: string) => {
+        if (table === 'workouts') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({ data: { id: WORKOUT_ID, status: 'in_progress' }, error: null }),
+                }),
+              }),
+            }),
+            update: () => ({
+              eq: () => ({
+                neq: () => ({
+                  neq: () => Promise.resolve({ error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'exercises') {
+          return {
+            select: () => ({
+              eq: () => ({
+                or: () => ({
+                  maybeSingle: async () => ({ data: { id: EXERCISE_ID }, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'workout_exercises') {
+          return { insert: insertSpy };
+        }
+        return {};
+      },
+    };
+
+    mockRequireUser.mockResolvedValue({
+      supabase,
+      user: { id: USER_ID } as any,
+    });
+
+    let capturedResult: { resourceId: string | null; response: any } | null = null;
+    mockWithIdempotency.mockImplementation(async (opts: any) => {
+      if (capturedResult === null) {
+        const r = await opts.handler();
+        capturedResult = r;
+        return { replayed: false, resourceId: r.resourceId, response: r.response };
+      }
+      return { replayed: true, resourceId: capturedResult.resourceId, response: null };
+    });
+
+    const res1 = await POST(makeRequest());
+    const json1 = await res1.json();
+
+    const res2 = await POST(makeRequest());
+    const json2 = await res2.json();
+
+    expect(insertSpy).toHaveBeenCalledTimes(1);
+    expect(json1.id).toBe(json2.id);
+    expect(json1.clientMutationId).toBe(json2.clientMutationId);
+  });
 });

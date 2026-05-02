@@ -20,12 +20,18 @@ vi.mock('@/lib/idempotency/server', () => ({
   },
 }));
 
+vi.mock('@/lib/api/touchWorkout', () => ({
+  touchWorkoutLastActivity: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { POST } from './route';
 import { requireUser } from '@/lib/api/auth';
 import { withIdempotency } from '@/lib/idempotency/server';
+import { touchWorkoutLastActivity } from '@/lib/api/touchWorkout';
 
 const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
+const mockTouchWorkoutLastActivity = vi.mocked(touchWorkoutLastActivity);
 
 const CLIENT_MUTATION_ID  = '550e8400-e29b-41d4-a716-446655440000';
 const WORKOUT_EXERCISE_ID = '660e8400-e29b-41d4-a716-446655440000';
@@ -133,5 +139,123 @@ describe('POST /api/sets', () => {
     const json = await res.json();
     expect(json.id).toBe(RESOURCE_ID);
     expect(json.clientMutationId).toBe(CLIENT_MUTATION_ID);
+  });
+
+  it('touches the parent workout when a 23505 duplicate-key conflict is recovered', async () => {
+    const WORKOUT_ID = 'wk-aaa0-0000-0000-000000000000';
+    const EXISTING_SET_ID = 'set-bbb0-0000-0000-000000000000';
+
+    let setsCallCount = 0;
+    const supabase: any = {
+      from: (table: string) => {
+        if (table === 'workout_exercises') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { id: WORKOUT_EXERCISE_ID, workouts: { id: WORKOUT_ID, status: 'in_progress' } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'sets') {
+          setsCallCount++;
+          if (setsCallCount === 1) {
+            return {
+              insert: () => ({
+                select: () => ({
+                  single: async () => ({ data: null, error: { code: '23505', message: 'duplicate key' } }),
+                }),
+              }),
+            };
+          }
+          return {
+            select: () => ({
+              eq: () => ({
+                single: async () => ({ data: { id: EXISTING_SET_ID }, error: null }),
+              }),
+            }),
+          };
+        }
+        return {};
+      },
+    };
+
+    mockRequireUser.mockResolvedValueOnce({ supabase, user: { id: USER_ID } as any });
+    mockWithIdempotency.mockImplementationOnce(async (opts: any) => {
+      const r = await opts.handler();
+      return { replayed: false, resourceId: r.resourceId, response: r.response };
+    });
+
+    await POST(makeRequest());
+
+    expect(mockTouchWorkoutLastActivity).toHaveBeenCalledWith(supabase, WORKOUT_ID, expect.any(String));
+  });
+
+  it('two calls with the same clientMutationId insert once and return the same body', async () => {
+    const insertSpy = vi.fn().mockReturnValue({
+      select: () => ({
+        single: async () => ({ data: { id: RESOURCE_ID }, error: null }),
+      }),
+    });
+
+    const supabase: any = {
+      from: (table: string) => {
+        if (table === 'workout_exercises') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { id: WORKOUT_EXERCISE_ID, workouts: { id: 'wk-001', status: 'in_progress' } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'sets') {
+          return { insert: insertSpy };
+        }
+        if (table === 'workouts') {
+          return {
+            update: () => ({
+              eq: () => ({
+                neq: () => ({
+                  neq: () => Promise.resolve({ error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        return {};
+      },
+    };
+
+    mockRequireUser.mockResolvedValue({
+      supabase,
+      user: { id: USER_ID } as any,
+    });
+
+    let capturedResult: { resourceId: string | null; response: any } | null = null;
+    mockWithIdempotency.mockImplementation(async (opts: any) => {
+      if (capturedResult === null) {
+        const r = await opts.handler();
+        capturedResult = r;
+        return { replayed: false, resourceId: r.resourceId, response: r.response };
+      }
+      return { replayed: true, resourceId: capturedResult.resourceId, response: null };
+    });
+
+    const res1 = await POST(makeRequest());
+    const json1 = await res1.json();
+
+    const res2 = await POST(makeRequest());
+    const json2 = await res2.json();
+
+    expect(insertSpy).toHaveBeenCalledTimes(1);
+    expect(json1.id).toBe(json2.id);
+    expect(json1.clientMutationId).toBe(json2.clientMutationId);
   });
 });

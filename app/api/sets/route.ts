@@ -74,6 +74,7 @@ export async function POST(request: Request): Promise<Response> {
               .eq('client_mutation_id', clientMutationId)
               .single();
             if (existingError) throw existingError;
+            await touchWorkoutLastActivity(supabase, workout.id, new Date().toISOString());
             return { resourceId: existing.id, response: { id: existing.id, clientMutationId } };
           }
           throw insertError;

@@ -159,11 +159,20 @@ export async function POST(request: Request): Promise<Response> {
           }
         : null;
 
+      if (alreadyExisted) {
+        return jsonOk({
+          id: result.resourceId!,
+          clientMutationId,
+          alreadyExisted: true,
+          existingDraft,
+        });
+      }
+
       return jsonOk({
         id: result.resourceId!,
         clientMutationId,
-        alreadyExisted,
-        existingDraft,
+        alreadyExisted: false,
+        existingDraft: null,
         name: w?.name,
         startedAt: w?.started_at,
         lastActivityAt: w?.last_activity_at,

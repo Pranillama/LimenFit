@@ -79,72 +79,66 @@ describe('POST /api/workouts — create draft (idempotency scenarios)', () => {
     vi.clearAllMocks();
   });
 
-  describe('Scenario 1: First call finds existing draft', () => {
-    it('returns 200 with alreadyExisted: true and existingDraft', async () => {
-      mockRequireUser.mockResolvedValueOnce({
-        supabase: makeSupabase(null) as any,
-        user: { id: USER_ID } as any,
-      });
-      mockWithIdempotency.mockResolvedValueOnce({
-        replayed: false,
-        resourceId: 'wk-001',
-        response: {
-          id: 'wk-001',
-          clientMutationId: CLIENT_MUTATION_ID,
-          alreadyExisted: true,
-          existingDraft: {
-            id: 'wk-001',
-            name: 'My Workout',
-            startedAt: '2026-05-01T10:00:00.000Z',
-            lastActivityAt: '2026-05-01T10:30:00.000Z',
-            planWorkoutId: null,
-          },
-        } as any,
-      });
-
-      const res = await POST(makeRequest());
-      const json = await res.json();
-
-      expect(res.status).toBe(200);
-      expect(json.alreadyExisted).toBe(true);
-      expect(json.existingDraft).toBeDefined();
-      expect(json.existingDraft.id).toBe('wk-001');
-      expect(mockWithIdempotency).toHaveBeenCalledWith(
-        expect.objectContaining({ mutationType: 'workout.create' }),
-      );
-    });
-  });
-
-  describe('Scenario 2: Replay of existing-draft create', () => {
-    it('preserves alreadyExisted: true and existingDraft from stored metadata', async () => {
-      const workoutRow: WorkoutRow = {
+  describe('Scenarios 1 & 2: Two calls with same clientMutationId on existing draft', () => {
+    it('returns 200 alreadyExisted: true on both calls; insert is never called', async () => {
+      const WORKOUT_ROW: WorkoutRow = {
         id: 'wk-001',
         name: 'My Workout',
         started_at: '2026-05-01T10:00:00.000Z',
         last_activity_at: '2026-05-01T10:30:00.000Z',
         plan_workout_id: null,
       };
-      mockRequireUser.mockResolvedValueOnce({
-        supabase: makeSupabase(workoutRow) as any,
+
+      const insertSpy = vi.fn();
+      const supabase: any = {
+        from: (table: string) => {
+          if (table !== 'workouts') return {};
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({ data: WORKOUT_ROW, error: null }),
+                }),
+              }),
+            }),
+            insert: insertSpy,
+          };
+        },
+      };
+
+      mockRequireUser.mockResolvedValue({
+        supabase,
         user: { id: USER_ID } as any,
       });
-      mockWithIdempotency.mockResolvedValueOnce({
-        replayed: true,
-        resourceId: 'wk-001',
-        response: null,
-        responseMetadata: { alreadyExisted: true },
-        mutationType: 'workout.create',
+
+      let capturedResult: { resourceId: string | null; response: any; responseMetadata?: any } | null = null;
+      mockWithIdempotency.mockImplementation(async (opts: any) => {
+        if (capturedResult === null) {
+          const r = await opts.handler();
+          capturedResult = r;
+          return { replayed: false, resourceId: r.resourceId, response: r.response };
+        }
+        return {
+          replayed: true,
+          resourceId: capturedResult.resourceId,
+          responseMetadata: capturedResult.responseMetadata,
+          response: null,
+        };
       });
 
-      const res = await POST(makeRequest());
-      const json = await res.json();
+      const res1 = await POST(makeRequest());
+      const json1 = await res1.json();
 
-      expect(res.status).toBe(200);
-      // Must read alreadyExisted from stored metadata, not hard-code false
-      expect(json.alreadyExisted).toBe(true);
-      expect(json.alreadyExisted).not.toBe(false);
-      expect(json.existingDraft).toBeDefined();
-      expect(json.existingDraft.id).toBe('wk-001');
+      const res2 = await POST(makeRequest());
+      const json2 = await res2.json();
+
+      expect(res1.status).toBe(200);
+      expect(res2.status).toBe(200);
+      expect(insertSpy).not.toHaveBeenCalled();
+      expect(json1.alreadyExisted).toBe(true);
+      expect(json1.existingDraft).toBeDefined();
+      expect(json1.existingDraft.id).toBe('wk-001');
+      expect(json2).toEqual(json1);
     });
   });
 
@@ -179,6 +173,71 @@ describe('POST /api/workouts — create draft (idempotency scenarios)', () => {
       const callArgs = mockWithIdempotency.mock.calls[0]![0];
       expect(callArgs.mutationType).toBe('workout.create');
       expect(callArgs.mutationType).not.toContain('existed');
+    });
+  });
+
+  describe('Scenario 5: Two calls with same clientMutationId insert once', () => {
+    it('inserts once and returns the same id, clientMutationId, and alreadyExisted on both calls', async () => {
+      const WORKOUT_ROW = {
+        id: 'wk-new',
+        name: null,
+        started_at: '2026-05-01T10:00:00.000Z',
+        last_activity_at: '2026-05-01T10:00:00.000Z',
+        plan_workout_id: null,
+      };
+
+      const insertSpy = vi.fn().mockReturnValue({
+        select: () => ({
+          single: async () => ({ data: WORKOUT_ROW, error: null }),
+        }),
+      });
+
+      let maybeSingleCalls = 0;
+      const supabase: any = {
+        from: (table: string) => {
+          if (table !== 'workouts') return {};
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => {
+                    maybeSingleCalls++;
+                    // First call: handler checking for an existing in-progress draft
+                    if (maybeSingleCalls === 1) return { data: null, error: null };
+                    // Second call: replay path re-fetching the row by resourceId
+                    return { data: WORKOUT_ROW, error: null };
+                  },
+                }),
+              }),
+            }),
+            insert: insertSpy,
+          };
+        },
+      };
+
+      mockRequireUser.mockResolvedValue({
+        supabase,
+        user: { id: USER_ID } as any,
+      });
+
+      let capturedResult: { resourceId: string | null; response: any; responseMetadata?: any } | null = null;
+      mockWithIdempotency.mockImplementation(async (opts: any) => {
+        if (capturedResult === null) {
+          const r = await opts.handler();
+          capturedResult = r;
+          return { replayed: false, resourceId: r.resourceId, response: r.response };
+        }
+        return { replayed: true, resourceId: capturedResult.resourceId, responseMetadata: capturedResult.responseMetadata, response: null };
+      });
+
+      const res1 = await POST(makeRequest());
+      const json1 = await res1.json();
+
+      const res2 = await POST(makeRequest());
+      const json2 = await res2.json();
+
+      expect(insertSpy).toHaveBeenCalledTimes(1);
+      expect(json2).toEqual(json1);
     });
   });
 
