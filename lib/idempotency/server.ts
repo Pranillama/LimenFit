@@ -18,6 +18,10 @@ export class IdempotencyValidationError extends Error {
 export interface IdempotencyResult<T> {
   replayed: boolean;
   resourceId: string | null;
+  /** Present on replay — echoes the mutation_type stored in the receipt. */
+  mutationType?: string;
+  /** Outcome metadata from the first successful execution, if available. */
+  responseMetadata?: unknown;
   /** Null on a replay — caller reconstructs the success body from resourceId. */
   response: T | null;
 }
@@ -28,7 +32,7 @@ interface WithIdempotencyOptions<T> {
   clientMutationId: string;
   mutationType: string;
   resourceType: string;
-  handler: () => Promise<{ resourceId: string | null; response: T }>;
+  handler: () => Promise<{ resourceId: string | null; response: T; responseMetadata?: unknown }>;
 }
 
 /**
@@ -59,7 +63,7 @@ export async function withIdempotency<T>(
   // Check for an existing receipt (RLS restricts rows to the calling user).
   const { data: existing, error: lookupError } = await supabase
     .from('mutation_receipts')
-    .select('resource_id')
+    .select('resource_id, mutation_type, response_metadata')
     .eq('client_mutation_id', clientMutationId)
     .eq('user_id', userId)
     .maybeSingle();
@@ -67,10 +71,16 @@ export async function withIdempotency<T>(
   if (lookupError) throw lookupError;
 
   if (existing) {
-    return { replayed: true, resourceId: existing.resource_id, response: null };
+    return {
+      replayed: true,
+      resourceId: existing.resource_id,
+      mutationType: existing.mutation_type,
+      responseMetadata: existing.response_metadata,
+      response: null,
+    };
   }
 
-  const { resourceId, response } = await handler();
+  const { resourceId, response, responseMetadata } = await handler();
 
   const { error: insertError } = await supabase.from('mutation_receipts').insert({
     client_mutation_id: clientMutationId,
@@ -78,6 +88,7 @@ export async function withIdempotency<T>(
     mutation_type: mutationType,
     resource_type: resourceType,
     resource_id: resourceId,
+    response_metadata: (responseMetadata as any) ?? null,
   });
 
   if (insertError) {
@@ -85,7 +96,7 @@ export async function withIdempotency<T>(
     if (insertError.code === '23505') {
       const { data: raceReceipt, error: raceReadError } = await supabase
         .from('mutation_receipts')
-        .select('resource_id')
+        .select('resource_id, mutation_type, response_metadata')
         .eq('client_mutation_id', clientMutationId)
         .eq('user_id', userId)
         .maybeSingle();
@@ -96,6 +107,8 @@ export async function withIdempotency<T>(
       return {
         replayed: true,
         resourceId: raceReceipt.resource_id,
+        mutationType: raceReceipt.mutation_type,
+        responseMetadata: raceReceipt.response_metadata,
         response: null,
       };
     }

@@ -46,6 +46,7 @@ export type Database = {
           processed_at: string
           resource_id: string | null
           resource_type: string
+          response_metadata: Json | null
           user_id: string
         }
         Insert: {
@@ -54,6 +55,7 @@ export type Database = {
           processed_at?: string
           resource_id?: string | null
           resource_type: string
+          response_metadata?: Json | null
           user_id: string
         }
         Update: {
@@ -62,6 +64,7 @@ export type Database = {
           processed_at?: string
           resource_id?: string | null
           resource_type?: string
+          response_metadata?: Json | null
           user_id?: string
         }
         Relationships: []

@@ -25,17 +25,31 @@ interface WithIdempotencyOptions<T> {
   supabase: SupabaseClient<Database>;
   userId: string;
   clientMutationId: string;  // must be a v4 UUID
-  mutationType: string;       // e.g. 'workout.create'
-  resourceType: string;       // e.g. 'workout'
-  handler: () => Promise<{ resourceId: string | null; response: T }>;
+  mutationType: string;       // logical operation name stored verbatim in the receipt
+  resourceType: string;       // e.g. 'workouts'
+  handler: () => Promise<{ resourceId: string | null; response: T; responseMetadata?: unknown }>;
 }
 
 interface IdempotencyResult<T> {
   replayed: boolean;
   resourceId: string | null;
-  response: T | null;  // null on replay — caller reconstructs from resourceId
+  mutationType?: string;     // echoes mutation_type from the receipt on replay
+  responseMetadata?: unknown; // outcome metadata from the first execution, if provided
+  response: T | null;        // null on replay — caller reconstructs from resourceId and responseMetadata
 }
 ```
+
+**`mutationType` contract:** `mutation_type` in the receipt always stores the value passed to
+`withIdempotency` — the logical operation name (e.g. `'workout.create'`). Handlers must not
+vary `mutation_type` to encode outcome metadata. If a handler needs to signal different outcomes
+(e.g. "draft already existed"), that information belongs in the response body or `responseMetadata`,
+not in `mutation_type`.
+
+**`responseMetadata` contract:** Handlers may optionally return `responseMetadata` containing
+outcome-specific information needed to reconstruct the original response on replay. For example,
+`POST /api/workouts` stores `{ alreadyExisted: boolean }` to distinguish between creating a new
+draft and returning an existing one. The metadata is persisted as JSONB in `response_metadata`
+and returned on replay.
 
 **Validation:** `clientMutationId` is validated as a v4 UUID before any DB work.
 A malformed ID throws `IdempotencyValidationError`; callers map this to a 400.
@@ -44,18 +58,19 @@ A malformed ID throws `IdempotencyValidationError`; callers map this to a 400.
 
 1. Looks up `mutation_receipts` by `(client_mutation_id, user_id)` — no row found.
 2. Calls `handler()` to run the actual mutation.
-3. Inserts a receipt row with `(client_mutation_id, user_id, mutation_type, resource_type, resource_id)`.
+3. Inserts a receipt row with `(client_mutation_id, user_id, mutation_type, resource_type, resource_id, response_metadata)`.
 4. Returns `{ replayed: false, resourceId, response }`.
 
 **Replay (cache hit):**
 
 The pre-existing receipt is returned immediately without running `handler()`:
-`{ replayed: true, resourceId: <existing>, response: null }`.
+`{ replayed: true, resourceId: <existing>, responseMetadata: <stored>, response: null }`.
 
-The caller is responsible for constructing the success response from `resourceId`:
+The caller is responsible for constructing the success response from `resourceId` and `responseMetadata`:
 
-- **Create mutations** (e.g. POST `/api/workouts`): re-fetch the existing row using
-  `resourceId` to echo back full metadata to the client.
+- **Create mutations** (e.g. POST `/api/workouts`): use `responseMetadata` to determine the outcome
+  (e.g. "already existed"), re-fetch the existing row using `resourceId` to echo back full metadata
+  to the client, and reconstruct the response with the correct outcome flags.
 - **Update/delete mutations** (e.g. PATCH, DELETE): return a static success body —
   re-fetching is unnecessary because the operation is already reflected in the DB.
 

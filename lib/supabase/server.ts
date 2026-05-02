@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import type { SetAllCookies } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { assertServerOnly, env } from '@/lib/env';
 
@@ -43,5 +44,8 @@ export async function createSupabaseServerClient() {
         },
       },
     },
-  );
+  // @supabase/ssr's createServerClient<Database> shifts the generic type params
+  // compared to the supabase-js SupabaseClient class (which gained extra params).
+  // Cast to the canonical form so .from() resolves table types correctly everywhere.
+  ) as unknown as SupabaseClient<Database>;
 }
