@@ -213,3 +213,40 @@ describe('POST /api/workouts — create draft (idempotency scenarios)', () => {
     });
   });
 });
+
+describe('POST /api/workouts — auth and validation errors', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 401 when requireUser throws ApiAuthError', async () => {
+    const { ApiAuthError } = await import('@/lib/api/auth');
+    mockRequireUser.mockRejectedValueOnce(new ApiAuthError());
+
+    const res = await POST(makeRequest());
+
+    expect(res.status).toBe(401);
+    const json = await res.json();
+    expect(json.error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('returns 400 VALIDATION_ERROR when body fails schema validation', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabase(null) as any,
+      user: { id: USER_ID } as any,
+    });
+
+    const req = new Request('http://localhost/api/workouts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientMutationId: 'not-a-uuid' }),
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe('VALIDATION_ERROR');
+    expect(mockWithIdempotency).not.toHaveBeenCalled();
+  });
+});
