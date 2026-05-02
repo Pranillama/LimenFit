@@ -240,18 +240,21 @@ export type Database = {
       }
       workout_exercises: {
         Row: {
+          client_mutation_id: string | null
           exercise_id: string
           id: string
           position: number
           workout_id: string
         }
         Insert: {
+          client_mutation_id?: string | null
           exercise_id: string
           id?: string
           position: number
           workout_id: string
         }
         Update: {
+          client_mutation_id?: string | null
           exercise_id?: string
           id?: string
           position?: number
@@ -327,6 +330,14 @@ export type Database = {
     }
     Functions: {
       generate_share_slug: { Args: never; Returns: string }
+      reorder_workout_exercise: {
+        Args: { p_workout_exercise_id: string; p_position: number }
+        Returns: Array<{ id: string; workout_id: string }>
+      }
+      delete_workout_exercise_in_progress: {
+        Args: { p_workout_exercise_id: string }
+        Returns: Array<{ deleted: boolean; workout_id: string | null; workout_status: string | null }>
+      }
     }
     Enums: {
       weight_unit: "lbs" | "kg"
