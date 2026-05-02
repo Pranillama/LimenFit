@@ -108,3 +108,17 @@ When `hydrateActiveWorkout` (`features/workout/store/hydration.ts`) restores an
 all server records already exist and no mutations need to be replayed. New user actions
 after hydration generate fresh mutations with new `clientMutationId`s following the
 normal T7 dedupe contract.
+
+## Routes that consume this module
+
+| Route file | `mutationType` values stored |
+|------------|------------------------------|
+| [`app/api/workouts/route.ts`](../../app/api/workouts/route.ts) | `workout.create` |
+| [`app/api/workouts/[id]/route.ts`](../../app/api/workouts/[id]/route.ts) | `workout.patch`, `workout.discard` |
+| [`app/api/workouts/[id]/restore/route.ts`](../../app/api/workouts/[id]/restore/route.ts) | `workout.restore` |
+| [`app/api/workout-exercises/route.ts`](../../app/api/workout-exercises/route.ts) | `workoutExercise.add` |
+| [`app/api/workout-exercises/[id]/route.ts`](../../app/api/workout-exercises/[id]/route.ts) | `workoutExercise.reorder`, `workoutExercise.remove` |
+| [`app/api/sets/route.ts`](../../app/api/sets/route.ts) | `set.log` |
+| [`app/api/sets/[id]/route.ts`](../../app/api/sets/[id]/route.ts) | `set.edit`, `set.delete` |
+
+Each route handler passes a session-scoped `createSupabaseServerClient()` client to `withIdempotency`. The same client is used for all `mutation_receipts` reads and writes, so a single session token covers both the route-specific DB work and the receipt management.
