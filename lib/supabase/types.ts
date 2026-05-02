@@ -175,6 +175,7 @@ export type Database = {
       }
       sets: {
         Row: {
+          client_mutation_id: string | null
           id: string
           logged_at: string
           reps: number
@@ -184,6 +185,7 @@ export type Database = {
           workout_exercise_id: string
         }
         Insert: {
+          client_mutation_id?: string | null
           id?: string
           logged_at?: string
           reps: number
@@ -193,6 +195,7 @@ export type Database = {
           workout_exercise_id: string
         }
         Update: {
+          client_mutation_id?: string | null
           id?: string
           logged_at?: string
           reps?: number
