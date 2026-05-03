@@ -91,6 +91,7 @@ export interface ActiveWorkoutStoreActions {
   recordSyncResult(result: SyncResult): void;
   applyServerIds(localToServerMap: Record<string, string>): void;
   setPersistenceMode(mode: PersistenceMode): void;
+  clearCompletedSession(): void;
   // Flush-engine surface
   getQueue(): QueuedMutation[];
   getTombstones(): TombstoneMap;
@@ -630,14 +631,34 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
       set((s) => {
         const flushedSet = new Set(flushed);
         const queue = s.queue.filter((m) => !flushedSet.has(m.clientMutationId));
+        const meta =
+          s.meta?.status === 'completed_local' && queue.length === 0 && error === null
+            ? { ...s.meta, status: 'completed_synced' as const }
+            : s.meta;
         return {
           ...s,
+          meta,
           queue,
           sync: {
             ...s.sync,
             flushing: false,
             lastFlushError: error,
             pendingCount: queue.length,
+          },
+        };
+      });
+    },
+
+    clearCompletedSession() {
+      set((s) => {
+        const status = s.meta?.status;
+        if (status !== 'completed_local' && status !== 'completed_synced') return s;
+        return {
+          ...INITIAL_STATE,
+          sync: {
+            ...initialSync,
+            online: s.sync.online,
+            persistenceMode: s.sync.persistenceMode,
           },
         };
       });
@@ -675,8 +696,15 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
 
     dropMutation(clientMutationId) {
       set((s) => {
+        const dropping = s.queue.find((m) => m.clientMutationId === clientMutationId);
         const queue = s.queue.filter((m) => m.clientMutationId !== clientMutationId);
-        return { ...s, queue, sync: { ...s.sync, pendingCount: queue.length } };
+        const isCompletedPatch =
+          dropping?.kind === 'workout.patch' && dropping.payload.status === 'completed';
+        const meta =
+          isCompletedPatch && queue.length === 0 && s.meta?.status === 'completed_local'
+            ? { ...s.meta, status: 'completed_synced' as const }
+            : s.meta;
+        return { ...s, meta, queue, sync: { ...s.sync, pendingCount: queue.length } };
       });
     },
 
@@ -740,3 +768,8 @@ subscribeDegrade(() => {
     id: 'persistence-degraded',
   });
 });
+
+/** Standalone wrapper so consumers can import clearCompletedSession directly from this module. */
+export function clearCompletedSession(): void {
+  useActiveWorkoutStore.getState().clearCompletedSession();
+}

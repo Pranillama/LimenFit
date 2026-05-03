@@ -1,5 +1,5 @@
 // ---------- Store hook ----------
-export { useActiveWorkoutStore } from './store/useActiveWorkoutStore';
+export { useActiveWorkoutStore, clearCompletedSession } from './store/useActiveWorkoutStore';
 export type {
   ActiveWorkoutStoreActions,
   ActiveWorkoutStoreState,
@@ -18,6 +18,9 @@ export {
   selectSyncBadge,
   selectExerciseById,
   selectSyncState,
+  selectIsCompletedLocal,
+  selectIsCompletedSynced,
+  selectShouldAutoClear,
 } from './store/selectors';
 
 // ---------- Mutation builders ----------
@@ -63,10 +66,17 @@ export type {
 export { useStartWorkoutAction } from './hooks/useStartWorkoutAction';
 export type { StartWorkoutBlockedResult, StartWorkoutResult } from './hooks/useStartWorkoutAction';
 export { useActiveWorkoutHydration } from './hooks/useActiveWorkoutHydration';
+export { useCompletionCleanup } from './hooks/useCompletionCleanup';
+export { useExerciseLookup } from './hooks/useExerciseLookup';
+export type { ExerciseLookup } from './hooks/useExerciseLookup';
 
 // ---------- Resume coordinator ----------
 export { requestStartWorkout, subscribeResumeRequest, settleRequest } from './store/resumeCoordinator';
 export type { StartDecision, StartIntent } from './store/resumeCoordinator';
+
+// ---------- Lib ----------
+export { DEFAULT_REST_SECONDS, restRemaining } from './lib/restTimer';
+export { formatElapsed, formatRest, formatDuration, autoNameWorkout } from './lib/format';
 
 // ---------- Components ----------
 export { ResumeOrDiscardDialog } from './components/ResumeOrDiscardDialog';

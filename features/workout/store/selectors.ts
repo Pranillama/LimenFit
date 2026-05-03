@@ -52,3 +52,25 @@ export function selectExerciseById(
 export function selectSyncState(state: ActiveWorkoutState): SyncState {
   return state.sync;
 }
+
+/** True when the workout has ended locally but the completed patch has not yet drained from the queue. */
+export function selectIsCompletedLocal(state: ActiveWorkoutState): boolean {
+  return state.meta?.status === 'completed_local';
+}
+
+/** True when the completed patch has been acknowledged by the server and the queue is empty. */
+export function selectIsCompletedSynced(state: ActiveWorkoutState): boolean {
+  return state.meta?.status === 'completed_synced';
+}
+
+/**
+ * True when the session is safe to auto-clear: status is completed_synced,
+ * the queue is fully drained, and no flush is in progress.
+ */
+export function selectShouldAutoClear(state: ActiveWorkoutState): boolean {
+  return (
+    state.meta?.status === 'completed_synced' &&
+    state.queue.length === 0 &&
+    !state.sync.flushing
+  );
+}
