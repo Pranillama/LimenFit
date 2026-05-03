@@ -11,4 +11,4 @@ export { useCreateExerciseMutation } from './hooks/useCreateExerciseMutation';
 
 export { filterExercises, splitRecentVsAll } from './lib/filterAndSort';
 
-// TODO(T8): export { ExercisePicker } from './ExercisePicker';
+export { ExercisePicker } from './ExercisePicker';

@@ -26,6 +26,4 @@ export type ExercisePickerProps = {
   onOpenChange: (open: boolean) => void;
   onConfirm: (exerciseIds: string[]) => void;
   title?: string;
-  /** @default "Add" */
-  confirmLabelPrefix?: string;
 };

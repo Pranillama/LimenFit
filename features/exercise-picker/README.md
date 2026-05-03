@@ -4,17 +4,26 @@ Exercise picker feature. Implemented in T8.
 
 ## Public component contract
 
-`ExercisePicker` is the reusable modal that lets the user search, filter, and
-select one or more exercises to add to a workout. It is exported from
+`ExercisePicker` is a full-height bottom sheet that lets the user search, filter,
+and select one or more exercises to add to a workout. It is exported from
 `features/exercise-picker` (barrel) and accepts `ExercisePickerProps`:
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `open` | `boolean` | Controls dialog open state |
-| `onOpenChange` | `(open: boolean) => void` | Called when the dialog requests close |
-| `onConfirm` | `(exerciseIds: string[]) => void` | Called with the selected exercise IDs when the user confirms |
-| `title` | `string?` | Optional dialog heading |
-| `confirmLabelPrefix` | `string?` | Prefix for the confirm button label (default `"Add"`) |
+| `open` | `boolean` | Controls sheet open state |
+| `onOpenChange` | `(open: boolean) => void` | Called when the sheet requests close |
+| `onConfirm` | `(exerciseIds: string[]) => void` | Called with selected exercise IDs when the user taps the Add button |
+| `title` | `string?` | Sheet heading (default `"Select Exercises"`) |
+
+### Close behaviour
+
+All close attempts (header X, overlay tap, Escape key) route through `attemptClose`.
+If no exercises are selected the sheet closes immediately. If any are selected, a
+`DiscardConfirmationDialog` appears and the sheet only closes after the user confirms
+the discard.
+
+State is reset every time `open` transitions from `false` to `true`, so every new
+picker session starts fresh regardless of how the previous session ended.
 
 ## Catalog
 
