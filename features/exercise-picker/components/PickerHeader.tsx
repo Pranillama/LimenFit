@@ -25,7 +25,6 @@ export function PickerHeader({
   onConfirm,
 }: PickerHeaderProps) {
   const [localQuery, setLocalQuery] = React.useState(query);
-  const [activeFilter, setActiveFilter] = React.useState<'equipment' | 'muscles' | null>(null);
 
   React.useEffect(() => {
     setLocalQuery(query);
@@ -37,7 +36,7 @@ export function PickerHeader({
   }, [localQuery, onQueryChange]);
 
   return (
-    <div className="sticky top-0 z-10 flex flex-col gap-3 border-b bg-background px-4 pb-3 pt-4">
+    <div className="flex flex-col gap-3 bg-background px-4 pb-3 pt-4">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
@@ -76,28 +75,6 @@ export function PickerHeader({
             <X className="h-4 w-4" />
           </button>
         )}
-      </div>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs"
-          aria-pressed={activeFilter === 'equipment'}
-          onClick={() => setActiveFilter(activeFilter === 'equipment' ? null : 'equipment')}
-        >
-          All Equipment ▾
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs"
-          aria-pressed={activeFilter === 'muscles'}
-          onClick={() => setActiveFilter(activeFilter === 'muscles' ? null : 'muscles')}
-        >
-          All Muscles ▾
-        </Button>
       </div>
     </div>
   );
