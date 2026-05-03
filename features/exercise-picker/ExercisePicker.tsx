@@ -7,6 +7,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import type { ExerciseCategory, ExerciseEquipment } from '@/lib/exercises/catalog';
 
 import { AddCustomExerciseRow } from './components/AddCustomExerciseRow';
+import { CustomExerciseDialog } from './components/CustomExerciseDialog';
 import { ExerciseList } from './components/ExerciseList';
 import { FilterBottomSheet } from './components/FilterBottomSheet';
 import { FilterRow } from './components/FilterRow';
@@ -14,7 +15,7 @@ import { PickerHeader } from './components/PickerHeader';
 import { useExercisesQuery } from './hooks/useExercisesQuery';
 import { usePickerSelection } from './hooks/usePickerSelection';
 import { filterExercises } from './lib/filterAndSort';
-import type { ExercisePickerProps } from './types';
+import type { ExerciseListItem, ExercisePickerProps } from './types';
 
 export function ExercisePicker({
   open,
@@ -41,7 +42,10 @@ export function ExercisePicker({
   const [filterSheetKind, setFilterSheetKind] = React.useState<'equipment' | 'category' | null>(
     null,
   );
-  // Phase 6 will add CustomExerciseDialog state here.
+  const [customDialog, setCustomDialog] = React.useState<{ open: boolean; defaultName: string }>({
+    open: false,
+    defaultName: '',
+  });
 
   // Compute whether the AddCustomExerciseRow should be shown.
   // useExercisesQuery is also called inside ExerciseList; React Query deduplicates requests.
@@ -73,9 +77,14 @@ export function ExercisePicker({
     onOpenChange(false);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function handleAddCustom(_name: string, _equipment?: ExerciseEquipment) {
-    // Phase 6: open CustomExerciseDialog with name + equipment prefilled
+  function handleAddCustom(name: string, _equipment?: ExerciseEquipment) {
+    setCustomDialog({ open: true, defaultName: name });
+  }
+
+  function handleExerciseCreated(item: ExerciseListItem) {
+    toggleExercise(item.id);
+    setQuery('');
+    setCustomDialog({ open: false, defaultName: '' });
   }
 
   function handleFilterToggle(value: string) {
@@ -169,6 +178,14 @@ export function ExercisePicker({
         title="Discard selection?"
         description="You'll lose the exercises you've selected."
         onDiscard={handleDiscard}
+      />
+
+      <CustomExerciseDialog
+        open={customDialog.open}
+        onOpenChange={(isOpen) => setCustomDialog((prev) => ({ ...prev, open: isOpen }))}
+        defaultName={customDialog.defaultName}
+        defaultEquipment={filters.equipment[0] ?? undefined}
+        onCreated={handleExerciseCreated}
       />
     </>
   );
