@@ -39,6 +39,64 @@ the `lib/schemas` barrel. It validates the body sent to `POST /api/exercises`.
 `ExerciseListItem`, `ExercisePreview`, `ExerciseFilters`, and `ExercisePickerProps` are
 defined in [`features/exercise-picker/types.ts`](./types.ts) and exported from the barrel.
 
+## Data layer
+
+All data hooks live under [`features/exercise-picker/hooks/`](./hooks/) and use
+`createSupabaseBrowserClient` from `lib/supabase/browser.ts`. The `QueryClient` is
+provided by `app/providers.tsx`.
+
+### `useExercisesQuery`
+
+Fetches the full exercise library (`['exercises', 'library']`).
+`staleTime: 10 min` — long revalidation window since the catalog changes rarely.
+RLS returns rows where `user_id IS NULL OR user_id = auth.uid()`, so no extra filter
+is needed.
+
+### `useRecentExercisesQuery`
+
+Fetches the user's 10 most recently used exercises (`['exercises', 'recent', userId]`).
+`staleTime: 60 s`.
+
+Returns `{ recentIds: string[]; previews: Map<exerciseId, ExercisePreview> }` where
+`ExercisePreview` carries the weight/reps from the last logged set for quick display.
+Returns `{ recentIds: [], previews: new Map() }` when the user has no workouts yet.
+
+Uses a private `useSessionUserId` helper (react-query `staleTime: Infinity`) to key
+the cache per user so different users on the same device get separate caches.
+
+### `useCreateExerciseMutation`
+
+POSTs to `/api/exercises`. Generates a `clientMutationId` via `newClientMutationId()`
+from `lib/idempotency` and sends it as both the `Idempotency-Key` header and a JSON body
+field, matching the `dispatchMutation` pattern in `features/workout/store/queue.ts`.
+
+On success:
+- Optimistically prepends the new exercise to `['exercises', 'library']` cache so it
+  appears in the picker immediately.
+- Invalidates `['exercises']` (covers both `library` and `recent`) to trigger a refetch
+  that restores alphabetical order and updates recent exercises.
+
+On error: surfaces a `toast.error` via `components/ui/sonner`.
+
+Returns `ExerciseListItem` so the dialog can auto-select the new exercise (Phase 6).
+
+## Filter helpers
+
+Pure functions in [`features/exercise-picker/lib/filterAndSort.ts`](./lib/filterAndSort.ts).
+No React, no Supabase — trivially unit-testable.
+
+### `filterExercises(items, q, filters)`
+
+- Equipment and category filters: OR within facet, AND across facets.
+- Text search: all whitespace-split tokens must appear as case-insensitive substrings of
+  the exercise name.
+- Preserves upstream alphabetical sort order.
+
+### `splitRecentVsAll(filtered, recentIds)`
+
+Splits filtered results into `{ recent, all }` where `recent` preserves `recentIds` order
+and `all` contains the remaining items in their original (alphabetical) order.
+
 ## Other UI notes
 
 Use `DiscardConfirmationDialog` from `@/components/discard-confirmation-dialog` for any
