@@ -7,6 +7,7 @@ import type { ExerciseListItem } from '@/features/exercise-picker/index';
 export interface ExerciseLookup {
   map: Map<string, ExerciseListItem>;
   nameOf: (id: string) => string;
+  isLoading: boolean;
 }
 
 /**
@@ -15,7 +16,7 @@ export interface ExerciseLookup {
  * components share the same query result without each re-running the query.
  */
 export function useExerciseLookup(): ExerciseLookup {
-  const { data = [] } = useExercisesQuery();
+  const { data = [], isLoading } = useExercisesQuery();
 
   const map = useMemo<Map<string, ExerciseListItem>>(
     () => new Map(data.map((ex) => [ex.id, ex])),
@@ -24,5 +25,5 @@ export function useExerciseLookup(): ExerciseLookup {
 
   const nameOf = useMemo(() => (id: string) => map.get(id)?.name ?? '', [map]);
 
-  return { map, nameOf };
+  return { map, nameOf, isLoading };
 }

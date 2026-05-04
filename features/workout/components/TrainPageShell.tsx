@@ -1,6 +1,7 @@
 'use client';
 
 import { PageContainer } from '@/components/page-container';
+import { PageSkeleton } from '@/components/page-skeleton';
 
 import { selectActiveDraftMeta } from '../store/selectors';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
@@ -8,7 +9,16 @@ import { ActiveWorkoutSession } from './ActiveWorkoutSession';
 import { StartWorkoutEmptyState } from './StartWorkoutEmptyState';
 
 export function TrainPageShell() {
+  const hydrated = useActiveWorkoutStore((s) => s.hydrated);
   const meta = useActiveWorkoutStore(selectActiveDraftMeta);
+
+  if (!hydrated) {
+    return (
+      <PageContainer title="Train">
+        <PageSkeleton />
+      </PageContainer>
+    );
+  }
 
   if (meta === null) {
     return (

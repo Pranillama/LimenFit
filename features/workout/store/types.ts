@@ -215,6 +215,7 @@ export type QueuedMutation =
 // ---------- Store state ----------
 
 export interface ActiveWorkoutState {
+  hydrated: boolean;
   meta: ActiveWorkoutMeta | null;
   exercises: ActiveWorkoutExercise[];
   restTimer: RestTimerState;

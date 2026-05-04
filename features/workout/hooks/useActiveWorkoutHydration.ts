@@ -1,21 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import { hydrateActiveWorkout } from '../store/hydration';
 
 /**
- * Runs the server hydration pass once on mount and reports when it is done.
- * Mount this hook exactly once — inside ActiveWorkoutRuntime — not at the
- * page level, so each page doesn't trigger a separate hydration attempt.
+ * Runs the server hydration pass once on mount and marks the shared store as
+ * hydrated when done. Mount this hook exactly once — inside ActiveWorkoutRuntime
+ * — not at the page level, so each page doesn't trigger a separate hydration attempt.
  *
- * If the hydration query throws a non-auth error (network, server 5xx), the
- * hook stays un-hydrated and retries automatically when the browser comes
- * back online.
+ * If the hydration query throws a non-auth error (network, server 5xx), the store
+ * stays un-hydrated and retries automatically when the browser comes back online.
  */
-export function useActiveWorkoutHydration(): { hydrated: boolean } {
-  const [hydrated, setHydrated] = useState(false);
-
+export function useActiveWorkoutHydration(): void {
   useEffect(() => {
     let cancelled = false;
     let succeeded = false;
@@ -25,7 +22,7 @@ export function useActiveWorkoutHydration(): { hydrated: boolean } {
       try {
         await hydrateActiveWorkout(useActiveWorkoutStore);
         succeeded = true;
-        if (!cancelled) setHydrated(true);
+        if (!cancelled) useActiveWorkoutStore.getState().markHydrated();
       } catch {
         // Non-auth network/server error: hydrated stays false.
         // The online listener below will trigger a retry on reconnect.
@@ -44,6 +41,4 @@ export function useActiveWorkoutHydration(): { hydrated: boolean } {
       window.removeEventListener('online', handleOnline);
     };
   }, []);
-
-  return { hydrated };
 }

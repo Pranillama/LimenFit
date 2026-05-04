@@ -76,6 +76,7 @@ export interface ServerWorkoutSnapshot {
 }
 
 export interface ActiveWorkoutStoreActions {
+  markHydrated(): void;
   startDraft(params?: { planWorkoutId?: string | null; exercises?: PreloadedExercise[] }): void;
   addExercises(exerciseIds: string[]): void;
   removeExercise(localId: string): void;
@@ -116,6 +117,7 @@ const initialSync: SyncState = {
 };
 
 const INITIAL_STATE: ActiveWorkoutState = {
+  hydrated: false,
   meta: null,
   exercises: [],
   restTimer: {},
@@ -127,7 +129,7 @@ const INITIAL_STATE: ActiveWorkoutState = {
 
 // ---------- Persisted slice type ----------
 // Mirrors ActiveWorkoutState minus transient sync fields; restTimer only keeps paused entries.
-type PersistedSlice = Omit<ActiveWorkoutState, 'sync' | 'restTimer'> & {
+type PersistedSlice = Omit<ActiveWorkoutState, 'sync' | 'restTimer' | 'hydrated'> & {
   sync: Pick<SyncState, 'online' | 'pendingCount' | 'persistenceMode'>;
   restTimer: RestTimerState; // only paused entries are written; running timers are excluded
   // quarantine is included so 4xx-dropped mutations survive reload (debug only)
@@ -184,6 +186,10 @@ const persistConfig: PersistConfig<ActiveWorkoutStoreState, PersistedSlice> = {
 export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, PersistedSlice>(
   (set, get) => ({
     ...INITIAL_STATE,
+
+    markHydrated() {
+      set((s) => ({ ...s, hydrated: true }));
+    },
 
     startDraft({ planWorkoutId, exercises: preloadedExercises = [] } = {}) {
       const localId = newLocalId();
@@ -575,6 +581,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
           });
           return {
             ...INITIAL_STATE,
+            hydrated: s.hydrated,
             tombstones: newTombstones,
             queue: [mutation],
             sync: {
@@ -595,6 +602,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
 
         return {
           ...INITIAL_STATE,
+          hydrated: s.hydrated,
           tombstones: newTombstones,
           sync: {
             ...initialSync,
@@ -655,6 +663,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
         if (status !== 'completed_local' && status !== 'completed_synced') return s;
         return {
           ...INITIAL_STATE,
+          hydrated: s.hydrated,
           sync: {
             ...initialSync,
             online: s.sync.online,
