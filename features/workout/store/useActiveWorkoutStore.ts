@@ -93,6 +93,7 @@ export interface ActiveWorkoutStoreActions {
   applyServerIds(localToServerMap: Record<string, string>): void;
   setPersistenceMode(mode: PersistenceMode): void;
   clearCompletedSession(): void;
+  setRestTimer(exerciseLocalId: string, entry: import('./types').RestTimerEntry | null): void; // client-only; not queued
   // Flush-engine surface
   getQueue(): QueuedMutation[];
   getTombstones(): TombstoneMap;
@@ -763,6 +764,16 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
       set((s) => {
         const queue = [...s.queue, mutation];
         return { ...s, queue, sync: { ...s.sync, pendingCount: queue.length } };
+      });
+    },
+
+    setRestTimer(exerciseLocalId, entry) {
+      set((s) => {
+        if (entry === null) {
+          const { [exerciseLocalId]: _, ...rest } = s.restTimer;
+          return { ...s, restTimer: rest };
+        }
+        return { ...s, restTimer: { ...s.restTimer, [exerciseLocalId]: entry } };
       });
     },
   }),

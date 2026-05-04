@@ -2,12 +2,15 @@
 
 import * as React from 'react';
 
+import { GripVertical } from 'lucide-react';
+
 import { DiscardConfirmationDialog } from '@/components/discard-confirmation-dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import type { ActiveSet, ActiveWorkoutExercise, SetLogMutation } from '../store/types';
+import { RestTimer } from './RestTimer';
 import { SetInputRow } from './SetInputRow';
 
 interface ExerciseCardProps {
@@ -15,9 +18,11 @@ interface ExerciseCardProps {
   nameOf: (id: string) => string;
   isLookupLoading: boolean;
   onRemove: (localId: string) => void;
+  now: number;
+  onDragHandlePointerDown?: (e: React.PointerEvent<HTMLButtonElement>) => void;
 }
 
-export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove }: ExerciseCardProps) {
+export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove, now, onDragHandlePointerDown }: ExerciseCardProps) {
   const [deleteSetId, setDeleteSetId] = React.useState<string | null>(null);
 
   const pendingLocalIds = useActiveWorkoutStore(
@@ -46,11 +51,25 @@ export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove }: Ex
     <div className="overflow-hidden rounded-lg border bg-card">
       {/* Header row */}
       <div className="flex items-center justify-between px-4 py-3">
-        {isLookupLoading && !name ? (
-          <Skeleton className="h-5 w-36" />
-        ) : (
-          <span className="font-medium">{name || <Skeleton className="inline-block h-5 w-36" />}</span>
-        )}
+        <div className="flex items-center gap-1">
+          {onDragHandlePointerDown && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="cursor-grab touch-none text-muted-foreground"
+              onPointerDown={onDragHandlePointerDown}
+              aria-label="Drag to reorder"
+            >
+              <GripVertical className="h-4 w-4" />
+            </Button>
+          )}
+          {isLookupLoading && !name ? (
+            <Skeleton className="h-5 w-36" />
+          ) : (
+            <span className="font-medium">{name || <Skeleton className="inline-block h-5 w-36" />}</span>
+          )}
+        </div>
         <Button
           type="button"
           variant="ghost"
@@ -82,6 +101,9 @@ export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove }: Ex
           ))}
         </div>
       )}
+
+      {/* Rest timer pill — non-blocking, purely informational */}
+      <RestTimer exerciseLocalId={exercise.localId} now={now} />
 
       {/* Input row */}
       <div className="border-t">

@@ -10,53 +10,20 @@ import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 
 interface ActiveWorkoutHeaderProps {
   hasExercises: boolean;
+  now: number;
   onCancel: () => void;
   onEndWorkout: () => void;
 }
 
 export function ActiveWorkoutHeader({
   hasExercises,
+  now,
   onCancel,
   onEndWorkout,
 }: ActiveWorkoutHeaderProps) {
   const meta = useActiveWorkoutStore(selectActiveDraftMeta);
   const syncBadge = useActiveWorkoutStore(selectSyncBadge);
   const syncState = useActiveWorkoutStore(selectSyncState);
-  const [now, setNow] = React.useState(() => Date.now());
-
-  React.useEffect(() => {
-    let timerId: ReturnType<typeof setInterval> | null = null;
-
-    function start() {
-      setNow(Date.now());
-      timerId = setInterval(() => setNow(Date.now()), 1000);
-    }
-
-    function stop() {
-      if (timerId !== null) {
-        clearInterval(timerId);
-        timerId = null;
-      }
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'hidden') {
-        stop();
-      } else {
-        start();
-      }
-    }
-
-    if (document.visibilityState !== 'hidden') {
-      start();
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      stop();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
 
   if (!meta) return null;
 

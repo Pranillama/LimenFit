@@ -5,6 +5,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+import { DEFAULT_REST_SECONDS } from '../lib/restTimer';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 
 function lastSetSignature(set: { localId: string; weightValue?: number | null; reps?: number | null } | undefined): string {
@@ -72,11 +73,17 @@ export function SetInputRow({ exerciseLocalId, defaultWeight, defaultReps }: Set
 
   function handleLog() {
     if (!validate()) return;
+    const store = useActiveWorkoutStore.getState();
     // TODO(T15): pull from user_settings.weight_unit
-    useActiveWorkoutStore.getState().logSet(exerciseLocalId, {
+    store.logSet(exerciseLocalId, {
       weight: Number(weight),
       reps: Number(reps),
       weightUnit: 'lbs',
+    });
+    store.setRestTimer(exerciseLocalId, {
+      startedAt: new Date().toISOString(),
+      durationSeconds: DEFAULT_REST_SECONDS,
+      paused: false,
     });
   }
 
