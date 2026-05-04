@@ -66,3 +66,53 @@ never render it directly. Three actions: **Resume current workout** /
 
 Use `DiscardConfirmationDialog` from `@/components/discard-confirmation-dialog` for any
 other cancel-with-unsaved-work flow (two-button modal, controlled `open` state).
+
+## Active Workout Session UI
+
+### TrainPageShell state machine
+
+`TrainPageShell` is the top-level router for `/train`. It reads `hydrated` and `meta` from
+the store and renders one of four branches:
+
+| Condition | Rendered |
+|-----------|----------|
+| `!hydrated` | `<PageSkeleton />` |
+| `meta === null` | `<StartWorkoutEmptyState />` |
+| `meta.status === 'in_progress'` | `<ActiveWorkoutSession />` |
+| `meta.status === 'completed_local' \| 'completed_synced'` | `<EndWorkoutSummary onResume={() => {}} />` |
+
+No `router.push` is needed — the user is already on `/train`, and the store drives the view.
+
+### In-progress session view transitions
+
+`ActiveWorkoutSession` owns a local `view` state (`'session' | 'summary'`). Pressing
+**End Workout** in the header transitions to `'summary'`, rendering `<EndWorkoutSummary
+onResume={() => setView('session')} />`. Pressing **Resume Workout** in the summary flips
+back to `'session'`.
+
+Once the user confirms **Save**, `endWorkout({ name })` sets `meta.status` to
+`'completed_local'` and enqueues a `workout.patch`. `ActiveWorkoutSession` unmounts
+immediately (the shell's `in_progress` branch no longer matches) and `TrainPageShell`
+takes over, rendering `EndWorkoutSummary` directly from the `completed_local` branch.
+
+### Post-save auto-clear behaviour
+
+After `endWorkout()` the session goes through two states:
+
+1. **`completed_local`** — saved to localStorage, `workout.patch` is in the queue. The
+   summary shows "Saved locally — finishing sync…". No action buttons are shown.
+2. **`completed_synced`** — `recordSyncResult` transitions status once the queue drains
+   with no error, and `selectShouldAutoClear` becomes true. The `useCompletionCleanup`
+   hook (mounted in `ActiveWorkoutRuntime`) calls `clearCompletedSession()` which resets
+   `meta` to `null`. `TrainPageShell` then renders `<StartWorkoutEmptyState />`.
+
+The user can also press **Done** (visible only in `completed_synced`) to call
+`clearCompletedSession()` immediately, bypassing the auto-clear timer.
+
+If the page is refreshed while status is `completed_local` or `completed_synced`, the
+`TrainPageShell` `completed_local | completed_synced` branch lands the user directly on
+the summary without needing to replay the in-progress session. `useCompletionCleanup`
+re-subscribes on mount and fires `clearCompletedSession()` as soon as the queue drains.
+
+See also: spec:Core Flows — LimenFit Phase 1, Flow 3 (prefer-local-draft) and Flow 4b
+(end-of-session summary and save).

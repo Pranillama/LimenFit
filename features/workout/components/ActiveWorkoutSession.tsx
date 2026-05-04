@@ -11,6 +11,7 @@ import { useNow } from '../hooks/useNow';
 import { selectIsDirty } from '../store/selectors';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import { ActiveWorkoutHeader } from './ActiveWorkoutHeader';
+import { EndWorkoutSummary } from './EndWorkoutSummary';
 import { ExerciseCardList } from './ExerciseCardList';
 
 type View = 'session' | 'summary';
@@ -65,34 +66,39 @@ export function ActiveWorkoutSession() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <ActiveWorkoutHeader
-        hasExercises={exercises.length > 0}
-        now={now}
-        onCancel={handleCancel}
-        onEndWorkout={handleEndWorkout}
-      />
-
       {view === 'session' && (
-        <div data-testid="active-workout-session" className="flex-1 px-4 py-4">
-          <ExerciseCardList
-            exercises={exercises}
-            nameOf={lookup.nameOf}
-            isLookupLoading={lookup.isLoading}
-            onRemove={handleRemoveRequest}
+        <>
+          <ActiveWorkoutHeader
+            hasExercises={exercises.length > 0}
             now={now}
+            onCancel={handleCancel}
+            onEndWorkout={handleEndWorkout}
           />
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-3 w-full"
-            onClick={() => setPickerOpen(true)}
-          >
-            + Add Exercise
-          </Button>
-        </div>
+          <div data-testid="active-workout-session" className="flex-1 px-4 py-4">
+            <ExerciseCardList
+              exercises={exercises}
+              nameOf={lookup.nameOf}
+              isLookupLoading={lookup.isLoading}
+              onRemove={handleRemoveRequest}
+              now={now}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 w-full"
+              onClick={() => setPickerOpen(true)}
+            >
+              + Add Exercise
+            </Button>
+          </div>
+        </>
       )}
 
-      {view === 'summary' && <div data-testid="end-workout-summary-view" className="flex-1" />}
+      {view === 'summary' && (
+        <div className="flex-1 overflow-y-auto">
+          <EndWorkoutSummary onResume={() => setView('session')} />
+        </div>
+      )}
 
       <DiscardConfirmationDialog
         open={discardOpen}

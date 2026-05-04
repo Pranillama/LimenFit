@@ -81,3 +81,11 @@ export { formatElapsed, formatRest, formatDuration, autoNameWorkout } from './li
 // ---------- Components ----------
 export { ResumeOrDiscardDialog } from './components/ResumeOrDiscardDialog';
 export { ActiveWorkoutRuntime } from './components/ActiveWorkoutRuntime';
+export { ActiveWorkoutHeader } from './components/ActiveWorkoutHeader';
+export { ActiveWorkoutSession } from './components/ActiveWorkoutSession';
+export { EndWorkoutSummary } from './components/EndWorkoutSummary';
+export { ExerciseCard } from './components/ExerciseCard';
+export { ExerciseCardList } from './components/ExerciseCardList';
+export { RestTimer } from './components/RestTimer';
+export { StartWorkoutEmptyState } from './components/StartWorkoutEmptyState';
+export { TrainPageShell } from './components/TrainPageShell';

@@ -6,6 +6,7 @@ import { PageSkeleton } from '@/components/page-skeleton';
 import { selectActiveDraftMeta } from '../store/selectors';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import { ActiveWorkoutSession } from './ActiveWorkoutSession';
+import { EndWorkoutSummary } from './EndWorkoutSummary';
 import { StartWorkoutEmptyState } from './StartWorkoutEmptyState';
 
 export function TrainPageShell() {
@@ -36,10 +37,10 @@ export function TrainPageShell() {
     );
   }
 
-  // completed_local | completed_synced — wired in a later phase
+  // completed_local | completed_synced — summary persists across refreshes until auto-cleared
   return (
-    <PageContainer title="Train">
-      <div data-testid="end-workout-summary" />
+    <PageContainer className="px-0 py-0 md:px-0 md:py-0">
+      <EndWorkoutSummary onResume={() => {}} />
     </PageContainer>
   );
 }
