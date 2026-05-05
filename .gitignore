@@ -30,6 +30,9 @@ supabase/.branches/
 supabase/.temp/
 supabase/.env
 
+# Local tool snapshots
+.playwright-mcp/
+
 # OS
 .DS_Store
 Thumbs.db

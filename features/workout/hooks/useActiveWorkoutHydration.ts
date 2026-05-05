@@ -10,28 +10,31 @@ import { hydrateActiveWorkout } from '../store/hydration';
  * — not at the page level, so each page doesn't trigger a separate hydration attempt.
  *
  * If the hydration query throws a non-auth error (network, server 5xx), the store
- * stays un-hydrated and retries automatically when the browser comes back online.
+ * falls back to local state and is still marked hydrated so the UI can render.
+ * When the browser comes back online, the server fetch is retried automatically.
  */
 export function useActiveWorkoutHydration(): void {
   useEffect(() => {
     let cancelled = false;
-    let succeeded = false;
+    let serverFetchDone = false;
 
     async function run() {
-      if (cancelled || succeeded) return;
+      if (cancelled || serverFetchDone) return;
       try {
         await hydrateActiveWorkout(useActiveWorkoutStore);
-        succeeded = true;
-        if (!cancelled) useActiveWorkoutStore.getState().markHydrated();
       } catch {
-        // Non-auth network/server error: hydrated stays false.
-        // The online listener below will trigger a retry on reconnect.
+        // Non-auth network/server error: proceed with local state.
+      } finally {
+        serverFetchDone = true;
+        if (!cancelled) useActiveWorkoutStore.getState().markHydrated();
       }
     }
 
     void run();
 
     function handleOnline() {
+      // Retry the server fetch on reconnect (resets serverFetchDone to allow re-run).
+      serverFetchDone = false;
       void run();
     }
 

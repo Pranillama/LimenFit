@@ -11,8 +11,9 @@ GRANT USAGE ON SCHEMA cron TO postgres;
 -- Safely drop the job if it already exists so db:reset is idempotent
 DO $$
 BEGIN
-  PERFORM cron.unschedule('limenfit_expire_inprogress_workouts');
-EXCEPTION WHEN undefined_object THEN NULL;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limenfit_expire_inprogress_workouts') THEN
+    PERFORM cron.unschedule('limenfit_expire_inprogress_workouts');
+  END IF;
 END $$;
 
 SELECT cron.schedule(
@@ -32,8 +33,9 @@ SELECT cron.schedule(
 
 DO $$
 BEGIN
-  PERFORM cron.unschedule('limenfit_delete_expired_workouts');
-EXCEPTION WHEN undefined_object THEN NULL;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'limenfit_delete_expired_workouts') THEN
+    PERFORM cron.unschedule('limenfit_delete_expired_workouts');
+  END IF;
 END $$;
 
 SELECT cron.schedule(

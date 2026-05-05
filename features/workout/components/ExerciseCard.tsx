@@ -25,16 +25,20 @@ interface ExerciseCardProps {
 export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove, now, onDragHandlePointerDown }: ExerciseCardProps) {
   const [deleteSetId, setDeleteSetId] = React.useState<string | null>(null);
 
-  const pendingLocalIds = useActiveWorkoutStore(
+  // Return a primitive string so useSyncExternalStore sees a stable snapshot.
+  const pendingIdsKey = useActiveWorkoutStore(
     React.useCallback(
       (s) =>
-        new Set(
-          s.queue
-            .filter((m): m is SetLogMutation => m.kind === 'set.log')
-            .map((m) => m.payload.localId),
-        ),
+        s.queue
+          .filter((m): m is SetLogMutation => m.kind === 'set.log')
+          .map((m) => m.payload.localId)
+          .join(','),
       [],
     ),
+  );
+  const pendingLocalIds = React.useMemo(
+    () => new Set(pendingIdsKey ? pendingIdsKey.split(',') : []),
+    [pendingIdsKey],
   );
 
   const name = nameOf(exercise.exerciseId);
