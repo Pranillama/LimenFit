@@ -8,6 +8,8 @@ import { useExerciseLookup } from '../hooks/useExerciseLookup';
 import { useDeleteWorkoutMutation } from '../hooks/useDeleteWorkoutMutation';
 import { useEditSetMutation } from '../hooks/useEditSetMutation';
 import { autoNameWorkout, formatDuration } from '../lib/format';
+import { buildRepeatIntent } from '../lib/repeatWorkout';
+import { useStartWorkoutAction } from '../hooks/useStartWorkoutAction';
 
 export interface WorkoutDetailDTO {
   id: string;
@@ -142,6 +144,7 @@ export function WorkoutDetailView({ workout }: Props) {
   const lookup = useExerciseLookup();
   const editSet = useEditSetMutation();
   const deleteWorkout = useDeleteWorkoutMutation();
+  const startWorkout = useStartWorkoutAction();
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
   const exerciseNames = workout.exercises.map((ex) => lookup.nameOf(ex.exercise_id));
@@ -250,9 +253,8 @@ export function WorkoutDetailView({ workout }: Props) {
       {/* Action buttons */}
       <div className="flex flex-col gap-3 pt-2">
         <Button
-          onClick={() => {
-            // TODO: wire repeat-workout action in next phase
-          }}
+          disabled={workout.status === 'expired'}
+          onClick={() => void startWorkout(buildRepeatIntent(workout.exercises))}
         >
           Repeat Workout
         </Button>
