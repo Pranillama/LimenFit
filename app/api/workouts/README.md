@@ -89,7 +89,7 @@ outcome-specific variant.
 
 ---
 
-## `DELETE /api/workouts/[id]` — discard draft
+## `DELETE /api/workouts/[id]` — delete workout
 
 **File:** `[id]/route.ts`
 
@@ -100,24 +100,21 @@ outcome-specific variant.
 ### Logic
 
 1. Validate `id` is a v4 UUID.
-2. DELETE where `id` AND `user_id` AND `status IN ('in_progress', 'expired')`. If 0 rows deleted, re-fetch:
-   - Row missing → **200** (already discarded — idempotent).
-   - Row still present (must be `completed`) → `422 CANNOT_DISCARD_COMPLETED`.
+2. DELETE where `id` AND `user_id` AND `status IN ('in_progress', 'expired', 'completed')`. If 0 rows deleted the row is already gone — return **200** (idempotent).
 3. `ON DELETE CASCADE` removes child `workout_exercises` and `sets` automatically.
 4. Record the idempotency receipt with `resource_id = id`.
+
+> The `mutation_type` stored in the receipt remains `'workout.discard'` for all three statuses — no new mutation type is introduced.
 
 ### Responses
 
 | Condition | Status | Body |
 |-----------|--------|------|
-| Discarded (or already gone) | `200` | `{ id, clientMutationId }` |
+| Deleted (or already gone) | `200` | `{ id, clientMutationId }` |
 | Replay | `200` | `{ id, clientMutationId }` |
-| Workout is completed | `422` | `CANNOT_DISCARD_COMPLETED` |
 | Invalid UUID | `400` | `INVALID_ID` |
 | Invalid body | `400` | `VALIDATION_ERROR` |
 | Unauthenticated | `401` | `UNAUTHORIZED` |
-
-> Completed workouts are managed through history delete (T10 concern), not this endpoint.
 
 ---
 

@@ -137,39 +137,21 @@ export async function DELETE(
       mutationType: 'workout.discard',
       resourceType: 'workouts',
       handler: async () => {
-        // Status gate is part of the mutation: constrain DELETE to discardable statuses so a
-        // completion landing between a pre-check and the delete cannot bypass the T10 boundary.
+        // Status gate is part of the mutation: all three lifecycle statuses are deletable.
         // ON DELETE CASCADE handles workout_exercises and sets cleanup.
         const { data: deleted, error: deleteError } = await supabase
           .from('workouts')
           .delete()
           .eq('id', id)
           .eq('user_id', userId)
-          .in('status', ['in_progress', 'expired'])
+          .in('status', ['in_progress', 'expired', 'completed'])
           .select('id');
 
         if (deleteError) throw deleteError;
 
         if (deleted.length === 0) {
-          // Zero rows deleted: re-fetch to distinguish already-gone (idempotent 200)
-          // from completed (422 CANNOT_DISCARD_COMPLETED).
-          const { data: current, error: refetchError } = await supabase
-            .from('workouts')
-            .select('status')
-            .eq('id', id)
-            .eq('user_id', userId)
-            .maybeSingle();
-
-          if (refetchError) throw refetchError;
-
-          if (current === null) {
-            // Already deleted — idempotent success.
-            return { resourceId: id, response: { id, clientMutationId } };
-          }
-
-          throw new RouteError(
-            jsonError(422, 'CANNOT_DISCARD_COMPLETED', 'Completed workouts cannot be discarded'),
-          );
+          // Zero rows deleted: row is already gone — idempotent success.
+          return { resourceId: id, response: { id, clientMutationId } };
         }
 
         return { resourceId: id, response: { id, clientMutationId } };
