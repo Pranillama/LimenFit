@@ -3,12 +3,11 @@ import { handleApiError, jsonError, jsonOk } from '@/lib/api/responses';
 import { withIdempotency } from '@/lib/idempotency/server';
 import { workoutDiscardBodySchema, workoutPatchBodySchema } from '@/lib/schemas/workout';
 import type { Database } from '@/lib/supabase/types';
+import { UUID_RE } from '@/lib/utils';
 
 type WorkoutUpdate = Database['public']['Tables']['workouts']['Update'];
 
 export const runtime = 'nodejs';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 // Carry an HTTP response through the withIdempotency handler boundary
 // without triggering handleApiError's 500 fallback.

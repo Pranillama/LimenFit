@@ -91,3 +91,5 @@ export { StartWorkoutEmptyState } from './components/StartWorkoutEmptyState';
 export { TrainPageShell } from './components/TrainPageShell';
 export { HistoryList } from './components/HistoryList';
 export type { HistoryRowDTO } from './components/HistoryList';
+export { WorkoutDetailView } from './components/WorkoutDetailView';
+export type { WorkoutDetailDTO } from './components/WorkoutDetailView';
