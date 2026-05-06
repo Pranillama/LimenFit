@@ -91,15 +91,46 @@ interface WorkoutDetailDTO {
 - Renders stub action buttons: **Repeat Workout**, **Delete**, and (for expired) **Restore**.
   Click handlers are `TODO` markers — wired in subsequent phases.
 
-## Planned action wiring (future phases)
+## Action wiring
 
-| Button         | Phase     | Handler |
-|----------------|-----------|---------|
-| Repeat Workout | Phase 2   | Pre-fill a new workout from this workout's exercises |
-| Restore        | Phase 2   | Call `POST /api/workouts/:id/restore` |
-| Delete         | Phase 2   | Call `DELETE /api/workouts/:id` |
+| Button          | Status    | Handler |
+|-----------------|-----------|---------|
+| Repeat Workout  | wired     | `useStartWorkoutAction` with `buildRepeatIntent`; disabled when `status === 'expired'` |
+| Restore Workout | wired     | `useRestoreWorkoutMutation`; only rendered when `status === 'expired'` |
+| Delete          | wired     | `useDeleteWorkoutMutation`; navigates to `/train/history` on success |
+
+When `status === 'expired'` the primary action slot shows **Restore Workout** instead of
+**Repeat Workout**. Inline set editing is also disabled until the workout is restored.
+
+## Restore flow (Flow 6, step 5)
+
+Restore is handled by `useRestoreWorkoutMutation` (see
+`features/workout/hooks/useRestoreWorkoutMutation.ts`). The full flow:
+
+1. **Local pre-check** — before contacting the server, `runRestoreMutation` calls
+   `selectHasActiveDraft(useActiveWorkoutStore.getState())`. If a local draft is already
+   active it throws `RestoreConflictError` immediately without ever reaching the network.
+2. `POST /api/workouts/:id/restore` with a fresh `clientMutationId`. The server also guards
+   against concurrent active drafts, returning `422 ACTIVE_DRAFT_EXISTS` when one exists.
+3. On success, fetch `'*, workout_exercises(*, sets(*))'` to obtain the restored snapshot.
+4. Build a `ServerWorkoutSnapshot` with `meta.status = 'in_progress'` and all `serverId`s
+   populated, then call `useStartWorkoutAction` with `source: 'history-restore'`.
+5. `useStartWorkoutAction` re-checks for an active local draft (in-flight race guard) before
+   hydrating the store. If one is present it returns `{ blocked: true }` without opening the
+   resume dialog.
+
+**Conflict handling** — the local pre-check (step 1), the server-side `422 ACTIVE_DRAFT_EXISTS`
+(step 2), and the in-flight race guard (step 5) all display the same verbatim toast:
+> "Finish or discard your current active workout before restoring this one."
+
+Other errors (`404 NOT_FOUND`, `422 NOT_EXPIRED`) show a generic toast:
+> "Could not restore this workout."
+
+An inline spinner replaces the button label while `restoreWorkout.isPending` is true.
 
 ## Flow 6 reference
 
 > Flow 6, Step 3: User taps a history row → lands on `/train/history/:id` showing the
 >   full workout with each exercise and logged sets, plus action buttons.
+> Flow 6, Step 5: User taps "Restore Workout" on an expired detail view → same restore
+>   flow as the history list, ending with navigation to /train.

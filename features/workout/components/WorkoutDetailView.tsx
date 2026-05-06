@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useExerciseLookup } from '../hooks/useExerciseLookup';
 import { useDeleteWorkoutMutation } from '../hooks/useDeleteWorkoutMutation';
 import { useEditSetMutation } from '../hooks/useEditSetMutation';
+import { useRestoreWorkoutMutation } from '../hooks/useRestoreWorkoutMutation';
 import { autoNameWorkout, formatDuration } from '../lib/format';
 import { buildRepeatIntent } from '../lib/repeatWorkout';
 import { useStartWorkoutAction } from '../hooks/useStartWorkoutAction';
@@ -144,6 +145,7 @@ export function WorkoutDetailView({ workout }: Props) {
   const lookup = useExerciseLookup();
   const editSet = useEditSetMutation();
   const deleteWorkout = useDeleteWorkoutMutation();
+  const restoreWorkout = useRestoreWorkoutMutation();
   const startWorkout = useStartWorkoutAction();
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
@@ -252,21 +254,23 @@ export function WorkoutDetailView({ workout }: Props) {
 
       {/* Action buttons */}
       <div className="flex flex-col gap-3 pt-2">
-        <Button
-          disabled={workout.status === 'expired'}
-          onClick={() => void startWorkout(buildRepeatIntent(workout.exercises))}
-        >
-          Repeat Workout
-        </Button>
-
-        {workout.status === 'expired' && (
+        {workout.status === 'expired' ? (
           <Button
-            variant="outline"
-            onClick={() => {
-              // TODO: wire restore action in next phase
-            }}
+            onClick={() => restoreWorkout.mutate({ id: workout.id })}
+            disabled={restoreWorkout.isPending}
           >
-            Restore
+            {restoreWorkout.isPending ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Restoring…
+              </span>
+            ) : (
+              'Restore Workout'
+            )}
+          </Button>
+        ) : (
+          <Button onClick={() => void startWorkout(buildRepeatIntent(workout.exercises))}>
+            Repeat Workout
           </Button>
         )}
 

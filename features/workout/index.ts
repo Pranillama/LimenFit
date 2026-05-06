@@ -64,6 +64,7 @@ export type {
 
 // ---------- Hooks ----------
 export { useStartWorkoutAction } from './hooks/useStartWorkoutAction';
+export { useRestoreWorkoutMutation } from './hooks/useRestoreWorkoutMutation';
 export type { StartWorkoutBlockedResult, StartWorkoutResult } from './hooks/useStartWorkoutAction';
 export { useActiveWorkoutHydration } from './hooks/useActiveWorkoutHydration';
 export { useCompletionCleanup } from './hooks/useCompletionCleanup';

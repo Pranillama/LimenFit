@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { autoNameWorkout, formatDuration } from '../lib/format';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import { useExerciseLookup } from '../hooks/useExerciseLookup';
+import { useRestoreWorkoutMutation } from '../hooks/useRestoreWorkoutMutation';
 
 export interface HistoryRowDTO {
   id: string;
@@ -34,6 +35,7 @@ export function HistoryList({ rows }: Props) {
   const meta = useActiveWorkoutStore((s) => s.meta);
   const exercises = useActiveWorkoutStore((s) => s.exercises);
   const lookup = useExerciseLookup();
+  const restoreWorkout = useRestoreWorkoutMutation();
 
   const localWorkoutId = meta?.status === 'completed_local' ? (meta.workoutId ?? null) : null;
   const serverIds = new Set(rows.map((r) => r.id));
@@ -125,13 +127,24 @@ export function HistoryList({ rows }: Props) {
             </Link>
             {row.status === 'expired' && (
               <div className="flex justify-end px-4 pb-2">
-                <button
-                  disabled
-                  className="rounded text-xs text-primary opacity-50"
-                  aria-label="Restore workout (coming soon)"
-                >
-                  Restore
-                </button>
+                {restoreWorkout.isPending && restoreWorkout.variables?.id === row.id ? (
+                  <span className="flex items-center gap-1.5 rounded px-2 py-0.5 text-xs text-primary opacity-70">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Restoring…
+                  </span>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      restoreWorkout.mutate({ id: row.id });
+                    }}
+                    disabled={restoreWorkout.isPending}
+                    className="rounded px-2 py-0.5 text-xs text-primary hover:underline disabled:opacity-50"
+                    aria-label={`Restore workout ${row.name}`}
+                  >
+                    Restore
+                  </button>
+                )}
               </div>
             )}
           </li>
