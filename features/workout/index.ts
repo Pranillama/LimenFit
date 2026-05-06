@@ -89,3 +89,5 @@ export { ExerciseCardList } from './components/ExerciseCardList';
 export { RestTimer } from './components/RestTimer';
 export { StartWorkoutEmptyState } from './components/StartWorkoutEmptyState';
 export { TrainPageShell } from './components/TrainPageShell';
+export { HistoryList } from './components/HistoryList';
+export type { HistoryRowDTO } from './components/HistoryList';
