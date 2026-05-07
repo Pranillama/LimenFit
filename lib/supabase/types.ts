@@ -145,6 +145,7 @@ export type Database = {
       }
       plans: {
         Row: {
+          client_mutation_id: string | null
           created_at: string
           id: string
           is_public: boolean
@@ -154,6 +155,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_mutation_id?: string | null
           created_at?: string
           id?: string
           is_public?: boolean
@@ -163,6 +165,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_mutation_id?: string | null
           created_at?: string
           id?: string
           is_public?: boolean
@@ -340,6 +343,14 @@ export type Database = {
       delete_workout_exercise_in_progress: {
         Args: { p_workout_exercise_id: string }
         Returns: Array<{ deleted: boolean; workout_id: string | null; workout_status: string | null }>
+      }
+      create_plan_with_children: {
+        Args: { p_name: string; p_workouts: Json; p_client_mutation_id: string }
+        Returns: Array<{ plan_id: string; share_slug: string }>
+      }
+      update_plan_with_children: {
+        Args: { p_plan_id: string; p_name: string; p_workouts: Json }
+        Returns: Array<{ plan_id: string }>
       }
     }
     Enums: {

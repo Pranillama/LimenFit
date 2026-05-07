@@ -23,3 +23,4 @@ export * from './workout';
 export * from './workout-exercise';
 export * from './set';
 export * from './exercise';
+export * from './plan';
