@@ -63,3 +63,50 @@ app/(app)/train/plans/
 - Exercise names are resolved server-side via `exercises(name)` join on `plan_exercises`, so the detail page is a pure Server Component with no client-only lookups.
 - Active-draft conflicts are handled automatically via the shell-mounted `ResumeOrDiscardDialog`; `StartPlanWorkoutButton` calls `useStartWorkoutAction` and does not need its own conflict UI.
 - `DeletePlanButton` closes the confirmation dialog immediately on confirm, runs the mutation in the background, and navigates on success — toast on error is handled by the mutation hook.
+
+## T12: Plan editor
+
+Adds the plan creation and editing surfaces.
+
+### New files
+
+```
+features/plan/
+  components/
+    PlanEditor.tsx            'use client' — full editor shell (sticky header, name input,
+                              workout list, Add Workout, dirty tracking, DiscardConfirmationDialog)
+    PlanWorkoutEditor.tsx     'use client' — single workout block with drag handle, name input,
+                              exercise list, + Add Exercises (ExercisePicker), Import from History stub
+    PlanExerciseEditor.tsx    'use client' — drag handle, exercise name (via useExerciseLookup),
+                              targetSets × targetReps inputs, remove button
+  hooks/
+    useCreatePlanMutation.ts  POST /api/plans; on success invalidates ['plans']
+    useUpdatePlanMutation.ts  PATCH /api/plans/[id]; on success invalidates ['plans']
+  lib/
+    planEditorState.ts        Pure state helpers: addWorkout, removeWorkout, reorderWorkouts,
+                              updateWorkoutName, addExercisesToWorkout, removeExercise,
+                              reorderExercises, updateExerciseTargets, appendImportedWorkout,
+                              toApiWorkouts (maps EditorWorkoutItem[] → PlanWorkoutDraft[])
+
+app/(app)/train/plans/
+  new/page.tsx                Server Component — renders <PlanEditor mode="create" />
+  [id]/edit/page.tsx          Server Component — fetches plan, maps to InitialPlanState,
+                              renders <PlanEditor mode="edit" initialPlan={…} />;
+                              notFound() if plan not owned by current user
+```
+
+### State model
+
+`EditorWorkoutItem` and `EditorExerciseItem` carry a `localId` (a `crypto.randomUUID()` string) used as React key and as the value for framer-motion `Reorder.Item`. When editing an existing plan the server row `id` is reused as the `localId` so drag handles are stable. The API payload is assembled by `toApiWorkouts()`, which sets `position` from the current array index; server IDs are not required in the request body since `update_plan_with_children` fully replaces child rows.
+
+### Drag-to-reorder
+
+Mirrors the `useDragControls` / `Reorder.Group` + `Reorder.Item` pattern from `features/workout/components/ExerciseCardList.tsx`. Workouts and exercises each maintain a local `localIds` state array that drives framer-motion ordering; on reorder the parent `workouts` state is updated via `reorderWorkouts` / `reorderExercises` helpers.
+
+### Save validation
+
+The **Save Plan** button is disabled until: plan name is non-empty, ≥ 1 workout exists, and every workout has a non-empty name with ≥ 1 exercise. This mirrors the `planCreateBodySchema` / `planWorkoutDraftSchema` `.min(1)` guards.
+
+### Dirty tracking
+
+`isDirty` is computed by comparing the current `name` + JSON-serialised `workouts` against a snapshot taken at mount. On Cancel: no-op exit if not dirty; `DiscardConfirmationDialog` (title "Discard plan?") otherwise.

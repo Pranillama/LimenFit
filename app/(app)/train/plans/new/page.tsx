@@ -1,15 +1,11 @@
 import type { Metadata } from 'next';
 
-import { PageContainer } from '@/components/page-container';
+import { PlanEditor } from '@/features/plan/components/PlanEditor';
 
 export const metadata: Metadata = {
   title: 'New Plan — LimenFit',
 };
 
 export default function NewPlanPage() {
-  return (
-    <PageContainer title="Create Plan">
-      <p className="text-muted-foreground">Plan editor coming soon.</p>
-    </PageContainer>
-  );
+  return <PlanEditor mode="create" />;
 }
