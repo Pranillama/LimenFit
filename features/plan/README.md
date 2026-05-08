@@ -32,3 +32,34 @@ lib/plans/
 ## UI conventions
 
 Use `DiscardConfirmationDialog` from `@/components/discard-confirmation-dialog` for any cancel-with-unsaved-work flow (default focus on Keep Editing, two-button modal, controlled `open` state).
+
+## T12: My Plans list + read-only detail
+
+Adds the browsable plan surfaces. No editor yet (that's T13+).
+
+### New files
+
+```
+features/plan/
+  components/
+    PlanList.tsx              Server/client-agnostic list of PlanRowDTO cards → /train/plans/[id]
+    StartPlanWorkoutButton.tsx  'use client' — calls useStartWorkoutAction({ source: 'plan', … })
+    DeletePlanButton.tsx       'use client' — DiscardConfirmationDialog → useDeletePlanMutation
+  hooks/
+    useDeletePlanMutation.ts   TanStack mutation: DELETE /api/plans/[id], invalidates ['plans']
+
+app/(app)/train/plans/
+  page.tsx                    Server Component — plans list with Create Plan link
+  loading.tsx                 PageSkeleton wrapper
+  [id]/
+    page.tsx                  Server Component — plan detail (workouts + exercises + Start/Delete)
+    loading.tsx               PageSkeleton wrapper
+    edit/page.tsx             Placeholder — "Plan editor coming soon"
+  new/page.tsx                Placeholder — "Plan editor coming soon"
+```
+
+### Key design decisions
+
+- Exercise names are resolved server-side via `exercises(name)` join on `plan_exercises`, so the detail page is a pure Server Component with no client-only lookups.
+- Active-draft conflicts are handled automatically via the shell-mounted `ResumeOrDiscardDialog`; `StartPlanWorkoutButton` calls `useStartWorkoutAction` and does not need its own conflict UI.
+- `DeletePlanButton` closes the confirmation dialog immediately on confirm, runs the mutation in the background, and navigates on success — toast on error is handled by the mutation hook.
