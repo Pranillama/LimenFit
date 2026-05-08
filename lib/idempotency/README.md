@@ -121,5 +121,7 @@ normal T7 dedupe contract.
 | [`app/api/sets/route.ts`](../../app/api/sets/route.ts) | `set.log` |
 | [`app/api/sets/[id]/route.ts`](../../app/api/sets/[id]/route.ts) | `set.edit`, `set.delete` |
 | [`app/api/exercises/route.ts`](../../app/api/exercises/route.ts) | `exercise.create` |
+| [`app/api/plans/route.ts`](../../app/api/plans/route.ts) | `plan.create` |
+| [`app/api/plans/[id]/route.ts`](../../app/api/plans/%5Bid%5D/route.ts) | `plan.patch`, `plan.discard` |
 
 Each route handler passes a session-scoped `createSupabaseServerClient()` client to `withIdempotency`. The same client is used for all `mutation_receipts` reads and writes, so a single session token covers both the route-specific DB work and the receipt management.
