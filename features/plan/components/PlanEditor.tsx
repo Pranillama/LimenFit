@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DiscardConfirmationDialog } from '@/components/discard-confirmation-dialog';
 
+import { buildPlanWorkoutFromHistory } from '@/lib/plans/importFromHistory';
+
 import type { EditorWorkoutItem } from '../lib/planEditorState';
 import {
   addWorkout,
@@ -23,10 +25,12 @@ import {
   removeExercise,
   reorderExercises,
   updateExerciseTargets,
+  appendImportedWorkout,
   toApiWorkouts,
 } from '../lib/planEditorState';
 import { useCreatePlanMutation } from '../hooks/useCreatePlanMutation';
 import { useUpdatePlanMutation } from '../hooks/useUpdatePlanMutation';
+import { ImportFromHistoryDialog, type ImportableWorkout } from './ImportFromHistoryDialog';
 import { PlanWorkoutEditor } from './PlanWorkoutEditor';
 
 // Editor-scoped schema mirroring API contracts without clientMutationId/position (positions are stored on items).
@@ -98,6 +102,7 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
     (initialPlan?.workouts ?? []).map((w) => w.localId),
   );
   const [discardOpen, setDiscardOpen] = React.useState(false);
+  const [importOpen, setImportOpen] = React.useState(false);
 
   // Keep localWorkoutIds in sync when workouts array changes (add/remove).
   React.useEffect(() => {
@@ -192,6 +197,14 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
     );
   }
 
+  function handleImport(workout: ImportableWorkout) {
+    const imported = buildPlanWorkoutFromHistory(workout, workouts.length);
+    setValue('workouts', appendImportedWorkout(workouts, imported), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
   function handleCancel() {
     if (formState.isDirty) {
       setDiscardOpen(true);
@@ -282,19 +295,30 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
                 onExercisesReordered={handleExercisesReordered}
                 onTargetSetsChange={handleTargetSetsChange}
                 onTargetRepsChange={handleTargetRepsChange}
+                onImportFromHistory={() => setImportOpen(true)}
               />
             ))}
           </Reorder.Group>
         )}
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleAddWorkout}
-        >
-          + Add Workout
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={handleAddWorkout}
+          >
+            + Add Workout
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={() => setImportOpen(true)}
+          >
+            Import from History
+          </Button>
+        </div>
       </div>
 
       <DiscardConfirmationDialog
@@ -303,6 +327,12 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
         title="Discard plan?"
         description="Any unsaved changes will be lost."
         onDiscard={handleDiscard}
+      />
+
+      <ImportFromHistoryDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImport={handleImport}
       />
     </div>
   );
