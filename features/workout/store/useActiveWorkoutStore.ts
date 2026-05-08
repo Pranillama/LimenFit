@@ -77,7 +77,7 @@ export interface ServerWorkoutSnapshot {
 
 export interface ActiveWorkoutStoreActions {
   markHydrated(): void;
-  startDraft(params?: { planWorkoutId?: string | null; exercises?: PreloadedExercise[] }): void;
+  startDraft(params?: { planWorkoutId?: string | null; name?: string; exercises?: PreloadedExercise[] }): void;
   addExercises(exerciseIds: string[]): void;
   removeExercise(localId: string): void;
   reorderExercises(orderedLocalIds: string[]): void;
@@ -192,15 +192,16 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
       set((s) => ({ ...s, hydrated: true }));
     },
 
-    startDraft({ planWorkoutId, exercises: preloadedExercises = [] } = {}) {
+    startDraft({ planWorkoutId, name: initialName, exercises: preloadedExercises = [] } = {}) {
       const localId = newLocalId();
       const now = new Date().toISOString();
       const resolvedPlanId = planWorkoutId ?? null;
+      const resolvedName = initialName ?? '';
 
       const meta: ActiveWorkoutMeta = {
         workoutId: null,
         localId,
-        name: '',
+        name: resolvedName,
         status: 'in_progress',
         startedAt: now,
         lastActivityAt: now,
@@ -210,7 +211,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
 
       const createMutation = buildWorkoutCreateMutation({
         localId,
-        name: '',
+        name: resolvedName,
         planWorkoutId: resolvedPlanId,
         originPlanWorkoutId: resolvedPlanId,
         startedAt: now,

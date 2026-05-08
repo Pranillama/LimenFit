@@ -44,6 +44,7 @@ export function useStartWorkoutAction() {
         if (intent.source === 'plan') {
           state.startDraft({
             planWorkoutId: intent.payload.planWorkoutId,
+            name: intent.payload.planWorkoutName,
             exercises: intent.payload.exercises,
           });
         } else if (intent.source === 'history') {

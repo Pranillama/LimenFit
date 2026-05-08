@@ -13,7 +13,7 @@ export type StartDecision = 'resume' | 'discard-and-start' | 'cancel';
  */
 export type StartIntent =
   | { source: 'home' | 'freestyle'; payload?: undefined }
-  | { source: 'plan'; payload: { planWorkoutId: string; exercises?: PreloadedExercise[] } }
+  | { source: 'plan'; payload: { planWorkoutId: string; planWorkoutName?: string; exercises?: PreloadedExercise[] } }
   | { source: 'history'; payload?: { exercises?: PreloadedExercise[] } }
   | { source: 'history-restore'; payload: { snapshot: ServerWorkoutSnapshot } };
 

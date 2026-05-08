@@ -109,6 +109,16 @@ export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove, now,
       {/* Rest timer pill — non-blocking, purely informational */}
       <RestTimer exerciseLocalId={exercise.localId} now={now} />
 
+      {/* Plan target guide — only rendered for plan-derived exercises */}
+      {exercise.targetSets != null && exercise.targetReps != null && (
+        <p
+          className="px-4 pb-1 text-xs text-muted-foreground"
+          aria-label={`Target ${exercise.targetSets} sets of ${exercise.targetReps} reps`}
+        >
+          Target: {exercise.targetSets} × {exercise.targetReps}
+        </p>
+      )}
+
       {/* Input row */}
       <div className="border-t">
         <SetInputRow

@@ -20,7 +20,7 @@ export function StartPlanWorkoutButton({ planWorkoutId, planWorkoutName, exercis
     try {
       await startWorkout({
         source: 'plan',
-        payload: { planWorkoutId, exercises },
+        payload: { planWorkoutId, planWorkoutName, exercises },
       });
     } finally {
       setIsPending(false);
