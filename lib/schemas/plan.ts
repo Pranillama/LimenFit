@@ -36,8 +36,19 @@ export const planDeleteBodySchema = z.object({
   clientMutationId: uuid,
 });
 
+export const planDuplicateBodySchema = z.object({
+  clientMutationId: uuid,
+  sourceShareSlug: z.string().trim().min(1).max(64),
+});
+
+export const planSharePostBodySchema = z.object({
+  clientMutationId: uuid,
+});
+
 export type PlanExerciseDraft = z.infer<typeof planExerciseDraftSchema>;
 export type PlanWorkoutDraft = z.infer<typeof planWorkoutDraftSchema>;
 export type PlanCreateBody = z.infer<typeof planCreateBodySchema>;
 export type PlanPatchBody = z.infer<typeof planPatchBodySchema>;
 export type PlanDeleteBody = z.infer<typeof planDeleteBodySchema>;
+export type PlanDuplicateBody = z.infer<typeof planDuplicateBodySchema>;
+export type PlanSharePostBody = z.infer<typeof planSharePostBodySchema>;

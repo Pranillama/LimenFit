@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { assertServerOnly } from '@/lib/env';
-import { newClientMutationId } from '@/lib/idempotency';
 import type { Database } from '@/lib/supabase/types';
 
 assertServerOnly();
@@ -15,7 +14,7 @@ export class PlanNotFoundError extends Error {
 
 export async function duplicatePlanForUser(
   supabase: SupabaseClient<Database>,
-  args: { sourcePlanId: string; targetUserId: string },
+  args: { sourcePlanId: string; targetUserId: string; clientMutationId: string },
 ): Promise<{ planId: string; shareSlug: string }> {
   const { data: plan, error: selectError } = await supabase
     .from('plans')
@@ -50,10 +49,31 @@ export async function duplicatePlanForUser(
   const { data: rpcRows, error: rpcError } = await supabase.rpc('create_plan_with_children', {
     p_name: plan.name,
     p_workouts: pWorkouts,
-    p_client_mutation_id: newClientMutationId(),
+    p_client_mutation_id: args.clientMutationId,
   });
 
-  if (rpcError) throw new Error(rpcError.message);
+  if (rpcError) {
+    // Concurrent duplicate handlers using the same clientMutationId race on the
+    // `plans.client_mutation_id` unique index. Recover by reading back the row
+    // the winning insert produced so both callers converge on the same planId.
+    if ((rpcError as { code?: string }).code === '23505') {
+      const { data: existing, error: existingError } = await supabase
+        .from('plans')
+        .select('id, share_slug')
+        .eq('client_mutation_id', args.clientMutationId)
+        .eq('user_id', args.targetUserId)
+        .maybeSingle();
+
+      if (existingError) throw new Error(existingError.message);
+      if (!existing) throw new Error(rpcError.message);
+
+      return {
+        planId: (existing as { id: string }).id,
+        shareSlug: (existing as { share_slug: string }).share_slug,
+      };
+    }
+    throw new Error(rpcError.message);
+  }
 
   const row = (rpcRows as Array<{ plan_id: string; share_slug: string }>)[0];
   return { planId: row.plan_id, shareSlug: row.share_slug };
