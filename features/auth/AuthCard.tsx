@@ -105,7 +105,7 @@ export function AuthCard({ next, authError }: AuthCardProps) {
         {tab === 'login' ? (
           <LoginForm next={next} />
         ) : (
-          <SignUpForm onSuccess={() => setEmailSent(true)} />
+          <SignUpForm onSuccess={() => setEmailSent(true)} next={next} />
         )}
       </div>
     </div>
@@ -295,7 +295,7 @@ function LoginForm({ next }: { next?: string }) {
   );
 }
 
-function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
+function SignUpForm({ onSuccess, next }: { onSuccess: () => void; next?: string }) {
   const [serverError, setServerError] = useState('');
 
   const {
@@ -307,9 +307,16 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
   const onSubmit = async (values: SignUpValues) => {
     setServerError('');
     const supabase = createSupabaseBrowserClient();
+    const options: { emailRedirectTo?: string } = {};
+    if (next) {
+      const callbackUrl = new URL('/auth/callback', window.location.origin);
+      callbackUrl.searchParams.set('next', next);
+      options.emailRedirectTo = callbackUrl.toString();
+    }
     const { error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
+      options,
     });
     if (error) {
       setServerError(error.message);

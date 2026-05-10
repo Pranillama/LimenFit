@@ -6,6 +6,7 @@ import { PageContainer } from '@/components/page-container';
 import { createSupabaseServerClient } from '@/lib/supabase/server-exports';
 import { PlanList } from '@/features/plan/components/PlanList';
 import type { PlanRowDTO } from '@/features/plan/components/PlanList';
+import { PendingDuplicateFinalizer } from '@/features/plan/components/PendingDuplicateFinalizer';
 
 export const metadata: Metadata = {
   title: 'My Plans — LimenFit',
@@ -43,6 +44,7 @@ export default async function PlansPage() {
 
   return (
     <PageContainer>
+      <PendingDuplicateFinalizer />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">My Plans</h1>
         <Button asChild size="sm">

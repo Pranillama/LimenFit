@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/page-container';
 import { createSupabaseServerClient } from '@/lib/supabase/server-exports';
 import { UUID_RE } from '@/lib/utils';
 import { DeletePlanButton } from '@/features/plan/components/DeletePlanButton';
+import { SharePlanButton } from '@/features/plan/components/SharePlanButton';
 import { StartPlanWorkoutButton } from '@/features/plan/components/StartPlanWorkoutButton';
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default async function PlanDetailPage({
   const { data: plan } = await supabase
     .from('plans')
     .select(
-      `id, name, updated_at,
+      `id, name, updated_at, share_slug, is_public,
        plan_workouts (
          id, name, position,
          plan_exercises (
@@ -56,6 +57,11 @@ export default async function PlanDetailPage({
       <div className="mb-6 flex items-start justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{plan.name}</h1>
         <div className="flex shrink-0 gap-2">
+          <SharePlanButton
+            planId={id}
+            initialShareSlug={plan.share_slug}
+            initialIsPublic={plan.is_public}
+          />
           <Button asChild variant="outline" size="sm">
             <Link href={`/train/plans/${id}/edit`}>Edit</Link>
           </Button>

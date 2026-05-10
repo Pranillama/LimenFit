@@ -37,6 +37,9 @@ export function DuplicatePlanButton({
           toast.success('Plan added to your library!');
           router.push(`/train/plans/${plan.id}`);
         },
+        onError: () => {
+          toast.error('Failed to duplicate plan');
+        },
       },
     );
   };

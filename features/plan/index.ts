@@ -13,6 +13,10 @@ export { useUpdatePlanMutation } from './hooks/useUpdatePlanMutation';
 export { useDuplicatePlanMutation } from './hooks/useDuplicatePlanMutation';
 export { PublicPlanViewer } from './components/PublicPlanViewer';
 export { DuplicatePlanButton } from './components/DuplicatePlanButton';
+export { SharePlanButton } from './components/SharePlanButton';
+export { PendingDuplicateFinalizer } from './components/PendingDuplicateFinalizer';
+export { useSharePlanMutation } from './hooks/useSharePlanMutation';
+export type { SharePlanResponse } from './hooks/useSharePlanMutation';
 export { useImportableWorkoutsQuery } from './hooks/useImportableWorkoutsQuery';
 export {
   addWorkout,
