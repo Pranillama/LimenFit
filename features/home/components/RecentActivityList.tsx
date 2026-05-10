@@ -3,18 +3,11 @@ import Link from 'next/link';
 import { formatDuration } from '@/features/workout/lib/format';
 import type { HomeWorkoutSummary } from '../lib/homeDashboardDTO';
 
-interface Props {
-  rows: HomeWorkoutSummary[];
-}
+type ActivityRow = HomeWorkoutSummary & { formattedDate: string };
 
-const dateFormat = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-});
+interface Props {
+  rows: ActivityRow[];
+}
 
 export function RecentActivityList({ rows }: Props) {
   return (
@@ -38,9 +31,7 @@ export function RecentActivityList({ rows }: Props) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{row.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {dateFormat.format(new Date(row.startedAt))}
-                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{row.formattedDate}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {formatDuration(row.startedAt, row.endedAt ?? row.startedAt)} &middot;{' '}
                       {row.exerciseCount}{' '}
