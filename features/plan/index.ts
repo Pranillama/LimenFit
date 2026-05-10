@@ -8,7 +8,11 @@ export type { InitialPlanState } from './components/PlanEditor';
 export { ImportFromHistoryDialog } from './components/ImportFromHistoryDialog';
 export type { ImportableWorkout } from './components/ImportFromHistoryDialog';
 export { useCreatePlanMutation } from './hooks/useCreatePlanMutation';
+export type { PlanMutationResponse } from './hooks/useCreatePlanMutation';
 export { useUpdatePlanMutation } from './hooks/useUpdatePlanMutation';
+export { useDuplicatePlanMutation } from './hooks/useDuplicatePlanMutation';
+export { PublicPlanViewer } from './components/PublicPlanViewer';
+export { DuplicatePlanButton } from './components/DuplicatePlanButton';
 export { useImportableWorkoutsQuery } from './hooks/useImportableWorkoutsQuery';
 export {
   addWorkout,
