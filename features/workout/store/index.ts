@@ -20,6 +20,8 @@ export type {
   SetEditMutation,
   SetDeleteMutation,
   QueuedMutation,
+  WeightUnit,
+  UserSettings,
 } from './types';
 
 export {
@@ -43,6 +45,8 @@ export {
   selectSyncBadge,
   selectExerciseById,
   selectSyncState,
+  selectWeightUnit,
+  selectRestTimerDefaultSeconds,
 } from './selectors';
 
 export { useActiveWorkoutStore } from './useActiveWorkoutStore';

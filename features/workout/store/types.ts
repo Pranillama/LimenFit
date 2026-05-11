@@ -6,12 +6,19 @@ type WorkoutExerciseRow = Database['public']['Tables']['workout_exercises']['Row
 type SetRow = Database['public']['Tables']['sets']['Row'];
 type ExerciseRow = Database['public']['Tables']['exercises']['Row'];
 
-type WeightUnit = Database['public']['Enums']['weight_unit'];
+export type WeightUnit = Database['public']['Enums']['weight_unit'];
 // DB enum — only used in mutation payloads sent to the server
 type WorkoutStatus = Database['public']['Enums']['workout_status'];
 
 // Local draft lifecycle — distinct from the DB workout_status enum
 export type ActiveWorkoutStatus = 'idle' | 'in_progress' | 'completed_local' | 'completed_synced';
+
+// ---------- User settings ----------
+
+export interface UserSettings {
+  weightUnit: WeightUnit;
+  restTimerDefaultSeconds: number;
+}
 
 // ---------- Domain model ----------
 
@@ -216,6 +223,7 @@ export type QueuedMutation =
 
 export interface ActiveWorkoutState {
   hydrated: boolean;
+  settings: UserSettings;
   meta: ActiveWorkoutMeta | null;
   exercises: ActiveWorkoutExercise[];
   restTimer: RestTimerState;

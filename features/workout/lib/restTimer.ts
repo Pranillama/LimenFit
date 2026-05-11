@@ -1,6 +1,6 @@
 import type { RestTimerEntry } from '../store/types';
 
-// TODO(T15): replace with user_settings.rest_timer_default_seconds
+/** SSR-safe fallback; runtime source of truth is `useActiveWorkoutStore.getState().settings.restTimerDefaultSeconds`. */
 export const DEFAULT_REST_SECONDS = 90;
 
 /**

@@ -5,8 +5,8 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { DEFAULT_REST_SECONDS } from '../lib/restTimer';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
+import { selectWeightUnit } from '../store/selectors';
 
 function lastSetSignature(set: { localId: string; weightValue?: number | null; reps?: number | null } | undefined): string {
   if (!set) return '';
@@ -28,6 +28,8 @@ export function SetInputRow({ exerciseLocalId, defaultWeight, defaultReps }: Set
   );
   const [weightInvalid, setWeightInvalid] = React.useState(false);
   const [repsInvalid, setRepsInvalid] = React.useState(false);
+
+  const weightUnit = useActiveWorkoutStore(selectWeightUnit);
 
   const sets = useActiveWorkoutStore(
     (s) => s.exercises.find((ex) => ex.localId === exerciseLocalId)?.sets ?? [],
@@ -74,15 +76,14 @@ export function SetInputRow({ exerciseLocalId, defaultWeight, defaultReps }: Set
   function handleLog() {
     if (!validate()) return;
     const store = useActiveWorkoutStore.getState();
-    // TODO(T15): pull from user_settings.weight_unit
     store.logSet(exerciseLocalId, {
       weight: Number(weight),
       reps: Number(reps),
-      weightUnit: 'lbs',
+      weightUnit: store.settings.weightUnit,
     });
     store.setRestTimer(exerciseLocalId, {
       startedAt: new Date().toISOString(),
-      durationSeconds: DEFAULT_REST_SECONDS,
+      durationSeconds: store.settings.restTimerDefaultSeconds,
       paused: false,
     });
   }
@@ -103,7 +104,7 @@ export function SetInputRow({ exerciseLocalId, defaultWeight, defaultReps }: Set
       <Input
         type="number"
         inputMode="decimal"
-        placeholder="lbs"
+        placeholder={weightUnit}
         value={weight}
         onChange={(e) => {
           setWeight(e.target.value);

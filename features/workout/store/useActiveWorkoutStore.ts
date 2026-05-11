@@ -26,6 +26,7 @@ import type {
   RestTimerState,
   TombstoneMap,
   PreloadedExercise,
+  UserSettings,
 } from './types';
 import type { Database } from '@/lib/supabase/types';
 
@@ -49,6 +50,12 @@ function newLocalId(): string {
 // ---------- Action input types ----------
 
 type WeightUnit = Database['public']['Enums']['weight_unit'];
+
+// Matches the DB column defaults in the settings table migration.
+const INITIAL_SETTINGS: UserSettings = {
+  weightUnit: 'lbs',
+  restTimerDefaultSeconds: 90,
+};
 
 export interface LogSetInput {
   weight: number; // public field; translated to weightValue internally
@@ -77,6 +84,7 @@ export interface ServerWorkoutSnapshot {
 
 export interface ActiveWorkoutStoreActions {
   markHydrated(): void;
+  setUserSettings(patch: Partial<UserSettings>): void;
   startDraft(params?: { planWorkoutId?: string | null; name?: string; exercises?: PreloadedExercise[] }): void;
   addExercises(exerciseIds: string[]): void;
   removeExercise(localId: string): void;
@@ -119,6 +127,7 @@ const initialSync: SyncState = {
 
 const INITIAL_STATE: ActiveWorkoutState = {
   hydrated: false,
+  settings: INITIAL_SETTINGS,
   meta: null,
   exercises: [],
   restTimer: {},
@@ -133,6 +142,7 @@ const INITIAL_STATE: ActiveWorkoutState = {
 type PersistedSlice = Omit<ActiveWorkoutState, 'sync' | 'restTimer' | 'hydrated'> & {
   sync: Pick<SyncState, 'online' | 'pendingCount' | 'persistenceMode'>;
   restTimer: RestTimerState; // only paused entries are written; running timers are excluded
+  settings: UserSettings;
   // quarantine is included so 4xx-dropped mutations survive reload (debug only)
 };
 
@@ -143,6 +153,7 @@ const persistConfig: PersistConfig<ActiveWorkoutStoreState, PersistedSlice> = {
   version: 1,
   storage: createJSONStorage(() => createSafeStorage()),
   partialize: (state): PersistedSlice => ({
+    settings: state.settings,
     meta: state.meta,
     exercises: state.exercises,
     // Exclude running timers — their startedAt becomes stale across reloads.
@@ -165,6 +176,7 @@ const persistConfig: PersistConfig<ActiveWorkoutStoreState, PersistedSlice> = {
     const hydratedQueue = p.queue ?? [];
     return {
       ...current,
+      settings: p.settings ?? INITIAL_SETTINGS,
       meta: p.meta ?? null,
       exercises: p.exercises ?? [],
       restTimer: p.restTimer ?? {},
@@ -190,6 +202,10 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
 
     markHydrated() {
       set((s) => ({ ...s, hydrated: true }));
+    },
+
+    setUserSettings(patch) {
+      set((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
     },
 
     startDraft({ planWorkoutId, name: initialName, exercises: preloadedExercises = [] } = {}) {
@@ -584,6 +600,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
           return {
             ...INITIAL_STATE,
             hydrated: s.hydrated,
+            settings: s.settings,
             tombstones: newTombstones,
             queue: [mutation],
             sync: {
@@ -605,6 +622,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
         return {
           ...INITIAL_STATE,
           hydrated: s.hydrated,
+          settings: s.settings,
           tombstones: newTombstones,
           sync: {
             ...initialSync,
@@ -666,6 +684,7 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
         return {
           ...INITIAL_STATE,
           hydrated: s.hydrated,
+          settings: s.settings,
           sync: {
             ...initialSync,
             online: s.sync.online,

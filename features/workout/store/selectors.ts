@@ -1,4 +1,4 @@
-import type { ActiveWorkoutExercise, ActiveWorkoutMeta, ActiveWorkoutState, SyncState } from './types';
+import type { ActiveWorkoutExercise, ActiveWorkoutMeta, ActiveWorkoutState, SyncState, WeightUnit } from './types';
 
 /**
  * True when any set is logged, any exercise has been added, or any user-entered
@@ -73,4 +73,14 @@ export function selectShouldAutoClear(state: ActiveWorkoutState): boolean {
     state.queue.length === 0 &&
     !state.sync.flushing
   );
+}
+
+/** Returns the user's preferred weight unit from the settings slice. */
+export function selectWeightUnit(state: ActiveWorkoutState): WeightUnit {
+  return state.settings.weightUnit;
+}
+
+/** Returns the user's preferred rest timer duration in seconds from the settings slice. */
+export function selectRestTimerDefaultSeconds(state: ActiveWorkoutState): number {
+  return state.settings.restTimerDefaultSeconds;
 }
