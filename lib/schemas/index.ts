@@ -24,3 +24,4 @@ export * from './workout-exercise';
 export * from './set';
 export * from './exercise';
 export * from './plan';
+export * from './settings';
