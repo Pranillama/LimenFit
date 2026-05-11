@@ -3,9 +3,8 @@
 import type { User } from '@supabase/supabase-js';
 import { Dumbbell, Home, LogOut, User as UserIcon } from 'lucide-react';
 
-import { signOut } from '@/app/(app)/profile/actions';
-
 import { NavItem } from './NavItem';
+import { useHardenedSignOut } from './useHardenedSignOut';
 
 const NAV_ITEMS = [
   { href: '/home', label: 'Home', icon: Home },
@@ -18,6 +17,8 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ user }: AppSidebarProps) {
+  const { handleSignOut, isPending } = useHardenedSignOut();
+
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:border-r fixed left-0 top-0 h-full bg-background">
       <div className="flex h-full flex-col px-3 py-4">
@@ -33,15 +34,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
 
         <div className="mt-auto flex flex-col gap-2 border-t pt-4">
           <p className="truncate px-3 text-xs text-muted-foreground">{user.email}</p>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <LogOut className="h-4 w-4 shrink-0" />
-              Sign Out
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isPending}
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            {isPending ? 'Signing out…' : 'Sign Out'}
+          </button>
         </div>
       </div>
     </aside>

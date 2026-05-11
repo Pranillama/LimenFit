@@ -85,6 +85,7 @@ export interface ServerWorkoutSnapshot {
 export interface ActiveWorkoutStoreActions {
   markHydrated(): void;
   setUserSettings(patch: Partial<UserSettings>): void;
+  resetStore(): void;
   startDraft(params?: { planWorkoutId?: string | null; name?: string; exercises?: PreloadedExercise[] }): void;
   addExercises(exerciseIds: string[]): void;
   removeExercise(localId: string): void;
@@ -206,6 +207,10 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
 
     setUserSettings(patch) {
       set((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
+    },
+
+    resetStore() {
+      set({ ...INITIAL_STATE, hydrated: true });
     },
 
     startDraft({ planWorkoutId, name: initialName, exercises: preloadedExercises = [] } = {}) {
@@ -812,4 +817,9 @@ subscribeDegrade(() => {
 /** Standalone wrapper so consumers can import clearCompletedSession directly from this module. */
 export function clearCompletedSession(): void {
   useActiveWorkoutStore.getState().clearCompletedSession();
+}
+
+/** Standalone wrapper — resets all store state to initial values, preserving hydrated: true. */
+export function resetStore(): void {
+  useActiveWorkoutStore.getState().resetStore();
 }

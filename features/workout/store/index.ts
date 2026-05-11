@@ -49,7 +49,7 @@ export {
   selectRestTimerDefaultSeconds,
 } from './selectors';
 
-export { useActiveWorkoutStore } from './useActiveWorkoutStore';
+export { useActiveWorkoutStore, clearCompletedSession, resetStore } from './useActiveWorkoutStore';
 export type {
   ActiveWorkoutStoreActions,
   ActiveWorkoutStoreState,
