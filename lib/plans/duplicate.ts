@@ -76,5 +76,6 @@ export async function duplicatePlanForUser(
   }
 
   const row = (rpcRows as Array<{ plan_id: string; share_slug: string }>)[0];
+  if (!row) throw new Error('duplicate_plan_for_user returned no rows');
   return { planId: row.plan_id, shareSlug: row.share_slug };
 }

@@ -1,4 +1,4 @@
-type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -12,6 +12,7 @@ export type Database = {
       exercises: {
         Row: {
           category: string
+          client_mutation_id: string | null
           created_at: string
           equipment: string | null
           id: string
@@ -21,6 +22,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          client_mutation_id?: string | null
           created_at?: string
           equipment?: string | null
           id?: string
@@ -30,6 +32,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          client_mutation_id?: string | null
           created_at?: string
           equipment?: string | null
           id?: string
@@ -349,7 +352,11 @@ export type Database = {
         Returns: Array<{ plan_id: string; share_slug: string }>
       }
       update_plan_with_children: {
-        Args: { p_plan_id: string; p_name: string; p_workouts: Json }
+        Args: { p_plan_id: string; p_name: string; p_workouts: Json; p_client_mutation_id: string }
+        Returns: Array<{ plan_id: string }>
+      }
+      update_plan_name: {
+        Args: { p_plan_id: string; p_name: string; p_client_mutation_id: string }
         Returns: Array<{ plan_id: string }>
       }
     }

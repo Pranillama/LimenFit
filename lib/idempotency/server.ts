@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { assertServerOnly } from '@/lib/env';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, Json } from '@/lib/supabase/types';
 
 assertServerOnly();
 
@@ -88,7 +88,7 @@ export async function withIdempotency<T>(
     mutation_type: mutationType,
     resource_type: resourceType,
     resource_id: resourceId,
-    response_metadata: (responseMetadata as any) ?? null,
+    response_metadata: (responseMetadata as Json) ?? null,
   });
 
   if (insertError) {

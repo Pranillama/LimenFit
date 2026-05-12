@@ -1,9 +1,12 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { requireUser } from '@/lib/api/auth';
 import { handleApiError, jsonCreated, jsonError, jsonOk } from '@/lib/api/responses';
 import { withIdempotency } from '@/lib/idempotency/server';
 import { duplicatePlanForUser, PlanNotFoundError } from '@/lib/plans/duplicate';
-import { mapPlanToResponse, type PlanResponse } from '@/app/api/plans/route';
+import { mapPlanToResponse, type PlanResponse, type PlanRow } from '@/app/api/plans/route';
 import { planDuplicateBodySchema } from '@/lib/schemas/plan';
+import type { Database } from '@/lib/supabase/types';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +17,7 @@ class RouteError extends Error {
   }
 }
 
-async function fetchPlanById(supabase: any, planId: string, userId: string) {
+async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string, userId: string): Promise<PlanRow | null> {
   const { data, error } = await supabase
     .from('plans')
     .select(`

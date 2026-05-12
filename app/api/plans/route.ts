@@ -1,9 +1,37 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { requireUser } from '@/lib/api/auth';
 import { handleApiError, jsonCreated, jsonOk } from '@/lib/api/responses';
 import { withIdempotency } from '@/lib/idempotency/server';
 import { planCreateBodySchema } from '@/lib/schemas/plan';
+import type { Database } from '@/lib/supabase/types';
 
 export const runtime = 'nodejs';
+
+export type PlanExerciseRow = {
+  id: string;
+  exercise_id: string;
+  target_sets: number;
+  target_reps: number;
+  position: number;
+};
+
+export type PlanWorkoutRow = {
+  id: string;
+  name: string;
+  position: number;
+  plan_exercises: PlanExerciseRow[];
+};
+
+export type PlanRow = {
+  id: string;
+  name: string;
+  share_slug: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  plan_workouts: PlanWorkoutRow[];
+};
 
 type PlanExerciseResponse = {
   id: string;
@@ -31,7 +59,7 @@ export type PlanResponse = {
   workouts: PlanWorkoutResponse[];
 };
 
-async function fetchPlanById(supabase: any, planId: string, userId: string) {
+async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string, userId: string): Promise<PlanRow | null> {
   const { data, error } = await supabase
     .from('plans')
     .select(`
@@ -50,7 +78,7 @@ async function fetchPlanById(supabase: any, planId: string, userId: string) {
   return data;
 }
 
-export function mapPlanToResponse(row: any, clientMutationId: string): PlanResponse {
+export function mapPlanToResponse(row: PlanRow, clientMutationId: string): PlanResponse {
   return {
     id: row.id,
     clientMutationId,
@@ -59,15 +87,15 @@ export function mapPlanToResponse(row: any, clientMutationId: string): PlanRespo
     isPublic: row.is_public,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    workouts: (row.plan_workouts as any[])
+    workouts: [...row.plan_workouts]
       .sort((a, b) => a.position - b.position)
-      .map((w: any) => ({
+      .map((w) => ({
         id: w.id,
         name: w.name,
         position: w.position,
-        exercises: (w.plan_exercises as any[])
+        exercises: [...w.plan_exercises]
           .sort((a, b) => a.position - b.position)
-          .map((e: any) => ({
+          .map((e) => ({
             id: e.id,
             exerciseId: e.exercise_id,
             targetSets: e.target_sets,
@@ -129,7 +157,9 @@ export async function POST(request: Request): Promise<Response> {
           throw rpcError;
         }
 
-        const planId = (rpcRows as any[])[0].plan_id;
+        const firstRow = (rpcRows as Array<{ plan_id: string }>)[0];
+        if (!firstRow) throw new Error('create_plan_with_children returned no rows');
+        const planId = firstRow.plan_id;
         const plan = await fetchPlanById(supabase, planId, userId);
         if (!plan) throw new Error('Plan not found after create');
 

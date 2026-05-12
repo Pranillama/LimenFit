@@ -10,6 +10,22 @@ import { DeletePlanButton } from '@/features/plan/components/DeletePlanButton';
 import { SharePlanButton } from '@/features/plan/components/SharePlanButton';
 import { StartPlanWorkoutButton } from '@/features/plan/components/StartPlanWorkoutButton';
 
+type PageExercise = {
+  id: string;
+  exercise_id: string;
+  target_sets: number;
+  target_reps: number;
+  position: number;
+  exercises: { name: string } | null;
+};
+
+type PageWorkout = {
+  id: string;
+  name: string;
+  position: number;
+  plan_exercises: PageExercise[];
+};
+
 export const metadata: Metadata = {
   title: 'Plan — LimenFit',
 };
@@ -48,7 +64,7 @@ export default async function PlanDetailPage({
     notFound();
   }
 
-  const sortedWorkouts = [...((plan.plan_workouts ?? []) as any[])].sort(
+  const sortedWorkouts = [...(plan.plan_workouts as PageWorkout[])].sort(
     (a, b) => (a.position ?? 0) - (b.position ?? 0),
   );
 
@@ -70,15 +86,15 @@ export default async function PlanDetailPage({
       </div>
 
       <div className="flex flex-col gap-4">
-        {sortedWorkouts.map((workout: any) => {
-          const sortedExercises = [...((workout.plan_exercises ?? []) as any[])].sort(
+        {sortedWorkouts.map((workout) => {
+          const sortedExercises = [...(workout.plan_exercises ?? [])].sort(
             (a, b) => (a.position ?? 0) - (b.position ?? 0),
           );
 
-          const exercisesForButton = sortedExercises.map((e: any) => ({
-            exerciseId: e.exercise_id as string,
-            targetSets: e.target_sets as number,
-            targetReps: e.target_reps as number,
+          const exercisesForButton = sortedExercises.map((e) => ({
+            exerciseId: e.exercise_id,
+            targetSets: e.target_sets,
+            targetReps: e.target_reps,
           }));
 
           return (
@@ -86,17 +102,17 @@ export default async function PlanDetailPage({
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="font-medium">{workout.name}</h2>
                 <StartPlanWorkoutButton
-                  planWorkoutId={workout.id as string}
-                  planWorkoutName={workout.name as string}
+                  planWorkoutId={workout.id}
+                  planWorkoutName={workout.name}
                   exercises={exercisesForButton}
                 />
               </div>
               {sortedExercises.length > 0 ? (
                 <ul className="space-y-1">
-                  {sortedExercises.map((ex: any) => (
+                  {sortedExercises.map((ex) => (
                     <li key={ex.id} className="flex items-center justify-between text-sm">
                       <span>
-                        {(ex.exercises as { name: string } | null)?.name ?? ex.exercise_id}
+                        {ex.exercises?.name ?? ex.exercise_id}
                       </span>
                       <span className="text-muted-foreground">
                         Target: {ex.target_sets} × {ex.target_reps}

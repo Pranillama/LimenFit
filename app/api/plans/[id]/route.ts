@@ -1,7 +1,10 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import { requireUser } from '@/lib/api/auth';
 import { handleApiError, jsonError, jsonOk } from '@/lib/api/responses';
 import { withIdempotency } from '@/lib/idempotency/server';
 import { planDeleteBodySchema, planPatchBodySchema } from '@/lib/schemas/plan';
+import type { Database } from '@/lib/supabase/types';
 import { UUID_RE } from '@/lib/utils';
 
 export const runtime = 'nodejs';
@@ -12,6 +15,31 @@ class RouteError extends Error {
     this.name = 'RouteError';
   }
 }
+
+type PlanExerciseRow = {
+  id: string;
+  exercise_id: string;
+  target_sets: number;
+  target_reps: number;
+  position: number;
+};
+
+type PlanWorkoutRow = {
+  id: string;
+  name: string;
+  position: number;
+  plan_exercises: PlanExerciseRow[];
+};
+
+type PlanRow = {
+  id: string;
+  name: string;
+  share_slug: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  plan_workouts: PlanWorkoutRow[];
+};
 
 type PlanExerciseResponse = {
   id: string;
@@ -39,7 +67,7 @@ type PlanResponse = {
   workouts: PlanWorkoutResponse[];
 };
 
-async function fetchPlanById(supabase: any, planId: string, userId: string) {
+async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string, userId: string): Promise<PlanRow | null> {
   const { data, error } = await supabase
     .from('plans')
     .select(`
@@ -58,7 +86,7 @@ async function fetchPlanById(supabase: any, planId: string, userId: string) {
   return data;
 }
 
-function mapPlanToResponse(row: any, clientMutationId: string): PlanResponse {
+function mapPlanToResponse(row: PlanRow, clientMutationId: string): PlanResponse {
   return {
     id: row.id,
     clientMutationId,
@@ -67,15 +95,15 @@ function mapPlanToResponse(row: any, clientMutationId: string): PlanResponse {
     isPublic: row.is_public,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    workouts: (row.plan_workouts as any[])
+    workouts: [...row.plan_workouts]
       .sort((a, b) => a.position - b.position)
-      .map((w: any) => ({
+      .map((w) => ({
         id: w.id,
         name: w.name,
         position: w.position,
-        exercises: (w.plan_exercises as any[])
+        exercises: [...w.plan_exercises]
           .sort((a, b) => a.position - b.position)
-          .map((e: any) => ({
+          .map((e) => ({
             id: e.id,
             exerciseId: e.exercise_id,
             targetSets: e.target_sets,
@@ -139,7 +167,7 @@ export async function PATCH(
             { p_plan_id: id, p_name: planName, p_workouts, p_client_mutation_id: clientMutationId },
           );
           if (rpcError) throw rpcError;
-          if (!rows || (rows as any[]).length === 0) {
+          if (!rows || (rows as unknown[]).length === 0) {
             throw new RouteError(jsonError(404, 'NOT_FOUND', 'Plan not found'));
           }
         } else {
@@ -148,7 +176,7 @@ export async function PATCH(
             { p_plan_id: id, p_name: name!, p_client_mutation_id: clientMutationId },
           );
           if (updateError) throw updateError;
-          if (!rows || (rows as any[]).length === 0) {
+          if (!rows || (rows as unknown[]).length === 0) {
             throw new RouteError(jsonError(404, 'NOT_FOUND', 'Plan not found'));
           }
         }
