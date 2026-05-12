@@ -2,6 +2,8 @@
 
 Database migrations and seed data.
 
+> **Production migrations** are applied automatically via GitHub Actions — see the root `README.md` under `## Migration workflow (remote)` for secrets, the automated trigger, and the manual escape hatch. This file covers local development only.
+
 - `migrations/` will be populated with schema migrations in T3.
 - `seed.sql` is owned by T3 (currently empty).
 - `functions/` is reserved for Supabase Edge Functions and is not used in Phase 1.

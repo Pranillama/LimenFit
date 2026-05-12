@@ -89,10 +89,10 @@ limenfit/
 │   └── functions/           # Edge Functions — reserved, not used in Phase 1
 ├── public/                  # Static assets (favicon.ico + .gitkeep)
 ├── .github/
-│   └── workflows/           # CI/CD pipeline — T16
+│   └── workflows/           # CI quality gate (ci.yml) + remote migration (supabase-migrate.yml)
 ├── .env.example             # Required environment variables (template)
 ├── components.json          # shadcn CLI manifest (style, aliases, icon library)
-├── Dockerfile               # Portable dev environment — T2/T16
+├── Dockerfile               # Production Docker image for runtime parity (Vercel deploys via Git integration, not this file)
 ├── eslint.config.mjs
 ├── next.config.ts
 ├── package.json
@@ -156,6 +156,114 @@ pnpm db:reset   # re-runs all migrations + seed.sql (wipes local data)
 ```
 
 See `supabase/README.md` for the full workflow including migration verification.
+
+---
+
+## Deployment
+
+Vercel auto-deploys on every merge to `main`. Pull requests each receive a Vercel Preview deploy. GitHub Actions provide the quality gate but do not perform the deploy — Vercel's Git integration handles all production and preview deployments independently.
+
+### Vercel project settings
+
+| Setting | Value |
+| --- | --- |
+| Framework Preset | Next.js |
+| Node version | 20.x |
+| Package manager | pnpm 9.15.0 (auto-detected from `packageManager` in `package.json`) |
+| Install Command | `pnpm install --frozen-lockfile` |
+| Build Command | `pnpm build` (default) |
+| Output Directory | `.next` (default) |
+| Root Directory | repo root |
+
+### Environment variables (Vercel)
+
+Set the following in the Vercel project under **Settings → Environment Variables**, scoped to both **Production** and **Preview**:
+
+| Variable | Description |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key — server-only, never exposed to the browser |
+
+See `.env.example` for the variable names. In CI (`ci.yml`), `pnpm build` runs against placeholder values for these three variables purely to satisfy `lib/env.ts`'s import-time Zod validation — the build step does not connect to Supabase. The values set in Vercel must be the real credentials.
+
+### Docker (optional)
+
+`NEXT_PUBLIC_*` values are inlined into client-side JavaScript bundles by Next.js at `pnpm build` time. Because `.dockerignore` excludes `.env*` files (except `.env.example`), `.env.local` is never present inside the build container — you must pass the public Supabase values as `--build-arg`:
+
+```bash
+docker build \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://yourproject.supabase.co \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key \
+  -t limenfit .
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is server-only and never inlined into client bundles, so it can (and should) be supplied at run time — never bake a real service-role key into a build layer:
+
+```bash
+docker run --env SUPABASE_SERVICE_ROLE_KEY=your-key -p 3000:3000 limenfit
+```
+
+The `Dockerfile` packages the production Next.js build for runtime parity — useful for smoke-testing the production bundle locally. It is not the deployment mechanism (Vercel handles that via its Git integration). For the local Supabase backend, see `pnpm db:start` above — that is owned by T2 and is entirely separate from Docker deployment.
+
+---
+
+## Migration workflow (remote)
+
+The `pnpm db:start` / `db:reset` scripts in T2 are local-only: they target the Docker-backed Supabase instance on your machine. Production migrations run through a separate path.
+
+**Automated (recommended):** `.github/workflows/supabase-migrate.yml` triggers on push to `main` whenever any of the following paths change:
+
+- `supabase/migrations/**`
+- `supabase/seed.sql`
+- `supabase/config.toml`
+
+The workflow runs `supabase db push` against the remote project using the secrets below.
+
+### Required GitHub repository secrets
+
+| Secret | Source |
+| --- | --- |
+| `SUPABASE_ACCESS_TOKEN` | Supabase dashboard → Account → Access Tokens |
+| `SUPABASE_PROJECT_REF` | Supabase dashboard → Project → Settings → General → Reference ID |
+| `SUPABASE_DB_PASSWORD` | Supabase dashboard → Project → Settings → Database → Database password |
+
+### Manual escape hatch
+
+```bash
+supabase login
+supabase link --project-ref <ref>
+pnpm db:push
+```
+
+`pnpm db:push` is already wired in `package.json` as `supabase db push`. Use this for one-off fixes or when the automated workflow needs to be bypassed.
+
+### Ordering note
+
+Vercel deploys and the migration workflow run independently in parallel — there is no explicit dependency between them. All current migrations in `supabase/migrations/` are additive (new tables, columns, and indexes only), so this is safe for Phase 1: a deploy landing before a migration means the new schema is not yet visible; a migration landing before a deploy means the app has not yet been updated to use it — neither causes data loss or errors.
+
+If a future migration introduces a breaking schema change (e.g., dropping a column the current app reads), the parallel assumption breaks. Mitigation options at that point:
+
+- **Separate PRs:** merge the migration ahead of the dependent app code in its own PR, confirming the remote schema is updated before the app code lands.
+- **Deploy hook:** introduce a Vercel deploy hook that waits for the migration workflow job to succeed before triggering a production deploy.
+
+This is a forward-looking note for Phase 2+, not an action item for Phase 1.
+
+---
+
+## CI/CD pipelines
+
+Two GitHub Actions workflows manage automation for this repository.
+
+### `ci.yml` — quality gate (PRs and pushes to `main`)
+
+Runs on every pull request and every push to `main`. Steps: ESLint lint, Prettier format check, TypeScript type check (`tsc --noEmit`), Vitest test suite, and `pnpm build`. All five steps must pass before a PR can be merged.
+
+The build step runs with placeholder Supabase env vars to satisfy `lib/env.ts`'s Zod validation without a real Supabase project.
+
+### `supabase-migrate.yml` — remote migration (push to `main`)
+
+Path-filtered: only triggers when `supabase/migrations/**`, `supabase/seed.sql`, or `supabase/config.toml` changes on `main`. Runs `supabase db push` against the linked remote project. Requires `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, and `SUPABASE_DB_PASSWORD` as repository secrets (see [Migration workflow (remote)](#migration-workflow-remote) above).
 
 ---
 
