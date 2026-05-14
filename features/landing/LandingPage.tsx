@@ -4,6 +4,7 @@ import { LandingFeatures } from './components/LandingFeatures';
 import { LandingWhyLimenFit } from './components/LandingWhyLimenFit';
 import { LandingContact } from './components/LandingContact';
 import { LandingFooter } from './components/LandingFooter';
+import { MotionSection } from './components/MotionSection';
 
 export function LandingPage() {
   return (
@@ -11,9 +12,15 @@ export function LandingPage() {
       <LandingHeader />
       <main className="max-w-6xl mx-auto px-6">
         <LandingHero />
-        <LandingFeatures />
-        <LandingWhyLimenFit />
-        <LandingContact />
+        <MotionSection>
+          <LandingFeatures />
+        </MotionSection>
+        <MotionSection>
+          <LandingWhyLimenFit />
+        </MotionSection>
+        <MotionSection>
+          <LandingContact />
+        </MotionSection>
       </main>
       <div className="max-w-6xl mx-auto px-6">
         <LandingFooter />
