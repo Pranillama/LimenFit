@@ -87,7 +87,7 @@ limenfit/
 │   ├── migrations/          # SQL migrations — T2/T3
 │   ├── seed.sql             # Seed data — T3 (empty in T1)
 │   └── functions/           # Edge Functions — reserved, not used in Phase 1
-├── public/                  # Static assets (favicon.ico + .gitkeep)
+├── public/                  # Static assets (.gitkeep — icons generated via app/icon.tsx and app/apple-icon.tsx)
 ├── .github/
 │   └── workflows/           # CI quality gate (ci.yml) + remote migration (supabase-migrate.yml)
 ├── .env.example             # Required environment variables (template)
@@ -129,6 +129,7 @@ Copy `.env.example` to `.env.local` and fill in the values before running the de
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Your Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes (server) | Service role key — never exposed to the browser |
+| `NEXT_PUBLIC_SITE_URL` | Yes | Canonical site URL (no trailing slash) — used by `robots.txt` and `sitemap.xml` |
 | `NODE_ENV` | No | Defaults to `development` |
 
 `lib/env.ts` validates all variables at import time and throws a single readable error listing every missing or invalid variable. The server variables are guarded by a browser Proxy that throws if accessed in client bundles.
@@ -184,6 +185,7 @@ Set the following in the Vercel project under **Settings → Environment Variabl
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key — server-only, never exposed to the browser |
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL (e.g. `https://limenfit.com`) — used by `robots.txt` and `sitemap.xml` |
 
 See `.env.example` for the variable names. In CI (`ci.yml`), `pnpm build` runs against placeholder values for these three variables purely to satisfy `lib/env.ts`'s import-time Zod validation — the build step does not connect to Supabase. The values set in Vercel must be the real credentials.
 
@@ -195,6 +197,7 @@ See `.env.example` for the variable names. In CI (`ci.yml`), `pnpm build` runs a
 docker build \
   --build-arg NEXT_PUBLIC_SUPABASE_URL=https://yourproject.supabase.co \
   --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://your-domain.com \
   -t limenfit .
 ```
 
@@ -259,7 +262,7 @@ Two GitHub Actions workflows manage automation for this repository.
 
 Runs on every pull request and every push to `main`. Steps: ESLint lint, Prettier format check, TypeScript type check (`tsc --noEmit`), Vitest test suite, and `pnpm build`. All five steps must pass before a PR can be merged.
 
-The build step runs with placeholder Supabase env vars to satisfy `lib/env.ts`'s Zod validation without a real Supabase project.
+The build step runs with placeholder values for all required build-time variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL`) to satisfy `lib/env.ts`'s Zod validation without a real Supabase project or domain.
 
 ### `supabase-migrate.yml` — remote migration (push to `main`)
 

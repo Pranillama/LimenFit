@@ -10,15 +10,17 @@
 #
 # IMPORTANT — build-time vs runtime env vars:
 #
-#   NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are inlined into
-#   client-side JavaScript bundles by Next.js at build time (NEXT_PUBLIC_* vars
-#   are statically replaced during `next build`).  Supplying different values at
-#   `docker run` time has no effect on the browser bundle.  You MUST pass the
-#   real public Supabase values as --build-arg at image build time:
+#   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and
+#   NEXT_PUBLIC_SITE_URL are inlined into client-side JavaScript bundles by
+#   Next.js at build time (NEXT_PUBLIC_* vars are statically replaced during
+#   `next build`).  Supplying different values at `docker run` time has no
+#   effect on the browser bundle.  You MUST pass the real public values as
+#   --build-arg at image build time:
 #
 #     docker build \
 #       --build-arg NEXT_PUBLIC_SUPABASE_URL=https://yourproject.supabase.co \
 #       --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key \
+#       --build-arg NEXT_PUBLIC_SITE_URL=https://your-domain.com \
 #       -t limenfit .
 #
 #   SUPABASE_SERVICE_ROLE_KEY is server-side only (never inlined into client
@@ -47,8 +49,10 @@ COPY . .
 # values are required here; docker run overrides have no effect on the browser.
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # SUPABASE_SERVICE_ROLE_KEY is server-side only — placeholder satisfies
 # lib/env.ts Zod check during next build; real value is injected at docker run.
