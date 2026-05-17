@@ -8,10 +8,13 @@ import { MotionSection } from './components/MotionSection';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-black text-white">
       <LandingHeader />
-      <main className="max-w-6xl mx-auto px-6">
-        <LandingHero />
+      {/* Hero is full-width — lives outside the max-w container */}
+      <LandingHero />
+      {/* Orange divider between hero and features */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-brand-orange to-transparent opacity-60" />
+      <main className="mx-auto max-w-screen-xl px-4 sm:px-6">
         <MotionSection>
           <LandingFeatures />
         </MotionSection>
@@ -22,7 +25,7 @@ export function LandingPage() {
           <LandingContact />
         </MotionSection>
       </main>
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="mx-auto max-w-screen-xl px-4 sm:px-6">
         <LandingFooter />
       </div>
     </div>
