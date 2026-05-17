@@ -9,31 +9,29 @@ const ON_PRIMARY = '#fafafa';
 
 export default function AppleIcon() {
   return new ImageResponse(
-    (
-      <div
+    <div
+      style={{
+        width: 180,
+        height: 180,
+        background: PRIMARY,
+        borderRadius: 36,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <span
         style={{
-          width: 180,
-          height: 180,
-          background: PRIMARY,
-          borderRadius: 36,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          color: ON_PRIMARY,
+          fontSize: 110,
+          fontWeight: 700,
+          fontFamily: 'serif',
+          lineHeight: 1,
         }}
       >
-        <span
-          style={{
-            color: ON_PRIMARY,
-            fontSize: 110,
-            fontWeight: 700,
-            fontFamily: 'serif',
-            lineHeight: 1,
-          }}
-        >
-          L
-        </span>
-      </div>
-    ),
+        L
+      </span>
+    </div>,
     { ...size },
   );
 }

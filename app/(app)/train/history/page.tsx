@@ -45,13 +45,10 @@ export default async function HistoryPage() {
       .map((ue) => (ue.exercises as { name: string } | null)?.name ?? '')
       .filter(Boolean);
 
-    const resolvedName =
-      w.name && w.name.trim() ? w.name.trim() : autoNameWorkout(exerciseNames);
+    const resolvedName = w.name && w.name.trim() ? w.name.trim() : autoNameWorkout(exerciseNames);
 
     const endIso =
-      w.status === 'completed'
-        ? (w.completed_at ?? w.started_at)
-        : (w.expired_at ?? w.started_at);
+      w.status === 'completed' ? (w.completed_at ?? w.started_at) : (w.expired_at ?? w.started_at);
 
     const durationLabel = formatDuration(w.started_at, endIso);
 

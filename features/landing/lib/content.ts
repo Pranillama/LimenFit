@@ -11,11 +11,7 @@ export const HERO = {
   secondaryHref: '#features',
 } as const;
 
-export type FeatureIllustration =
-  | 'fast-logging'
-  | 'offline'
-  | 'plan-share'
-  | 'analyze';
+export type FeatureIllustration = 'fast-logging' | 'offline' | 'plan-share' | 'analyze';
 
 export interface FeatureItem {
   id: string;
@@ -59,8 +55,7 @@ export const FEATURES: FeatureItem[] = [
 
 export const WHY_LIMENFIT = {
   heading: 'Why LimenFit?',
-  pain:
-    "Most fitness apps are bloated with social feeds and subscription paywalls. When you're mid-session, the last thing you need is friction.",
+  pain: "Most fitness apps are bloated with social feeds and subscription paywalls. When you're mid-session, the last thing you need is friction.",
   success:
     "LimenFit is built around a single promise: log fast, reflect clearly, improve consistently — whether you're a solo lifter or coaching a team.",
 } as const;

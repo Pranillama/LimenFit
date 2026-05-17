@@ -72,7 +72,11 @@ export { useExerciseLookup } from './hooks/useExerciseLookup';
 export type { ExerciseLookup } from './hooks/useExerciseLookup';
 
 // ---------- Resume coordinator ----------
-export { requestStartWorkout, subscribeResumeRequest, settleRequest } from './store/resumeCoordinator';
+export {
+  requestStartWorkout,
+  subscribeResumeRequest,
+  settleRequest,
+} from './store/resumeCoordinator';
 export type { StartDecision, StartIntent } from './store/resumeCoordinator';
 
 // ---------- Lib ----------

@@ -17,10 +17,15 @@ class RouteError extends Error {
   }
 }
 
-async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string, userId: string): Promise<PlanRow | null> {
+async function fetchPlanById(
+  supabase: SupabaseClient<Database>,
+  planId: string,
+  userId: string,
+): Promise<PlanRow | null> {
   const { data, error } = await supabase
     .from('plans')
-    .select(`
+    .select(
+      `
       id, name, share_slug, is_public, created_at, updated_at,
       plan_workouts (
         id, name, position,
@@ -28,7 +33,8 @@ async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string,
           id, exercise_id, target_sets, target_reps, position
         )
       )
-    `)
+    `,
+    )
     .eq('id', planId)
     .eq('user_id', userId)
     .maybeSingle();

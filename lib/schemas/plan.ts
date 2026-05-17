@@ -27,10 +27,9 @@ export const planPatchBodySchema = z
     name: z.string().trim().min(1).max(100).optional(),
     workouts: z.array(planWorkoutDraftSchema).min(1).max(20).optional(),
   })
-  .refine(
-    (data) => data.name !== undefined || data.workouts !== undefined,
-    { message: 'At least one of name or workouts must be provided' },
-  );
+  .refine((data) => data.name !== undefined || data.workouts !== undefined, {
+    message: 'At least one of name or workouts must be provided',
+  });
 
 export const planDeleteBodySchema = z.object({
   clientMutationId: uuid,

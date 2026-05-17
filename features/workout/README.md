@@ -74,11 +74,11 @@ other cancel-with-unsaved-work flow (two-button modal, controlled `open` state).
 `TrainPageShell` is the top-level router for `/train`. It reads `hydrated` and `meta` from
 the store and renders one of four branches:
 
-| Condition | Rendered |
-|-----------|----------|
-| `!hydrated` | `<PageSkeleton />` |
-| `meta === null` | `<StartWorkoutEmptyState />` |
-| `meta.status === 'in_progress'` | `<ActiveWorkoutSession />` |
+| Condition                                                 | Rendered                                    |
+| --------------------------------------------------------- | ------------------------------------------- |
+| `!hydrated`                                               | `<PageSkeleton />`                          |
+| `meta === null`                                           | `<StartWorkoutEmptyState />`                |
+| `meta.status === 'in_progress'`                           | `<ActiveWorkoutSession />`                  |
 | `meta.status === 'completed_local' \| 'completed_synced'` | `<EndWorkoutSummary onResume={() => {}} />` |
 
 No `router.push` is needed — the user is already on `/train`, and the store drives the view.

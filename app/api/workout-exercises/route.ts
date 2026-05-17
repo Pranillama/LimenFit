@@ -41,7 +41,11 @@ export async function POST(request: Request): Promise<Response> {
         }
         if (workout.status !== 'in_progress') {
           throw new RouteError(
-            jsonError(422, 'WORKOUT_NOT_IN_PROGRESS', 'Cannot add exercises to a completed or expired workout'),
+            jsonError(
+              422,
+              'WORKOUT_NOT_IN_PROGRESS',
+              'Cannot add exercises to a completed or expired workout',
+            ),
           );
         }
 
@@ -54,12 +58,19 @@ export async function POST(request: Request): Promise<Response> {
 
         if (exerciseError) throw exerciseError;
         if (exercise === null) {
-          throw new RouteError(jsonError(422, 'INVALID_EXERCISE', 'Exercise not found or not accessible'));
+          throw new RouteError(
+            jsonError(422, 'INVALID_EXERCISE', 'Exercise not found or not accessible'),
+          );
         }
 
         const { data: inserted, error: insertError } = await supabase
           .from('workout_exercises')
-          .insert({ workout_id: workoutId, exercise_id: exerciseId, position, client_mutation_id: clientMutationId })
+          .insert({
+            workout_id: workoutId,
+            exercise_id: exerciseId,
+            position,
+            client_mutation_id: clientMutationId,
+          })
           .select('id')
           .single();
 

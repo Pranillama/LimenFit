@@ -94,7 +94,10 @@ export function EndWorkoutSummary({ onResume }: Props) {
         <Input
           id="workout-name"
           value={name}
-          onChange={(e) => { setName(e.target.value); setUserEdited(true); }}
+          onChange={(e) => {
+            setName(e.target.value);
+            setUserEdited(true);
+          }}
           placeholder={autoName || 'Workout'}
           disabled={!isInProgress}
         />

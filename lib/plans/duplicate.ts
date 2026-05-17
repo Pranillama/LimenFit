@@ -18,24 +18,28 @@ export async function duplicatePlanForUser(
 ): Promise<{ planId: string; shareSlug: string }> {
   const { data: plan, error: selectError } = await supabase
     .from('plans')
-    .select('id, name, plan_workouts(id, name, position, plan_exercises(exercise_id, target_sets, target_reps, position))')
+    .select(
+      'id, name, plan_workouts(id, name, position, plan_exercises(exercise_id, target_sets, target_reps, position))',
+    )
     .eq('id', args.sourcePlanId)
     .maybeSingle();
 
   if (selectError) throw new Error(selectError.message);
   if (!plan) throw new PlanNotFoundError(args.sourcePlanId);
 
-  const pWorkouts = (plan.plan_workouts as Array<{
-    id: string;
-    name: string;
-    position: number;
-    plan_exercises: Array<{
-      exercise_id: string;
-      target_sets: number;
-      target_reps: number;
+  const pWorkouts = (
+    plan.plan_workouts as Array<{
+      id: string;
+      name: string;
       position: number;
-    }>;
-  }>).map((w) => ({
+      plan_exercises: Array<{
+        exercise_id: string;
+        target_sets: number;
+        target_reps: number;
+        position: number;
+      }>;
+    }>
+  ).map((w) => ({
     name: w.name,
     position: w.position,
     exercises: w.plan_exercises.map((e) => ({

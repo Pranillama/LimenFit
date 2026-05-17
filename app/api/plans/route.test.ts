@@ -94,9 +94,7 @@ function makeRequest(): Request {
         {
           name: 'Push Day',
           position: 0,
-          exercises: [
-            { exerciseId: EXERCISE_ID, targetSets: 3, targetReps: 10, position: 0 },
-          ],
+          exercises: [{ exerciseId: EXERCISE_ID, targetSets: 3, targetReps: 10, position: 0 }],
         },
       ],
     }),
@@ -209,9 +207,8 @@ describe('POST /api/plans', () => {
       }),
       from: vi.fn().mockImplementation(() => {
         fromCallCount++;
-        const data = fromCallCount === 1
-          ? { id: PLAN_ID, share_slug: 'ppl-abc123' }
-          : FULL_PLAN_ROW;
+        const data =
+          fromCallCount === 1 ? { id: PLAN_ID, share_slug: 'ppl-abc123' } : FULL_PLAN_ROW;
         return makeSelectBuilder(data);
       }),
     };
@@ -229,10 +226,13 @@ describe('POST /api/plans', () => {
     expect(json.id).toBe(PLAN_ID);
     expect(json.shareSlug).toBe('ppl-abc123');
     expect(json.workouts).toHaveLength(1);
-    expect(supabase.rpc).toHaveBeenCalledWith('create_plan_with_children', expect.objectContaining({
-      p_name: 'Push/Pull/Legs',
-      p_client_mutation_id: CLIENT_MUTATION_ID,
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'create_plan_with_children',
+      expect.objectContaining({
+        p_name: 'Push/Pull/Legs',
+        p_client_mutation_id: CLIENT_MUTATION_ID,
+      }),
+    );
     // Verify snake_case mapping in p_workouts
     const rpcCall = supabase.rpc.mock.calls[0]![1];
     expect(rpcCall.p_workouts[0].exercises[0].exercise_id).toBe(EXERCISE_ID);

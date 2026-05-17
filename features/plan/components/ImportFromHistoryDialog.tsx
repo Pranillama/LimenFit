@@ -7,7 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { autoNameWorkout } from '@/features/workout/lib/format';
 import { useExerciseLookup } from '@/features/workout/hooks/useExerciseLookup';
 
-import { useImportableWorkoutsQuery, type ImportableWorkout } from '../hooks/useImportableWorkoutsQuery';
+import {
+  useImportableWorkoutsQuery,
+  type ImportableWorkout,
+} from '../hooks/useImportableWorkoutsQuery';
 
 export type { ImportableWorkout };
 

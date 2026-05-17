@@ -51,7 +51,8 @@ export function PlanWorkoutEditor({
     const added = storeIds.filter((id) => !survivingSet.has(id));
     const merged = [...surviving, ...added];
     const changed =
-      merged.length !== localExerciseIds.length || merged.some((id, i) => id !== localExerciseIds[i]);
+      merged.length !== localExerciseIds.length ||
+      merged.some((id, i) => id !== localExerciseIds[i]);
     if (changed) setLocalExerciseIds(merged);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workout.exercises]);
@@ -90,7 +91,7 @@ export function PlanWorkoutEditor({
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <button
           type="button"
-          className="touch-none cursor-grab text-muted-foreground active:cursor-grabbing"
+          className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
           onPointerDown={(e) => dragControls.start(e)}
           aria-label="Drag to reorder workout"
         >

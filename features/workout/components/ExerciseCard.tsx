@@ -22,7 +22,14 @@ interface ExerciseCardProps {
   onDragHandlePointerDown?: (e: React.PointerEvent<HTMLButtonElement>) => void;
 }
 
-export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove, now, onDragHandlePointerDown }: ExerciseCardProps) {
+export function ExerciseCard({
+  exercise,
+  nameOf,
+  isLookupLoading,
+  onRemove,
+  now,
+  onDragHandlePointerDown,
+}: ExerciseCardProps) {
   const [deleteSetId, setDeleteSetId] = React.useState<string | null>(null);
 
   // Return a primitive string so useSyncExternalStore sees a stable snapshot.
@@ -71,7 +78,9 @@ export function ExerciseCard({ exercise, nameOf, isLookupLoading, onRemove, now,
           {isLookupLoading && !name ? (
             <Skeleton className="h-5 w-36" />
           ) : (
-            <span className="font-medium">{name || <Skeleton className="inline-block h-5 w-36" />}</span>
+            <span className="font-medium">
+              {name || <Skeleton className="inline-block h-5 w-36" />}
+            </span>
           )}
         </div>
         <Button

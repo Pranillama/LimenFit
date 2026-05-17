@@ -6,11 +6,7 @@ import { UUID_RE } from '@/lib/utils';
 import { buildWorkoutDetailDTO } from '@/features/workout/lib/workoutDetailDTO';
 import { WorkoutDetailView } from '@/features/workout/components/WorkoutDetailView';
 
-export default async function HistoryDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!UUID_RE.test(id)) {

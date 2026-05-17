@@ -47,9 +47,7 @@ function newLocalId(): string {
  * (network, server 5xx) are thrown so callers can retry rather than silently treating
  * a failure as "no active workout on server."
  */
-export async function hydrateActiveWorkout(
-  store: typeof useActiveWorkoutStore,
-): Promise<void> {
+export async function hydrateActiveWorkout(store: typeof useActiveWorkoutStore): Promise<void> {
   // Step 1: wait for local persistence to finish hydrating
   if (!store.persist.hasHydrated()) {
     await new Promise<void>((resolve) => {

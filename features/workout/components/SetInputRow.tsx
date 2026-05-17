@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import { selectWeightUnit } from '../store/selectors';
 
-function lastSetSignature(set: { localId: string; weightValue?: number | null; reps?: number | null } | undefined): string {
+function lastSetSignature(
+  set: { localId: string; weightValue?: number | null; reps?: number | null } | undefined,
+): string {
   if (!set) return '';
   return `${set.localId}|${set.weightValue ?? ''}|${set.reps ?? ''}`;
 }
@@ -23,9 +25,7 @@ export function SetInputRow({ exerciseLocalId, defaultWeight, defaultReps }: Set
   const [weight, setWeight] = React.useState<string>(
     defaultWeight === '' ? '' : String(defaultWeight),
   );
-  const [reps, setReps] = React.useState<string>(
-    defaultReps === '' ? '' : String(defaultReps),
-  );
+  const [reps, setReps] = React.useState<string>(defaultReps === '' ? '' : String(defaultReps));
   const [weightInvalid, setWeightInvalid] = React.useState(false);
   const [repsInvalid, setRepsInvalid] = React.useState(false);
 

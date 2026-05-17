@@ -59,10 +59,15 @@ export type PlanResponse = {
   workouts: PlanWorkoutResponse[];
 };
 
-async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string, userId: string): Promise<PlanRow | null> {
+async function fetchPlanById(
+  supabase: SupabaseClient<Database>,
+  planId: string,
+  userId: string,
+): Promise<PlanRow | null> {
   const { data, error } = await supabase
     .from('plans')
-    .select(`
+    .select(
+      `
       id, name, share_slug, is_public, created_at, updated_at,
       plan_workouts (
         id, name, position,
@@ -70,7 +75,8 @@ async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string,
           id, exercise_id, target_sets, target_reps, position
         )
       )
-    `)
+    `,
+    )
     .eq('id', planId)
     .eq('user_id', userId)
     .maybeSingle();
@@ -132,10 +138,11 @@ export async function POST(request: Request): Promise<Response> {
           })),
         }));
 
-        const { data: rpcRows, error: rpcError } = await supabase.rpc(
-          'create_plan_with_children',
-          { p_name: name, p_workouts, p_client_mutation_id: clientMutationId },
-        );
+        const { data: rpcRows, error: rpcError } = await supabase.rpc('create_plan_with_children', {
+          p_name: name,
+          p_workouts,
+          p_client_mutation_id: clientMutationId,
+        });
 
         if (rpcError) {
           if (rpcError.code === '23505') {

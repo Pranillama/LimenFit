@@ -57,8 +57,7 @@ export function buildHomeDashboardDTO(rows: RawWorkout[]): HomeDashboardDTO {
         .map((ue) => (ue.exercises as { name: string } | null)?.name ?? '')
         .filter(Boolean);
 
-      const resolvedName =
-        w.name && w.name.trim() ? w.name.trim() : autoNameWorkout(exerciseNames);
+      const resolvedName = w.name && w.name.trim() ? w.name.trim() : autoNameWorkout(exerciseNames);
 
       const endedAt =
         w.status === 'completed'

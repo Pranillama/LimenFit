@@ -1,7 +1,7 @@
-import * as React from "react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import * as React from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface NavLink {
   label: string;
@@ -44,7 +44,7 @@ const itemVariants = {
     opacity: 1,
     transition: {
       duration: 0.6,
-      ease: "easeOut",
+      ease: 'easeOut',
     },
   },
 };
@@ -61,13 +61,13 @@ export const AnimatedHero = ({
   className,
 }: AnimatedHeroProps) => {
   const glassButtonClassName =
-    "bg-white/10 backdrop-blur-sm border border-white/20 text-primary-foreground hover:bg-white/20 transition-colors";
+    'bg-white/10 backdrop-blur-sm border border-white/20 text-primary-foreground hover:bg-white/20 transition-colors';
 
   return (
     <div
       className={cn(
-        "relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background",
-        className
+        'relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background',
+        className,
       )}
     >
       <div
@@ -80,11 +80,11 @@ export const AnimatedHero = ({
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="absolute top-0 z-20 flex h-20 w-full items-center justify-between px-6 md:px-12 text-white"
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="absolute top-0 z-20 flex h-20 w-full items-center justify-between px-6 text-white md:px-12"
       >
         <div className="flex items-center gap-2">{logo}</div>
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -102,7 +102,7 @@ export const AnimatedHero = ({
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 flex flex-col items-start justify-center text-left px-6 md:px-12 max-w-4xl w-full text-white"
+        className="relative z-10 flex w-full max-w-4xl flex-col items-start justify-center px-6 text-left text-white md:px-12"
       >
         <motion.h1
           variants={itemVariants}
@@ -116,10 +116,7 @@ export const AnimatedHero = ({
         >
           {description}
         </motion.p>
-        <motion.div
-          variants={itemVariants}
-          className="mt-10 flex items-center gap-x-4"
-        >
+        <motion.div variants={itemVariants} className="mt-10 flex items-center gap-x-4">
           <Button onClick={ctaButton.onClick} size="lg" className={glassButtonClassName}>
             {ctaButton.text}
           </Button>

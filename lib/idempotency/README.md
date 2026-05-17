@@ -11,10 +11,10 @@ request. The server uses the helpers here to detect and short-circuit duplicate 
 
 ## Files
 
-| File | Boundary | Description |
-|------|----------|-------------|
-| `index.ts` | client + server | `newClientMutationId()` — generates UUID keys, imported by the Zustand store |
-| `server.ts` | server only | `withIdempotency<T>()` — deduplicates via `mutation_receipts` |
+| File        | Boundary        | Description                                                                  |
+| ----------- | --------------- | ---------------------------------------------------------------------------- |
+| `index.ts`  | client + server | `newClientMutationId()` — generates UUID keys, imported by the Zustand store |
+| `server.ts` | server only     | `withIdempotency<T>()` — deduplicates via `mutation_receipts`                |
 
 ## Server contract (`server.ts`)
 
@@ -24,18 +24,18 @@ request. The server uses the helpers here to detect and short-circuit duplicate 
 interface WithIdempotencyOptions<T> {
   supabase: SupabaseClient<Database>;
   userId: string;
-  clientMutationId: string;  // must be a v4 UUID
-  mutationType: string;       // logical operation name stored verbatim in the receipt
-  resourceType: string;       // e.g. 'workouts'
+  clientMutationId: string; // must be a v4 UUID
+  mutationType: string; // logical operation name stored verbatim in the receipt
+  resourceType: string; // e.g. 'workouts'
   handler: () => Promise<{ resourceId: string | null; response: T; responseMetadata?: unknown }>;
 }
 
 interface IdempotencyResult<T> {
   replayed: boolean;
   resourceId: string | null;
-  mutationType?: string;     // echoes mutation_type from the receipt on replay
+  mutationType?: string; // echoes mutation_type from the receipt on replay
   responseMetadata?: unknown; // outcome metadata from the first execution, if provided
-  response: T | null;        // null on replay — caller reconstructs from resourceId and responseMetadata
+  response: T | null; // null on replay — caller reconstructs from resourceId and responseMetadata
 }
 ```
 
@@ -111,17 +111,17 @@ normal T7 dedupe contract.
 
 ## Routes that consume this module
 
-| Route file | `mutationType` values stored |
-|------------|------------------------------|
-| [`app/api/workouts/route.ts`](../../app/api/workouts/route.ts) | `workout.create` |
-| [`app/api/workouts/[id]/route.ts`](../../app/api/workouts/[id]/route.ts) | `workout.patch`, `workout.discard` |
-| [`app/api/workouts/[id]/restore/route.ts`](../../app/api/workouts/[id]/restore/route.ts) | `workout.restore` |
-| [`app/api/workout-exercises/route.ts`](../../app/api/workout-exercises/route.ts) | `workoutExercise.add` |
+| Route file                                                                                 | `mutationType` values stored                        |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| [`app/api/workouts/route.ts`](../../app/api/workouts/route.ts)                             | `workout.create`                                    |
+| [`app/api/workouts/[id]/route.ts`](../../app/api/workouts/[id]/route.ts)                   | `workout.patch`, `workout.discard`                  |
+| [`app/api/workouts/[id]/restore/route.ts`](../../app/api/workouts/[id]/restore/route.ts)   | `workout.restore`                                   |
+| [`app/api/workout-exercises/route.ts`](../../app/api/workout-exercises/route.ts)           | `workoutExercise.add`                               |
 | [`app/api/workout-exercises/[id]/route.ts`](../../app/api/workout-exercises/[id]/route.ts) | `workoutExercise.reorder`, `workoutExercise.remove` |
-| [`app/api/sets/route.ts`](../../app/api/sets/route.ts) | `set.log` |
-| [`app/api/sets/[id]/route.ts`](../../app/api/sets/[id]/route.ts) | `set.edit`, `set.delete` |
-| [`app/api/exercises/route.ts`](../../app/api/exercises/route.ts) | `exercise.create` |
-| [`app/api/plans/route.ts`](../../app/api/plans/route.ts) | `plan.create` |
-| [`app/api/plans/[id]/route.ts`](../../app/api/plans/%5Bid%5D/route.ts) | `plan.patch`, `plan.discard` |
+| [`app/api/sets/route.ts`](../../app/api/sets/route.ts)                                     | `set.log`                                           |
+| [`app/api/sets/[id]/route.ts`](../../app/api/sets/[id]/route.ts)                           | `set.edit`, `set.delete`                            |
+| [`app/api/exercises/route.ts`](../../app/api/exercises/route.ts)                           | `exercise.create`                                   |
+| [`app/api/plans/route.ts`](../../app/api/plans/route.ts)                                   | `plan.create`                                       |
+| [`app/api/plans/[id]/route.ts`](../../app/api/plans/%5Bid%5D/route.ts)                     | `plan.patch`, `plan.discard`                        |
 
 Each route handler passes a session-scoped `createSupabaseServerClient()` client to `withIdempotency`. The same client is used for all `mutation_receipts` reads and writes, so a single session token covers both the route-specific DB work and the receipt management.

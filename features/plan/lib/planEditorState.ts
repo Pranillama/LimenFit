@@ -36,10 +36,7 @@ export function addWorkout(workouts: EditorWorkoutItem[]): EditorWorkoutItem[] {
   ]);
 }
 
-export function removeWorkout(
-  workouts: EditorWorkoutItem[],
-  localId: string,
-): EditorWorkoutItem[] {
+export function removeWorkout(workouts: EditorWorkoutItem[], localId: string): EditorWorkoutItem[] {
   return withWorkoutPositions(workouts.filter((w) => w.localId !== localId));
 }
 
@@ -123,9 +120,7 @@ export function updateExerciseTargets(
     if (w.localId !== workoutLocalId) return w;
     return {
       ...w,
-      exercises: w.exercises.map((e) =>
-        e.localId === exerciseLocalId ? { ...e, ...updates } : e,
-      ),
+      exercises: w.exercises.map((e) => (e.localId === exerciseLocalId ? { ...e, ...updates } : e)),
     };
   });
 }

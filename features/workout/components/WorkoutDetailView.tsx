@@ -151,14 +151,9 @@ export function WorkoutDetailView({ workout }: Props) {
 
   const exerciseNames = workout.exercises.map((ex) => lookup.nameOf(ex.exercise_id));
   const resolvedName =
-    (workout.name ?? '').trim() ||
-    autoNameWorkout(exerciseNames.filter(Boolean)) ||
-    'Workout';
+    (workout.name ?? '').trim() || autoNameWorkout(exerciseNames.filter(Boolean)) || 'Workout';
 
-  const endIso =
-    workout.completed_at ??
-    workout.expired_at ??
-    workout.last_activity_at;
+  const endIso = workout.completed_at ?? workout.expired_at ?? workout.last_activity_at;
 
   const duration = formatDuration(workout.started_at, endIso);
   const dateLabel = dateFormat.format(new Date(workout.started_at));
@@ -218,7 +213,10 @@ export function WorkoutDetailView({ workout }: Props) {
                                 isInteger={false}
                                 disabled={editDisabled}
                                 onSave={(v, rollback) =>
-                                  editSet.mutate({ id: s.localId, weightValue: v }, { onError: rollback })
+                                  editSet.mutate(
+                                    { id: s.localId, weightValue: v },
+                                    { onError: rollback },
+                                  )
                                 }
                               />
                               {s.weight_unit && (
@@ -274,10 +272,7 @@ export function WorkoutDetailView({ workout }: Props) {
           </Button>
         )}
 
-        <Button
-          variant="destructive"
-          onClick={() => setShowDeleteDialog(true)}
-        >
+        <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
           Delete
         </Button>
       </div>

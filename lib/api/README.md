@@ -5,11 +5,11 @@ these are pure plumbing consumed by `app/api/**` route files.
 
 ## Files
 
-| File | Exports | Description |
-|------|---------|-------------|
-| `auth.ts` | `requireUser()`, `ApiAuthError` | Session verification for route handlers |
-| `responses.ts` | `jsonOk`, `jsonCreated`, `jsonError`, `handleApiError` | Typed HTTP response constructors |
-| `touchWorkout.ts` | `touchWorkoutLastActivity` | Bumps `last_activity_at` on a workout row |
+| File              | Exports                                                | Description                               |
+| ----------------- | ------------------------------------------------------ | ----------------------------------------- |
+| `auth.ts`         | `requireUser()`, `ApiAuthError`                        | Session verification for route handlers   |
+| `responses.ts`    | `jsonOk`, `jsonCreated`, `jsonError`, `handleApiError` | Typed HTTP response constructors          |
+| `touchWorkout.ts` | `touchWorkoutLastActivity`                             | Bumps `last_activity_at` on a workout row |
 
 ---
 
@@ -65,11 +65,11 @@ export async function POST(request: Request) {
 }
 ```
 
-| Error type | Response |
-|------------|----------|
-| `ZodError` | `400 VALIDATION_ERROR` with `details.issues` |
-| `ApiAuthError` | `401 UNAUTHORIZED` |
-| Everything else | re-thrown (Next.js surfaces as 500) |
+| Error type      | Response                                     |
+| --------------- | -------------------------------------------- |
+| `ZodError`      | `400 VALIDATION_ERROR` with `details.issues` |
+| `ApiAuthError`  | `401 UNAUTHORIZED`                           |
+| Everything else | re-thrown (Next.js surfaces as 500)          |
 
 PostgREST unique-violation errors (`23505`) that arise inside `withIdempotency` are
 already normalized to replay outcomes before reaching `handleApiError`, so they do not

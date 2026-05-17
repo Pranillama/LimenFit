@@ -11,19 +11,19 @@ Exercises API route handler. Implemented in T8.
 Validated with `exerciseCreateBodySchema` from
 [`lib/schemas/exercise.ts`](../../../lib/schemas/exercise.ts):
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `clientMutationId` | `string` (UUID v4) | yes | Idempotency key — see contract below |
-| `name` | `string` | yes | Trimmed, 1–100 characters |
-| `category` | `ExerciseCategory` | yes | Must be a value from `EXERCISE_CATEGORIES` in `lib/exercises/catalog.ts` |
-| `equipment` | `ExerciseEquipment \| null` | no | Optional; defaults to `null` when omitted |
+| Field              | Type                        | Required | Notes                                                                    |
+| ------------------ | --------------------------- | -------- | ------------------------------------------------------------------------ |
+| `clientMutationId` | `string` (UUID v4)          | yes      | Idempotency key — see contract below                                     |
+| `name`             | `string`                    | yes      | Trimmed, 1–100 characters                                                |
+| `category`         | `ExerciseCategory`          | yes      | Must be a value from `EXERCISE_CATEGORIES` in `lib/exercises/catalog.ts` |
+| `equipment`        | `ExerciseEquipment \| null` | no       | Optional; defaults to `null` when omitted                                |
 
 ## Success response
 
-| Status | When |
-|--------|------|
-| `201 Created` | First call — exercise row inserted |
-| `200 OK` | Replay — `clientMutationId` was already processed |
+| Status        | When                                              |
+| ------------- | ------------------------------------------------- |
+| `201 Created` | First call — exercise row inserted                |
+| `200 OK`      | Replay — `clientMutationId` was already processed |
 
 Both statuses return the same JSON body shape:
 
@@ -45,12 +45,12 @@ On replay, the row is re-fetched by `id` under the user-scoped client so the ech
 
 ## Error codes
 
-| HTTP | `error.code` | Cause |
-|------|-------------|-------|
-| `400` | `VALIDATION_ERROR` | Request body fails `exerciseCreateBodySchema` (missing field, wrong type, invalid enum value) |
-| `400` | `IDEMPOTENCY_VALIDATION_ERROR` | `clientMutationId` is not a valid UUID v4 |
-| `401` | `UNAUTHORIZED` | No valid session; `requireUser()` threw `ApiAuthError` |
-| `500` | `INTERNAL_SERVER_ERROR` | Unexpected database or runtime error |
+| HTTP  | `error.code`                   | Cause                                                                                         |
+| ----- | ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `400` | `VALIDATION_ERROR`             | Request body fails `exerciseCreateBodySchema` (missing field, wrong type, invalid enum value) |
+| `400` | `IDEMPOTENCY_VALIDATION_ERROR` | `clientMutationId` is not a valid UUID v4                                                     |
+| `401` | `UNAUTHORIZED`                 | No valid session; `requireUser()` threw `ApiAuthError`                                        |
+| `500` | `INTERNAL_SERVER_ERROR`        | Unexpected database or runtime error                                                          |
 
 ## Idempotency contract
 

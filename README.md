@@ -114,7 +114,7 @@ The following routes are publicly accessible without authentication:
 The T4 implementer must ensure both routes bypass auth checks. The two recommended approaches are:
 
 - **Omit them from `config.matcher`** — middleware only runs on paths listed in the matcher, so leaving `/` and `/plan/[slug]` out means the middleware never executes for those requests.
-- **Use a negative-lookahead matcher** — write a single regex pattern that matches all paths *except* `/` and `/plan/:slug`, e.g. `/((?!plan/).*)` extended to exclude the root.
+- **Use a negative-lookahead matcher** — write a single regex pattern that matches all paths _except_ `/` and `/plan/:slug`, e.g. `/((?!plan/).*)` extended to exclude the root.
 
 Alternatively, the middleware function itself may early-return `NextResponse.next()` when `req.nextUrl.pathname` matches those paths, but the matcher-exclusion approach is preferred because it avoids running middleware code at all.
 
@@ -124,13 +124,13 @@ Alternatively, the middleware function itself may early-return `NextResponse.nex
 
 Copy `.env.example` to `.env.local` and fill in the values before running the dev server.
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes (server) | Service role key — never exposed to the browser |
-| `NEXT_PUBLIC_SITE_URL` | Yes | Canonical site URL (no trailing slash) — used by `robots.txt` and `sitemap.xml` |
-| `NODE_ENV` | No | Defaults to `development` |
+| Variable                        | Required     | Description                                                                     |
+| ------------------------------- | ------------ | ------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes          | Your Supabase project URL                                                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes          | Supabase anon/public key                                                        |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes (server) | Service role key — never exposed to the browser                                 |
+| `NEXT_PUBLIC_SITE_URL`          | Yes          | Canonical site URL (no trailing slash) — used by `robots.txt` and `sitemap.xml` |
+| `NODE_ENV`                      | No           | Defaults to `development`                                                       |
 
 `lib/env.ts` validates all variables at import time and throws a single readable error listing every missing or invalid variable. The server variables are guarded by a browser Proxy that throws if accessed in client bundles.
 
@@ -166,26 +166,26 @@ Vercel auto-deploys on every merge to `main`. Pull requests each receive a Verce
 
 ### Vercel project settings
 
-| Setting | Value |
-| --- | --- |
-| Framework Preset | Next.js |
-| Node version | 20.x |
-| Package manager | pnpm 9.15.0 (auto-detected from `packageManager` in `package.json`) |
-| Install Command | `pnpm install --frozen-lockfile` |
-| Build Command | `pnpm build` (default) |
-| Output Directory | `.next` (default) |
-| Root Directory | repo root |
+| Setting          | Value                                                               |
+| ---------------- | ------------------------------------------------------------------- |
+| Framework Preset | Next.js                                                             |
+| Node version     | 20.x                                                                |
+| Package manager  | pnpm 9.15.0 (auto-detected from `packageManager` in `package.json`) |
+| Install Command  | `pnpm install --frozen-lockfile`                                    |
+| Build Command    | `pnpm build` (default)                                              |
+| Output Directory | `.next` (default)                                                   |
+| Root Directory   | repo root                                                           |
 
 ### Environment variables (Vercel)
 
 Set the following in the Vercel project under **Settings → Environment Variables**, scoped to both **Production** and **Preview**:
 
-| Variable | Description |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key — server-only, never exposed to the browser |
-| `NEXT_PUBLIC_SITE_URL` | Canonical site URL (e.g. `https://limenfit.com`) — used by `robots.txt` and `sitemap.xml` |
+| Variable                        | Description                                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                                                                      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key                                                                  |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key — server-only, never exposed to the browser                              |
+| `NEXT_PUBLIC_SITE_URL`          | Canonical site URL (e.g. `https://limenfit.com`) — used by `robots.txt` and `sitemap.xml` |
 
 See `.env.example` for the variable names. In CI (`ci.yml`), `pnpm build` runs against placeholder values for these three variables purely to satisfy `lib/env.ts`'s import-time Zod validation — the build step does not connect to Supabase. The values set in Vercel must be the real credentials.
 
@@ -225,11 +225,11 @@ The workflow runs `supabase db push` against the remote project using the secret
 
 ### Required GitHub repository secrets
 
-| Secret | Source |
-| --- | --- |
-| `SUPABASE_ACCESS_TOKEN` | Supabase dashboard → Account → Access Tokens |
-| `SUPABASE_PROJECT_REF` | Supabase dashboard → Project → Settings → General → Reference ID |
-| `SUPABASE_DB_PASSWORD` | Supabase dashboard → Project → Settings → Database → Database password |
+| Secret                  | Source                                                                 |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `SUPABASE_ACCESS_TOKEN` | Supabase dashboard → Account → Access Tokens                           |
+| `SUPABASE_PROJECT_REF`  | Supabase dashboard → Project → Settings → General → Reference ID       |
+| `SUPABASE_DB_PASSWORD`  | Supabase dashboard → Project → Settings → Database → Database password |
 
 ### Manual escape hatch
 

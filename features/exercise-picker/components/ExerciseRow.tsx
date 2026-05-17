@@ -61,16 +61,12 @@ export function ExerciseRow({ item, selected, preview, onToggle }: ExerciseRowPr
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
           <span className="block truncate text-sm font-medium">{item.name}</span>
-          {item.isCustom && (
-            <span className="shrink-0 text-xs text-muted-foreground">Custom</span>
-          )}
+          {item.isCustom && <span className="shrink-0 text-xs text-muted-foreground">Custom</span>}
         </span>
         <span className="block truncate text-xs text-muted-foreground">{meta}</span>
       </span>
 
-      {previewText && (
-        <span className="shrink-0 text-xs text-muted-foreground">{previewText}</span>
-      )}
+      {previewText && <span className="shrink-0 text-xs text-muted-foreground">{previewText}</span>}
     </button>
   );
 }

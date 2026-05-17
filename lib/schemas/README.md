@@ -4,15 +4,15 @@ Shared Zod schemas used across API routes and feature tickets (T7, T8, T11, T15)
 
 ## Files
 
-| File | Schemas |
-|------|---------|
-| `index.ts` | Barrel — re-exports all schemas below plus `loginSchema` / `signUpSchema` |
-| `workout.ts` | `workoutCreateBodySchema`, `workoutPatchBodySchema`, `workoutDiscardBodySchema`, `workoutRestoreBodySchema` |
-| `workout-exercise.ts` | `workoutExerciseAddBodySchema`, `workoutExerciseReorderBodySchema`, `workoutExerciseDeleteBodySchema` |
-| `set.ts` | `setLogBodySchema`, `setEditBodySchema`, `setDeleteBodySchema` |
-| `exercise.ts` | `exerciseCreateBodySchema` |
-| `plan.ts` | `planExerciseDraftSchema`, `planWorkoutDraftSchema`, `planCreateBodySchema`, `planPatchBodySchema`, `planDeleteBodySchema` |
-| `settings.ts` | `userSettingsPatchBodySchema`, `UserSettingsPatchBody`, `UserSettingsDTO` |
+| File                  | Schemas                                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `index.ts`            | Barrel — re-exports all schemas below plus `loginSchema` / `signUpSchema`                                                  |
+| `workout.ts`          | `workoutCreateBodySchema`, `workoutPatchBodySchema`, `workoutDiscardBodySchema`, `workoutRestoreBodySchema`                |
+| `workout-exercise.ts` | `workoutExerciseAddBodySchema`, `workoutExerciseReorderBodySchema`, `workoutExerciseDeleteBodySchema`                      |
+| `set.ts`              | `setLogBodySchema`, `setEditBodySchema`, `setDeleteBodySchema`                                                             |
+| `exercise.ts`         | `exerciseCreateBodySchema`                                                                                                 |
+| `plan.ts`             | `planExerciseDraftSchema`, `planWorkoutDraftSchema`, `planCreateBodySchema`, `planPatchBodySchema`, `planDeleteBodySchema` |
+| `settings.ts`         | `userSettingsPatchBodySchema`, `UserSettingsPatchBody`, `UserSettingsDTO`                                                  |
 
 ## Conventions
 

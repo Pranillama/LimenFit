@@ -26,11 +26,7 @@ export const metadata: Metadata = {
   title: 'Edit Plan — LimenFit',
 };
 
-export default async function EditPlanPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function EditPlanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!UUID_RE.test(id)) {
@@ -77,14 +73,16 @@ export default async function EditPlanPage({
         id: w.id,
         name: w.name,
         position: wIdx,
-        exercises: sortedExercises.map((e, eIdx): EditorExerciseItem => ({
-          localId: crypto.randomUUID(),
-          id: e.id,
-          exerciseId: e.exercise_id,
-          targetSets: e.target_sets,
-          targetReps: e.target_reps,
-          position: eIdx,
-        })),
+        exercises: sortedExercises.map(
+          (e, eIdx): EditorExerciseItem => ({
+            localId: crypto.randomUUID(),
+            id: e.id,
+            exerciseId: e.exercise_id,
+            targetSets: e.target_sets,
+            targetReps: e.target_reps,
+            position: eIdx,
+          }),
+        ),
       };
     }),
   };

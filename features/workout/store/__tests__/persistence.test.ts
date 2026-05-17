@@ -109,7 +109,7 @@ describe('persistence — safe storage degradation', () => {
     expect(typeof unsubscribe).toBe('function');
 
     const storage = createSafeStorage();
-    storage.setItem('k', '"v"');   // degrades, listener fires
+    storage.setItem('k', '"v"'); // degrades, listener fires
     storage.setItem('k2', '"v2"'); // _degraded already true, markDegraded early-returns
 
     expect(listener).toHaveBeenCalledTimes(1);
@@ -159,18 +159,27 @@ describe('settings slice', () => {
     // Use a fresh baseline state with default settings for the current argument
     const freshCurrent = {
       hydrated: false,
-      settings: { weightUnit: 'lbs', restTimerDefaultSeconds: 90 },
+      settings: { weightUnit: 'lbs' as const, restTimerDefaultSeconds: 90 },
       meta: null,
       exercises: [],
       restTimer: {},
-      sync: { online: true, flushing: false, lastFlushError: null, pendingCount: 0, persistenceMode: 'localStorage' },
+      sync: {
+        online: true,
+        flushing: false,
+        lastFlushError: null,
+        pendingCount: 0,
+        persistenceMode: 'localStorage' as const,
+      },
       queue: [],
       quarantine: [],
       tombstones: {},
     };
-    const merged = opts.merge!(slice, freshCurrent);
+    const merged = opts.merge!(slice, freshCurrent as unknown as ActiveWorkoutStoreState);
     expect((merged as { settings?: { weightUnit: string } }).settings?.weightUnit).toBe('kg');
-    expect((merged as { settings?: { restTimerDefaultSeconds: number } }).settings?.restTimerDefaultSeconds).toBe(90);
+    expect(
+      (merged as { settings?: { restTimerDefaultSeconds: number } }).settings
+        ?.restTimerDefaultSeconds,
+    ).toBe(90);
   });
 
   it('merge falls back to INITIAL_SETTINGS when persisted snapshot predates the settings field', () => {
@@ -181,8 +190,14 @@ describe('settings slice', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { settings: _omit, ...sliceWithoutSettings } = slice as any;
     const merged = opts.merge!(sliceWithoutSettings, state);
-    expect((merged as { settings?: { weightUnit: string; restTimerDefaultSeconds: number } }).settings?.weightUnit).toBe('lbs');
-    expect((merged as { settings?: { weightUnit: string; restTimerDefaultSeconds: number } }).settings?.restTimerDefaultSeconds).toBe(90);
+    expect(
+      (merged as { settings?: { weightUnit: string; restTimerDefaultSeconds: number } }).settings
+        ?.weightUnit,
+    ).toBe('lbs');
+    expect(
+      (merged as { settings?: { weightUnit: string; restTimerDefaultSeconds: number } }).settings
+        ?.restTimerDefaultSeconds,
+    ).toBe(90);
   });
 
   it('discardDraft does not reset settings', () => {

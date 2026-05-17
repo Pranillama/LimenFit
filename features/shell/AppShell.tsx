@@ -20,7 +20,9 @@ export function AppShell({ user, children }: AppShellProps) {
       <ActiveWorkoutRuntime />
       <div className="min-h-screen">
         <AppSidebar user={user} />
-        <main className="md:pl-60 pb-[calc(4rem+max(env(safe-area-inset-bottom),0px))] md:pb-0">{children}</main>
+        <main className="pb-[calc(4rem+max(env(safe-area-inset-bottom),0px))] md:pb-0 md:pl-60">
+          {children}
+        </main>
         <MobileBottomNav />
       </div>
     </TooltipProvider>

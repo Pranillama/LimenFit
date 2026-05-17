@@ -6,14 +6,14 @@ Marketing landing page for unauthenticated visitors (`/`).
 
 `LandingPage` is a Server Component composed of six sub-components rendered in order:
 
-| Component | Description |
-|-----------|-------------|
-| `LandingHeader` | Sticky translucent top bar — wordmark + "Get Started" CTA |
-| `LandingHero` | Headline, subheadline, primary/secondary CTAs, illustration slot |
-| `LandingFeatures` | 2-column card grid — Fast logging, Offline-first, Plan sharing, AI form analysis |
-| `LandingWhyLimenFit` | Short pain/success narrative |
-| `LandingContact` | Heading + mailto CTA — no form required |
-| `LandingFooter` | Grouped link columns + copyright row |
+| Component            | Description                                                                      |
+| -------------------- | -------------------------------------------------------------------------------- |
+| `LandingHeader`      | Sticky translucent top bar — wordmark + "Get Started" CTA                        |
+| `LandingHero`        | Headline, subheadline, primary/secondary CTAs, illustration slot                 |
+| `LandingFeatures`    | 2-column card grid — Fast logging, Offline-first, Plan sharing, AI form analysis |
+| `LandingWhyLimenFit` | Short pain/success narrative                                                     |
+| `LandingContact`     | Heading + mailto CTA — no form required                                          |
+| `LandingFooter`      | Grouped link columns + copyright row                                             |
 
 ## Content
 
@@ -33,9 +33,9 @@ Each section reserves placeholder `<div data-slot="…" />` elements where Phase
 
 App icons are generated via `next/og` `ImageResponse` in the App Router's [Metadata Files convention](https://nextjs.org/docs/app/api-reference/file-conventions/metadata):
 
-| File | Size | Purpose |
-|------|------|---------|
-| `app/icon.tsx` | 32×32 | Browser tab favicon (`<link rel="icon">`) |
+| File                 | Size    | Purpose                                           |
+| -------------------- | ------- | ------------------------------------------------- |
+| `app/icon.tsx`       | 32×32   | Browser tab favicon (`<link rel="icon">`)         |
 | `app/apple-icon.tsx` | 180×180 | iOS home screen (`<link rel="apple-touch-icon">`) |
 
 Both render a serif "L" on a dark background (`#18181b`, matching `--primary: 240 5.9% 10%` from `styles/globals.css`). No static `favicon.ico` — the `.tsx` convention supersedes it and keeps the icon in version control as code.

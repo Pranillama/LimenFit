@@ -5,6 +5,7 @@ Training plan feature components and logic. Implemented in T11, T12, T13.
 ## Delivery scope
 
 **T11** ships only the server-side surface:
+
 - `POST /api/plans`, `PATCH /api/plans/[id]`, `DELETE /api/plans/[id]` route handlers
 - `lib/plans/importFromHistory.ts` — pure client/server function that converts a completed workout into a `planWorkoutDraftSchema`-compatible object the plan creation form (T12) can use directly
 - `lib/plans/duplicate.ts` — server-only DB helper that reads a source plan via the `plans` + nested `plan_workouts`/`plan_exercises` select, then calls the `create_plan_with_children` RPC to produce a fresh copy owned by the target user

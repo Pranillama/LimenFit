@@ -4,7 +4,10 @@ import * as React from 'react';
 
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { selectRestTimerDefaultSeconds, selectWeightUnit } from '@/features/workout/store/selectors';
+import {
+  selectRestTimerDefaultSeconds,
+  selectWeightUnit,
+} from '@/features/workout/store/selectors';
 import { useActiveWorkoutStore } from '@/features/workout/store/useActiveWorkoutStore';
 import type { WeightUnit } from '@/features/workout/store/types';
 

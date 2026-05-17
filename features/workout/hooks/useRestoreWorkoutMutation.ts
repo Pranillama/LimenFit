@@ -12,8 +12,7 @@ import type { ServerWorkoutSnapshot } from '../store/useActiveWorkoutStore';
 import type { ActiveWorkoutExercise, ActiveSet } from '../store/types';
 import type { StartIntent } from '../store/resumeCoordinator';
 
-const CONFLICT_MSG =
-  'Finish or discard your current active workout before restoring this one.';
+const CONFLICT_MSG = 'Finish or discard your current active workout before restoring this one.';
 
 class RestoreConflictError extends Error {
   constructor() {

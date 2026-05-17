@@ -33,10 +33,10 @@ const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
 const mockTouchWorkoutLastActivity = vi.mocked(touchWorkoutLastActivity);
 
-const CLIENT_MUTATION_ID  = '550e8400-e29b-41d4-a716-446655440000';
+const CLIENT_MUTATION_ID = '550e8400-e29b-41d4-a716-446655440000';
 const WORKOUT_EXERCISE_ID = '660e8400-e29b-41d4-a716-446655440000';
-const RESOURCE_ID         = '880e8400-e29b-41d4-a716-446655440000';
-const USER_ID             = 'user-aaa0-0000-0000-000000000000';
+const RESOURCE_ID = '880e8400-e29b-41d4-a716-446655440000';
+const USER_ID = 'user-aaa0-0000-0000-000000000000';
 
 function makeRequest(): Request {
   return new Request('http://localhost/api/sets', {
@@ -153,7 +153,10 @@ describe('POST /api/sets', () => {
             select: () => ({
               eq: () => ({
                 maybeSingle: async () => ({
-                  data: { id: WORKOUT_EXERCISE_ID, workouts: { id: WORKOUT_ID, status: 'in_progress' } },
+                  data: {
+                    id: WORKOUT_EXERCISE_ID,
+                    workouts: { id: WORKOUT_ID, status: 'in_progress' },
+                  },
                   error: null,
                 }),
               }),
@@ -166,7 +169,10 @@ describe('POST /api/sets', () => {
             return {
               insert: () => ({
                 select: () => ({
-                  single: async () => ({ data: null, error: { code: '23505', message: 'duplicate key' } }),
+                  single: async () => ({
+                    data: null,
+                    error: { code: '23505', message: 'duplicate key' },
+                  }),
                 }),
               }),
             };
@@ -191,7 +197,11 @@ describe('POST /api/sets', () => {
 
     await POST(makeRequest());
 
-    expect(mockTouchWorkoutLastActivity).toHaveBeenCalledWith(supabase, WORKOUT_ID, expect.any(String));
+    expect(mockTouchWorkoutLastActivity).toHaveBeenCalledWith(
+      supabase,
+      WORKOUT_ID,
+      expect.any(String),
+    );
   });
 
   it('two calls with the same clientMutationId insert once and return the same body', async () => {
@@ -208,7 +218,10 @@ describe('POST /api/sets', () => {
             select: () => ({
               eq: () => ({
                 maybeSingle: async () => ({
-                  data: { id: WORKOUT_EXERCISE_ID, workouts: { id: 'wk-001', status: 'in_progress' } },
+                  data: {
+                    id: WORKOUT_EXERCISE_ID,
+                    workouts: { id: 'wk-001', status: 'in_progress' },
+                  },
                   error: null,
                 }),
               }),

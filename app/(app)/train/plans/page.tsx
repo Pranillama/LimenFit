@@ -14,7 +14,9 @@ export const metadata: Metadata = {
 
 export default async function PlansPage() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: plans } = await supabase
     .from('plans')
@@ -30,10 +32,7 @@ export default async function PlansPage() {
 
   const rows: PlanRowDTO[] = (plans ?? []).map((p) => {
     const workouts = (p.plan_workouts ?? []) as { id: string; plan_exercises: { id: string }[] }[];
-    const exerciseCount = workouts.reduce(
-      (sum, w) => sum + ((w.plan_exercises ?? []).length),
-      0,
-    );
+    const exerciseCount = workouts.reduce((sum, w) => sum + (w.plan_exercises ?? []).length, 0);
     return {
       id: p.id,
       name: p.name,

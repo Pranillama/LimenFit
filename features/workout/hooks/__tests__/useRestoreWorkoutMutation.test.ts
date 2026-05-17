@@ -39,15 +39,16 @@ describe('runRestoreMutation', () => {
   });
 
   it('throws RestoreConflictError and does not call fetch when an active local draft exists', async () => {
-    mockGetState.mockReturnValue(
-      { meta: { localId: 'draft-1' } } as ReturnType<typeof useActiveWorkoutStore.getState>,
-    );
+    mockGetState.mockReturnValue({ meta: { localId: 'draft-1' } } as ReturnType<
+      typeof useActiveWorkoutStore.getState
+    >);
     const fetchSpy = vi.fn();
     const startWorkout = vi.fn();
 
-    await expect(
-      runRestoreMutation('workout-123', startWorkout, fetchSpy),
-    ).rejects.toMatchObject({ name: 'RestoreConflictError', message: 'active-draft-exists' });
+    await expect(runRestoreMutation('workout-123', startWorkout, fetchSpy)).rejects.toMatchObject({
+      name: 'RestoreConflictError',
+      message: 'active-draft-exists',
+    });
 
     expect(fetchSpy).not.toHaveBeenCalled();
   });

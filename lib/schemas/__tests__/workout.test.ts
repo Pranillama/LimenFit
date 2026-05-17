@@ -7,7 +7,7 @@ import {
 } from '../workout';
 
 const UUID = '550e8400-e29b-41d4-a716-446655440000';
-const ISO  = '2026-05-01T10:00:00.000Z';
+const ISO = '2026-05-01T10:00:00.000Z';
 
 describe('workoutCreateBodySchema', () => {
   it('parses a valid body', () => {

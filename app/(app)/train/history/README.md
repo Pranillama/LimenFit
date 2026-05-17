@@ -18,18 +18,19 @@ queries `workouts` where `status IN ('completed', 'expired')`, ordered by `start
 RLS scopes results to the authenticated user — no explicit `user_id` filter needed.
 
 The query joins:
+
 - `workout_exercises(id, exercise_id, exercises(name), sets(id))` — used to compute
   `exerciseCount`, `setCount`, and the auto-generated workout name in a single round-trip.
 
 For each row the server computes a plain `HistoryRowDTO`:
 
-| Field           | Source                                                                              |
-|-----------------|-------------------------------------------------------------------------------------|
-| `name`          | `workouts.name` if non-empty; otherwise `autoNameWorkout` over unique exercise names |
+| Field           | Source                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------- |
+| `name`          | `workouts.name` if non-empty; otherwise `autoNameWorkout` over unique exercise names   |
 | `durationLabel` | `formatDuration(started_at, completed_at)` or `formatDuration(started_at, expired_at)` |
-| `exerciseCount` | Count of deduplicated `exercise_id`s in `workout_exercises`                         |
-| `setCount`      | Total count of `sets` rows across all `workout_exercises`                           |
-| `status`        | `'completed'` or `'expired'`                                                        |
+| `exerciseCount` | Count of deduplicated `exercise_id`s in `workout_exercises`                            |
+| `setCount`      | Total count of `sets` rows across all `workout_exercises`                              |
+| `status`        | `'completed'` or `'expired'`                                                           |
 
 The array of DTOs is passed as a prop to the `HistoryList` client component.
 
@@ -79,6 +80,7 @@ the full restore lifecycle:
 5. **Conflict toast** — the local pre-check (step 1), the `422 ACTIVE_DRAFT_EXISTS` server
    response (step 2), and the post-success blocked result (step 3) all show the same verbatim
    message:
+
    > "Finish or discard your current active workout before restoring this one."
 
 6. **Other errors** — `404 NOT_FOUND` and `422 NOT_EXPIRED` show a generic toast:
@@ -93,8 +95,8 @@ from `client_mutation_id` replay beyond what `withIdempotency` already supplies.
 ## Flow 6 reference
 
 > Flow 6, Step 1: User taps "Workout History" on the Train tab empty state or the
->   Train tab header → lands on `/train/history`.
+> Train tab header → lands on `/train/history`.
 > Flow 6, Step 2: A list of past workouts (completed + expired) is displayed, each
->   row showing name, date, duration, exercise/set counts.
+> row showing name, date, duration, exercise/set counts.
 > Flow 6, Step 5: User taps "Restore" on an expired row → workout is restored on the
->   server, store is hydrated from the fresh snapshot, and the user is navigated to /train.
+> server, store is hydrated from the fresh snapshot, and the user is navigated to /train.

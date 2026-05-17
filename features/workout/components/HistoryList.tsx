@@ -42,15 +42,15 @@ export function HistoryList({ rows }: Props) {
 
   // Synthesize a top entry when completed_local but not yet in the server list
   const showSyntheticRow =
-    meta?.status === 'completed_local' && (localWorkoutId === null || !serverIds.has(localWorkoutId));
+    meta?.status === 'completed_local' &&
+    (localWorkoutId === null || !serverIds.has(localWorkoutId));
 
   const synthetic = React.useMemo(() => {
     if (!showSyntheticRow || !meta) return null;
     const names = lookup.isLoading
       ? []
       : exercises.map((ex) => lookup.nameOf(ex.exerciseId)).filter(Boolean);
-    const name =
-      (meta.name ?? '').trim() || autoNameWorkout(names) || 'Workout';
+    const name = (meta.name ?? '').trim() || autoNameWorkout(names) || 'Workout';
     const durationLabel = formatDuration(meta.startedAt, meta.lastActivityAt);
     const seenIds = new Set<string>();
     for (const ex of exercises) seenIds.add(ex.exerciseId);
@@ -90,8 +90,7 @@ export function HistoryList({ rows }: Props) {
       )}
 
       {rows.map((row) => {
-        const isSyncPending =
-          meta?.status === 'completed_local' && localWorkoutId === row.id;
+        const isSyncPending = meta?.status === 'completed_local' && localWorkoutId === row.id;
 
         return (
           <li key={row.id} className="overflow-hidden rounded-lg border bg-card">

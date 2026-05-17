@@ -12,19 +12,19 @@
 
 ## File Map
 
-| Action | Path |
-|--------|------|
-| Create | `lib/idempotency/__tests__/server.test.ts` |
-| Create | `lib/schemas/__tests__/workout.test.ts` |
+| Action | Path                                             |
+| ------ | ------------------------------------------------ |
+| Create | `lib/idempotency/__tests__/server.test.ts`       |
+| Create | `lib/schemas/__tests__/workout.test.ts`          |
 | Create | `lib/schemas/__tests__/workout-exercise.test.ts` |
-| Create | `lib/schemas/__tests__/set.test.ts` |
-| Modify | `app/api/workouts/route.test.ts` |
-| Create | `app/api/workouts/[id]/restore/route.test.ts` |
-| Create | `app/api/workout-exercises/route.test.ts` |
-| Create | `app/api/sets/route.test.ts` |
-| Modify | `app/api/sets/README.md` |
-| Modify | `app/api/workout-exercises/README.md` |
-| Modify | `lib/idempotency/README.md` |
+| Create | `lib/schemas/__tests__/set.test.ts`              |
+| Modify | `app/api/workouts/route.test.ts`                 |
+| Create | `app/api/workouts/[id]/restore/route.test.ts`    |
+| Create | `app/api/workout-exercises/route.test.ts`        |
+| Create | `app/api/sets/route.test.ts`                     |
+| Modify | `app/api/sets/README.md`                         |
+| Modify | `app/api/workout-exercises/README.md`            |
+| Modify | `lib/idempotency/README.md`                      |
 
 ---
 
@@ -33,6 +33,7 @@
 Covers the four core deduplication behaviours of `withIdempotency`. The existing `server.test.ts` (sibling, not `__tests__/`) covers the `responseMetadata` contract — these tests cover the miss/hit/race/validation behaviours.
 
 **Files:**
+
 - Create: `lib/idempotency/__tests__/server.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -45,7 +46,7 @@ vi.mock('@/lib/env', () => ({ assertServerOnly: () => {} }));
 import { withIdempotency, IdempotencyValidationError } from '../server';
 
 const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000';
-const USER_ID    = 'aaaa0000-e29b-41d4-a716-446655440000';
+const USER_ID = 'aaaa0000-e29b-41d4-a716-446655440000';
 const RESOURCE_ID = 'bbbb0000-e29b-41d4-a716-446655440000';
 
 /**
@@ -223,6 +224,7 @@ git commit -m "test(idempotency): miss path, hit path, 23505 race, invalid UUID"
 ## Task 2: `lib/schemas/__tests__/workout.test.ts`
 
 **Files:**
+
 - Create: `lib/schemas/__tests__/workout.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -237,7 +239,7 @@ import {
 } from '../workout';
 
 const UUID = '550e8400-e29b-41d4-a716-446655440000';
-const ISO  = '2026-05-01T10:00:00.000Z';
+const ISO = '2026-05-01T10:00:00.000Z';
 
 describe('workoutCreateBodySchema', () => {
   it('parses a valid body', () => {
@@ -350,6 +352,7 @@ git commit -m "test(schemas): workout schema happy-path and rejection cases"
 ## Task 3: `lib/schemas/__tests__/workout-exercise.test.ts`
 
 **Files:**
+
 - Create: `lib/schemas/__tests__/workout-exercise.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -428,15 +431,15 @@ describe('workoutExerciseReorderBodySchema', () => {
 
 describe('workoutExerciseDeleteBodySchema', () => {
   it('parses a valid body', () => {
-    expect(
-      workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: UUID }).success,
-    ).toBe(true);
+    expect(workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: UUID }).success).toBe(
+      true,
+    );
   });
 
   it('rejects a non-UUID clientMutationId', () => {
-    expect(
-      workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: 'x' }).success,
-    ).toBe(false);
+    expect(workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: 'x' }).success).toBe(
+      false,
+    );
   });
 });
 ```
@@ -461,6 +464,7 @@ git commit -m "test(schemas): workout-exercise schema happy-path and rejection c
 ## Task 4: `lib/schemas/__tests__/set.test.ts`
 
 **Files:**
+
 - Create: `lib/schemas/__tests__/set.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -470,7 +474,7 @@ import { describe, it, expect } from 'vitest';
 import { setLogBodySchema, setEditBodySchema, setDeleteBodySchema } from '../set';
 
 const UUID = '550e8400-e29b-41d4-a716-446655440000';
-const ISO  = '2026-05-01T10:00:00.000Z';
+const ISO = '2026-05-01T10:00:00.000Z';
 
 describe('setLogBodySchema', () => {
   it('parses a valid body', () => {
@@ -602,6 +606,7 @@ git commit -m "test(schemas): set schema happy-path and rejection cases"
 The existing file mocks `@/lib/api/auth` and `@/lib/idempotency/server` and covers four idempotency scenarios. Add two missing cases: unauthenticated requests and Zod validation failures.
 
 **Files:**
+
 - Modify: `app/api/workouts/route.test.ts`
 
 - [ ] **Step 1: Read the existing file first** (already done above, but confirm line count)
@@ -673,6 +678,7 @@ git commit -m "test(routes/workouts): add 401 and 400 validation cases"
 Tests the `ACTIVE_DRAFT_EXISTS` 422 branch. To exercise the inner handler logic, `withIdempotency` is mocked to call through to `opts.handler()`.
 
 **Files:**
+
 - Create: `app/api/workouts/[id]/restore/route.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -707,10 +713,10 @@ import { withIdempotency } from '@/lib/idempotency/server';
 const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
 
-const VALID_UUID  = '550e8400-e29b-41d4-a716-446655440000';
-const WORKOUT_ID  = '660e8400-e29b-41d4-a716-446655440000';
-const DRAFT_ID    = '770e8400-e29b-41d4-a716-446655440000';
-const USER_ID     = 'user-aaa0-0000-0000-000000000000';
+const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000';
+const WORKOUT_ID = '660e8400-e29b-41d4-a716-446655440000';
+const DRAFT_ID = '770e8400-e29b-41d4-a716-446655440000';
+const USER_ID = 'user-aaa0-0000-0000-000000000000';
 
 /** Supabase mock whose maybySingle returns different rows per call count. */
 function makeRestoreSupabase(opts: {
@@ -840,6 +846,7 @@ git commit -m "test(routes/restore): 401, 400, and 422 ACTIVE_DRAFT_EXISTS cases
 ## Task 7: `app/api/workout-exercises/route.test.ts`
 
 **Files:**
+
 - Create: `app/api/workout-exercises/route.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -875,10 +882,10 @@ const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
 
 const CLIENT_MUTATION_ID = '550e8400-e29b-41d4-a716-446655440000';
-const WORKOUT_ID         = '660e8400-e29b-41d4-a716-446655440000';
-const EXERCISE_ID        = '770e8400-e29b-41d4-a716-446655440000';
-const RESOURCE_ID        = '880e8400-e29b-41d4-a716-446655440000';
-const USER_ID            = 'user-aaa0-0000-0000-000000000000';
+const WORKOUT_ID = '660e8400-e29b-41d4-a716-446655440000';
+const EXERCISE_ID = '770e8400-e29b-41d4-a716-446655440000';
+const RESOURCE_ID = '880e8400-e29b-41d4-a716-446655440000';
+const USER_ID = 'user-aaa0-0000-0000-000000000000';
 
 function makeRequest(): Request {
   return new Request('http://localhost/api/workout-exercises', {
@@ -1002,6 +1009,7 @@ git commit -m "test(routes/workout-exercises): 401, 400, replay, and 201 create 
 ## Task 8: `app/api/sets/route.test.ts`
 
 **Files:**
+
 - Create: `app/api/sets/route.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -1036,10 +1044,10 @@ import { withIdempotency } from '@/lib/idempotency/server';
 const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
 
-const CLIENT_MUTATION_ID    = '550e8400-e29b-41d4-a716-446655440000';
-const WORKOUT_EXERCISE_ID   = '660e8400-e29b-41d4-a716-446655440000';
-const RESOURCE_ID           = '880e8400-e29b-41d4-a716-446655440000';
-const USER_ID               = 'user-aaa0-0000-0000-000000000000';
+const CLIENT_MUTATION_ID = '550e8400-e29b-41d4-a716-446655440000';
+const WORKOUT_EXERCISE_ID = '660e8400-e29b-41d4-a716-446655440000';
+const RESOURCE_ID = '880e8400-e29b-41d4-a716-446655440000';
+const USER_ID = 'user-aaa0-0000-0000-000000000000';
 
 function makeRequest(): Request {
   return new Request('http://localhost/api/sets', {
@@ -1168,26 +1176,28 @@ git commit -m "test(routes/sets): 401, 400, replay, and 201 create cases"
 Add full request-body schemas and exact response shapes per endpoint. The existing content covers ownership, status gating, and weight_unit — preserve and extend it.
 
 **Files:**
+
 - Modify: `app/api/sets/README.md`
 
 - [ ] **Step 1: Replace the file with the full content**
 
 Replace the entire content of `app/api/sets/README.md` with:
 
-```markdown
+````markdown
 # app/api/sets
 
 Mutation surface for logged sets — the highest-frequency API calls in the app (one per set logged).
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/sets` | Log a set (create) |
-| `PATCH` | `/api/sets/[id]` | Edit a logged set (inline editing) |
-| `DELETE` | `/api/sets/[id]` | Remove a logged set |
+| Method   | Path             | Description                        |
+| -------- | ---------------- | ---------------------------------- |
+| `POST`   | `/api/sets`      | Log a set (create)                 |
+| `PATCH`  | `/api/sets/[id]` | Edit a logged set (inline editing) |
+| `DELETE` | `/api/sets/[id]` | Remove a logged set                |
 
 All handlers:
+
 - Authenticate via `requireUser()`.
 - Wrap mutations in `withIdempotency` — safe to retry from the offline queue.
 - Call `touchWorkoutLastActivity()` on the grandparent workout after each successful mutation.
@@ -1203,26 +1213,27 @@ All handlers:
 ```json
 {
   "clientMutationId": "<v4 UUID>",
-  "localId":          "<v4 UUID>",
-  "workoutExerciseId":"<v4 UUID>",
-  "setNumber":        1,
-  "reps":             10,
-  "weightValue":      60.5,
-  "weightUnit":       "kg",
-  "loggedAt":         "2026-05-01T10:00:00.000Z"
+  "localId": "<v4 UUID>",
+  "workoutExerciseId": "<v4 UUID>",
+  "setNumber": 1,
+  "reps": 10,
+  "weightValue": 60.5,
+  "weightUnit": "kg",
+  "loggedAt": "2026-05-01T10:00:00.000Z"
 }
 ```
+````
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Created | `201` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Workout exercise not found | `404` | `NOT_FOUND` |
-| Parent workout not `in_progress` | `422` | `WORKOUT_NOT_IN_PROGRESS` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                        | Status | Body                       |
+| -------------------------------- | ------ | -------------------------- |
+| Created                          | `201`  | `{ id, clientMutationId }` |
+| Replay                           | `200`  | `{ id, clientMutationId }` |
+| Workout exercise not found       | `404`  | `NOT_FOUND`                |
+| Parent workout not `in_progress` | `422`  | `WORKOUT_NOT_IN_PROGRESS`  |
+| Invalid body                     | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated                  | `401`  | `UNAUTHORIZED`             |
 
 ### Idempotency key
 
@@ -1239,9 +1250,9 @@ All handlers:
 ```json
 {
   "clientMutationId": "<v4 UUID>",
-  "reps":             12,
-  "weightValue":      70,
-  "weightUnit":       "lbs"
+  "reps": 12,
+  "weightValue": 70,
+  "weightUnit": "lbs"
 }
 ```
 
@@ -1249,14 +1260,14 @@ All handlers:
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Success | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Set not found | `404` | `NOT_FOUND` |
-| Invalid UUID in path | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition            | Status | Body                       |
+| -------------------- | ------ | -------------------------- |
+| Success              | `200`  | `{ id, clientMutationId }` |
+| Replay               | `200`  | `{ id, clientMutationId }` |
+| Set not found        | `404`  | `NOT_FOUND`                |
+| Invalid UUID in path | `400`  | `INVALID_ID`               |
+| Invalid body         | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated      | `401`  | `UNAUTHORIZED`             |
 
 ### Idempotency key
 
@@ -1278,13 +1289,13 @@ All handlers:
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Deleted (or already gone) | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Invalid UUID in path | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                 | Status | Body                       |
+| ------------------------- | ------ | -------------------------- |
+| Deleted (or already gone) | `200`  | `{ id, clientMutationId }` |
+| Replay                    | `200`  | `{ id, clientMutationId }` |
+| Invalid UUID in path      | `400`  | `INVALID_ID`               |
+| Invalid body              | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated           | `401`  | `UNAUTHORIZED`             |
 
 ### Idempotency key
 
@@ -1317,13 +1328,14 @@ Each handler resolves the grandparent workout via a join (`workout_exercises!inn
 ```
 
 `details` is included when there is extra context (e.g. Zod validation issues).
-```
+
+````
 
 - [ ] **Step 2: Verify no placeholder text remains**
 
 ```bash
 grep -n "TODO\|TBD\|placeholder\|fill" app/api/sets/README.md || echo "clean"
-```
+````
 
 Expected: `clean`
 
@@ -1341,26 +1353,28 @@ git commit -m "docs(sets): full request bodies, response tables, and error shape
 Add request-body schemas and exact response tables for each endpoint.
 
 **Files:**
+
 - Modify: `app/api/workout-exercises/README.md`
 
 - [ ] **Step 1: Replace the file with the full content**
 
 Replace the entire content of `app/api/workout-exercises/README.md` with:
 
-```markdown
+````markdown
 # app/api/workout-exercises
 
 Mutation surface for adding, reordering, and removing exercises from an active workout draft.
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/workout-exercises` | Add an exercise to an in_progress workout |
-| `PATCH` | `/api/workout-exercises/[id]` | Reorder a single exercise by position |
-| `DELETE` | `/api/workout-exercises/[id]` | Remove an exercise (cascades child sets) |
+| Method   | Path                          | Description                               |
+| -------- | ----------------------------- | ----------------------------------------- |
+| `POST`   | `/api/workout-exercises`      | Add an exercise to an in_progress workout |
+| `PATCH`  | `/api/workout-exercises/[id]` | Reorder a single exercise by position     |
+| `DELETE` | `/api/workout-exercises/[id]` | Remove an exercise (cascades child sets)  |
 
 All handlers:
+
 - Authenticate via `requireUser()`.
 - Wrap mutations in `withIdempotency` — safe to retry from the offline queue.
 - Call `touchWorkoutLastActivity()` on the parent workout after each successful mutation.
@@ -1376,24 +1390,25 @@ All handlers:
 ```json
 {
   "clientMutationId": "<v4 UUID>",
-  "localId":          "<v4 UUID>",
-  "workoutId":        "<v4 UUID>",
-  "exerciseId":       "<v4 UUID>",
-  "position":         0
+  "localId": "<v4 UUID>",
+  "workoutId": "<v4 UUID>",
+  "exerciseId": "<v4 UUID>",
+  "position": 0
 }
 ```
+````
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Created | `201` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Workout not found | `404` | `NOT_FOUND` |
-| Workout not `in_progress` | `422` | `WORKOUT_NOT_IN_PROGRESS` |
-| Exercise not found/accessible | `422` | `INVALID_EXERCISE` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                     | Status | Body                       |
+| ----------------------------- | ------ | -------------------------- |
+| Created                       | `201`  | `{ id, clientMutationId }` |
+| Replay                        | `200`  | `{ id, clientMutationId }` |
+| Workout not found             | `404`  | `NOT_FOUND`                |
+| Workout not `in_progress`     | `422`  | `WORKOUT_NOT_IN_PROGRESS`  |
+| Exercise not found/accessible | `422`  | `INVALID_EXERCISE`         |
+| Invalid body                  | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated               | `401`  | `UNAUTHORIZED`             |
 
 ### Idempotency key
 
@@ -1410,20 +1425,20 @@ All handlers:
 ```json
 {
   "clientMutationId": "<v4 UUID>",
-  "position":         3
+  "position": 3
 }
 ```
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Success | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Exercise not found or parent not `in_progress` | `404` | `NOT_FOUND` |
-| Invalid UUID in path | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                                      | Status | Body                       |
+| ---------------------------------------------- | ------ | -------------------------- |
+| Success                                        | `200`  | `{ id, clientMutationId }` |
+| Replay                                         | `200`  | `{ id, clientMutationId }` |
+| Exercise not found or parent not `in_progress` | `404`  | `NOT_FOUND`                |
+| Invalid UUID in path                           | `400`  | `INVALID_ID`               |
+| Invalid body                                   | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated                                | `401`  | `UNAUTHORIZED`             |
 
 ### Idempotency key
 
@@ -1447,14 +1462,14 @@ All handlers:
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Deleted (or already gone) | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Parent workout not `in_progress` | `422` | `WORKOUT_NOT_IN_PROGRESS` |
-| Invalid UUID in path | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                        | Status | Body                       |
+| -------------------------------- | ------ | -------------------------- |
+| Deleted (or already gone)        | `200`  | `{ id, clientMutationId }` |
+| Replay                           | `200`  | `{ id, clientMutationId }` |
+| Parent workout not `in_progress` | `422`  | `WORKOUT_NOT_IN_PROGRESS`  |
+| Invalid UUID in path             | `400`  | `INVALID_ID`               |
+| Invalid body                     | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated                  | `401`  | `UNAUTHORIZED`             |
 
 Child `sets` rows are removed via `ON DELETE CASCADE`. Already-deleted rows return `200` (idempotent).
 
@@ -1484,13 +1499,14 @@ All three handlers share:
   }
 }
 ```
-```
+
+````
 
 - [ ] **Step 2: Verify no placeholder text remains**
 
 ```bash
 grep -n "TODO\|TBD\|placeholder\|fill" app/api/workout-exercises/README.md || echo "clean"
-```
+````
 
 Expected: `clean`
 
@@ -1508,6 +1524,7 @@ git commit -m "docs(workout-exercises): full request bodies, response tables, an
 Add a "Routes that consume this module" section near the end of the file so readers can navigate from the idempotency docs to each consuming route.
 
 **Files:**
+
 - Modify: `lib/idempotency/README.md`
 
 - [ ] **Step 1: Append the cross-links section**
@@ -1515,18 +1532,17 @@ Add a "Routes that consume this module" section near the end of the file so read
 The current `lib/idempotency/README.md` ends after the Hydration note section (line 110). Append the following:
 
 ```markdown
-
 ## Routes that consume this module
 
-| Route file | `mutationType` values stored |
-|------------|------------------------------|
-| [`app/api/workouts/route.ts`](../../app/api/workouts/route.ts) | `workout.create` |
-| [`app/api/workouts/[id]/route.ts`](../../app/api/workouts/[id]/route.ts) | `workout.patch`, `workout.discard` |
-| [`app/api/workouts/[id]/restore/route.ts`](../../app/api/workouts/[id]/restore/route.ts) | `workout.restore` |
-| [`app/api/workout-exercises/route.ts`](../../app/api/workout-exercises/route.ts) | `workoutExercise.add` |
+| Route file                                                                                 | `mutationType` values stored                        |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| [`app/api/workouts/route.ts`](../../app/api/workouts/route.ts)                             | `workout.create`                                    |
+| [`app/api/workouts/[id]/route.ts`](../../app/api/workouts/[id]/route.ts)                   | `workout.patch`, `workout.discard`                  |
+| [`app/api/workouts/[id]/restore/route.ts`](../../app/api/workouts/[id]/restore/route.ts)   | `workout.restore`                                   |
+| [`app/api/workout-exercises/route.ts`](../../app/api/workout-exercises/route.ts)           | `workoutExercise.add`                               |
 | [`app/api/workout-exercises/[id]/route.ts`](../../app/api/workout-exercises/[id]/route.ts) | `workoutExercise.reorder`, `workoutExercise.remove` |
-| [`app/api/sets/route.ts`](../../app/api/sets/route.ts) | `set.log` |
-| [`app/api/sets/[id]/route.ts`](../../app/api/sets/[id]/route.ts) | `set.edit`, `set.delete` |
+| [`app/api/sets/route.ts`](../../app/api/sets/route.ts)                                     | `set.log`                                           |
+| [`app/api/sets/[id]/route.ts`](../../app/api/sets/[id]/route.ts)                           | `set.edit`, `set.delete`                            |
 
 Each route handler creates a `createSupabaseServerClient()` session-scoped client and passes it to `withIdempotency`. The idempotency layer uses the same client for all `mutation_receipts` reads and writes, so a single session token covers both the route-specific DB work and the receipt management.
 ```
@@ -1565,6 +1581,7 @@ find . -name "*.test.ts" -not -path "*/node_modules/*" | sort
 ```
 
 Expected output includes:
+
 ```
 ./app/api/sets/route.test.ts
 ./app/api/workout-exercises/route.test.ts

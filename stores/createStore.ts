@@ -19,9 +19,7 @@ export type PersistConfig<S, PersistedS = S> = PersistOptions<S, PersistedS>;
 type PersistedStore<S> = UseBoundStore<Mutate<StoreApi<S>, [['zustand/persist', unknown]]>>;
 
 // Overload: no persist config — returns a plain bound store.
-export function createAppStore<S>(
-  initializer: StateCreator<S, [], []>,
-): UseBoundStore<StoreApi<S>>;
+export function createAppStore<S>(initializer: StateCreator<S, [], []>): UseBoundStore<StoreApi<S>>;
 
 // Overload: with persist config — returns a store augmented with .persist API.
 export function createAppStore<S, PersistedS = S>(

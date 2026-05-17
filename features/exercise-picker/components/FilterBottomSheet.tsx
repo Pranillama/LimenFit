@@ -4,10 +4,7 @@ import * as React from 'react';
 import { Check } from 'lucide-react';
 
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import {
-  EXERCISE_EQUIPMENT_OPTIONS,
-  EXERCISE_CATEGORY_OPTIONS,
-} from '@/lib/exercises/catalog';
+import { EXERCISE_EQUIPMENT_OPTIONS, EXERCISE_CATEGORY_OPTIONS } from '@/lib/exercises/catalog';
 
 interface FilterBottomSheetProps {
   kind: 'equipment' | 'category';
@@ -24,8 +21,7 @@ export function FilterBottomSheet({
   selected,
   onToggle,
 }: FilterBottomSheetProps) {
-  const options =
-    kind === 'equipment' ? EXERCISE_EQUIPMENT_OPTIONS : EXERCISE_CATEGORY_OPTIONS;
+  const options = kind === 'equipment' ? EXERCISE_EQUIPMENT_OPTIONS : EXERCISE_CATEGORY_OPTIONS;
   const title = kind === 'equipment' ? 'Equipment' : 'Muscle Group';
 
   return (

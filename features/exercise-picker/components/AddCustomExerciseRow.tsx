@@ -23,9 +23,7 @@ export function AddCustomExerciseRow({ query, firstEquipment, onAdd }: AddCustom
         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-primary hover:bg-accent"
       >
         <Plus className="h-4 w-4 shrink-0" />
-        <span>
-          Add &ldquo;{trimmed}&rdquo; as new exercise
-        </span>
+        <span>Add &ldquo;{trimmed}&rdquo; as new exercise</span>
       </button>
     </div>
   );

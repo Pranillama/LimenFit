@@ -31,7 +31,7 @@ export function AuthCard({ next, authError }: AuthCardProps) {
   if (emailSent) {
     return (
       <div className="w-full max-w-sm">
-        <div className="rounded-xl border border-border bg-card p-8 shadow-sm text-center space-y-4">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-8 text-center shadow-sm">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <svg
               className="h-6 w-6 text-primary"

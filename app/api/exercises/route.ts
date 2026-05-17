@@ -39,7 +39,14 @@ export async function POST(request: Request): Promise<Response> {
       handler: async () => {
         const { data: inserted, error: insertError } = await supabase
           .from('exercises')
-          .insert({ user_id: userId, is_custom: true, name, category, equipment, client_mutation_id: clientMutationId })
+          .insert({
+            user_id: userId,
+            is_custom: true,
+            name,
+            category,
+            equipment,
+            client_mutation_id: clientMutationId,
+          })
           .select('id, name, category, equipment, is_custom')
           .single();
 

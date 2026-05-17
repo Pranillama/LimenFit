@@ -5,10 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { toast } from '@/components/ui/sonner';
 import { useDuplicatePlanMutation, ApiError } from '../hooks/useDuplicatePlanMutation';
-import {
-  getPendingDuplicate,
-  clearPendingDuplicate,
-} from '../lib/pendingDuplicate';
+import { getPendingDuplicate, clearPendingDuplicate } from '../lib/pendingDuplicate';
 
 export function PendingDuplicateFinalizer() {
   const router = useRouter();

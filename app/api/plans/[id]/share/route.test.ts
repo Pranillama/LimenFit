@@ -190,9 +190,7 @@ describe('POST /api/plans/[id]/share', () => {
 
   it('returns 200 with same shape on idempotent replay (re-fetches share_slug for resourceId)', async () => {
     const supabase: any = {
-      from: vi.fn().mockReturnValue(
-        makeSelectChain({ share_slug: SHARE_SLUG, is_public: true }),
-      ),
+      from: vi.fn().mockReturnValue(makeSelectChain({ share_slug: SHARE_SLUG, is_public: true })),
     };
 
     mockRequireUser.mockResolvedValueOnce({ supabase, user: { id: USER_ID } as any });

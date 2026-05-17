@@ -110,7 +110,9 @@ export function ActiveWorkoutSession() {
 
       <DiscardConfirmationDialog
         open={removeLocalId !== null}
-        onOpenChange={(open) => { if (!open) setRemoveLocalId(null); }}
+        onOpenChange={(open) => {
+          if (!open) setRemoveLocalId(null);
+        }}
         title="Remove exercise?"
         description="All sets logged for this exercise will be discarded."
         discardLabel="Remove"

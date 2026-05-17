@@ -29,7 +29,8 @@ function IconBadge({ icon: Icon }: { icon: LucideIcon }) {
   );
 }
 
-const card = 'relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a] transition-colors duration-200 hover:border-white/[0.18]';
+const card =
+  'relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0a0a] transition-colors duration-200 hover:border-white/[0.18]';
 
 // ── Fast Logging ──────────────────────────────────
 

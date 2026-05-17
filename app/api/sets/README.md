@@ -4,13 +4,14 @@ Mutation surface for logged sets — the highest-frequency API calls in the app 
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/sets` | Log a set (create) |
-| `PATCH` | `/api/sets/[id]` | Edit a logged set (inline editing) |
-| `DELETE` | `/api/sets/[id]` | Remove a logged set |
+| Method   | Path             | Description                        |
+| -------- | ---------------- | ---------------------------------- |
+| `POST`   | `/api/sets`      | Log a set (create)                 |
+| `PATCH`  | `/api/sets/[id]` | Edit a logged set (inline editing) |
+| `DELETE` | `/api/sets/[id]` | Remove a logged set                |
 
 All handlers:
+
 - Authenticate via `requireUser()`.
 - Wrap mutations in `withIdempotency` — safe to retry from the offline queue.
 - Call `touchWorkoutLastActivity()` on the grandparent workout after each successful mutation.
@@ -26,26 +27,26 @@ All handlers:
 ```json
 {
   "clientMutationId": "<v4 UUID>",
-  "localId":          "<v4 UUID>",
-  "workoutExerciseId":"<v4 UUID>",
-  "setNumber":        1,
-  "reps":             10,
-  "weightValue":      60.5,
-  "weightUnit":       "kg",
-  "loggedAt":         "2026-05-01T10:00:00.000Z"
+  "localId": "<v4 UUID>",
+  "workoutExerciseId": "<v4 UUID>",
+  "setNumber": 1,
+  "reps": 10,
+  "weightValue": 60.5,
+  "weightUnit": "kg",
+  "loggedAt": "2026-05-01T10:00:00.000Z"
 }
 ```
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Created | `201` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Workout exercise not found | `404` | `NOT_FOUND` |
-| Parent workout not `in_progress` | `422` | `WORKOUT_NOT_IN_PROGRESS` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                        | Status | Body                       |
+| -------------------------------- | ------ | -------------------------- |
+| Created                          | `201`  | `{ id, clientMutationId }` |
+| Replay                           | `200`  | `{ id, clientMutationId }` |
+| Workout exercise not found       | `404`  | `NOT_FOUND`                |
+| Parent workout not `in_progress` | `422`  | `WORKOUT_NOT_IN_PROGRESS`  |
+| Invalid body                     | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated                  | `401`  | `UNAUTHORIZED`             |
 
 **Idempotency key:** `set.log` — replays return `200` with the original `id`.
 
@@ -60,9 +61,9 @@ All handlers:
 ```json
 {
   "clientMutationId": "<v4 UUID>",
-  "reps":             12,
-  "weightValue":      70,
-  "weightUnit":       "lbs"
+  "reps": 12,
+  "weightValue": 70,
+  "weightUnit": "lbs"
 }
 ```
 
@@ -70,14 +71,14 @@ All handlers:
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Success | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Set not found | `404` | `NOT_FOUND` |
-| Invalid UUID in path | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition            | Status | Body                       |
+| -------------------- | ------ | -------------------------- |
+| Success              | `200`  | `{ id, clientMutationId }` |
+| Replay               | `200`  | `{ id, clientMutationId }` |
+| Set not found        | `404`  | `NOT_FOUND`                |
+| Invalid UUID in path | `400`  | `INVALID_ID`               |
+| Invalid body         | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated      | `401`  | `UNAUTHORIZED`             |
 
 **Idempotency key:** `set.edit`
 
@@ -97,13 +98,13 @@ All handlers:
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Deleted (or already gone) | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Invalid UUID in path | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                 | Status | Body                       |
+| ------------------------- | ------ | -------------------------- |
+| Deleted (or already gone) | `200`  | `{ id, clientMutationId }` |
+| Replay                    | `200`  | `{ id, clientMutationId }` |
+| Invalid UUID in path      | `400`  | `INVALID_ID`               |
+| Invalid body              | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated           | `401`  | `UNAUTHORIZED`             |
 
 **Idempotency key:** `set.delete` — missing rows are treated as already deleted (idempotent `200`).
 

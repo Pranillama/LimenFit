@@ -14,9 +14,8 @@ import type { StartDecision, StartIntent } from '../resumeCoordinator';
 const mockGetState = vi.mocked(useActiveWorkoutStore.getState);
 
 // Dynamic import so the vi.mock above is applied before the coordinator module loads.
-const { requestStartWorkout, subscribeResumeRequest, settleRequest } = await import(
-  '../resumeCoordinator'
-);
+const { requestStartWorkout, subscribeResumeRequest, settleRequest } =
+  await import('../resumeCoordinator');
 
 // Minimal state shapes that satisfy selectHasActiveDraft.
 function stateWithDraft() {

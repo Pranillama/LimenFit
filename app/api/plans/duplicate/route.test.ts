@@ -98,10 +98,12 @@ const EXPECTED_PLAN_RESPONSE = {
   ],
 };
 
-function makeRequest(body: object = {
-  clientMutationId: CLIENT_MUTATION_ID,
-  sourceShareSlug: SOURCE_SHARE_SLUG,
-}): Request {
+function makeRequest(
+  body: object = {
+    clientMutationId: CLIENT_MUTATION_ID,
+    sourceShareSlug: SOURCE_SHARE_SLUG,
+  },
+): Request {
   return new Request('http://localhost/api/plans/duplicate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -248,14 +250,16 @@ describe('POST /api/plans/duplicate', () => {
 
   it('forwards the request clientMutationId to duplicatePlanForUser so concurrent handlers race on the same unique key', async () => {
     const supabase: any = {
-      from: vi.fn().mockImplementation((() => {
-        let call = 0;
-        return () => {
-          call++;
-          if (call === 1) return makeSelectChain({ id: SOURCE_PLAN_ID });
-          return makeSelectChain(FULL_PLAN_ROW);
-        };
-      })()),
+      from: vi.fn().mockImplementation(
+        (() => {
+          let call = 0;
+          return () => {
+            call++;
+            if (call === 1) return makeSelectChain({ id: SOURCE_PLAN_ID });
+            return makeSelectChain(FULL_PLAN_ROW);
+          };
+        })(),
+      ),
     };
 
     mockRequireUser.mockResolvedValueOnce({ supabase, user: { id: USER_ID } as any });

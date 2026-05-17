@@ -150,7 +150,7 @@ describe('SharePlanButton', () => {
         isPublic: true,
       };
       await act(async () => {
-        await shareMutate.mock.calls[0][1].onSuccess(successData);
+        await shareMutate.mock.calls[0]![1].onSuccess(successData);
       });
 
       await waitFor(() => {
@@ -175,7 +175,7 @@ describe('SharePlanButton', () => {
         isPublic: true,
       };
       await act(async () => {
-        await shareMutate.mock.calls[0][1].onSuccess(successData);
+        await shareMutate.mock.calls[0]![1].onSuccess(successData);
       });
 
       await waitFor(() => {

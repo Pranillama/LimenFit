@@ -6,7 +6,11 @@ import type { NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
   // Track pending cookie mutations with full options so redirect and success
   // paths both use the same source, preserving maxAge/expires/path/etc.
-  const pendingCookies: Array<{ name: string; value: string; options: Parameters<(typeof NextResponse.prototype.cookies)['set']>[2] }> = [];
+  const pendingCookies: Array<{
+    name: string;
+    value: string;
+    options: Parameters<(typeof NextResponse.prototype.cookies)['set']>[2];
+  }> = [];
 
   let res = NextResponse.next({
     request: { headers: req.headers },
@@ -55,12 +59,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/home',
-    '/home/:path*',
-    '/train',
-    '/train/:path*',
-    '/profile',
-    '/profile/:path*',
-  ],
+  matcher: ['/home', '/home/:path*', '/train', '/train/:path*', '/profile', '/profile/:path*'],
 };

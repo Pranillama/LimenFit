@@ -14,7 +14,10 @@ const serverSchema = z.object({
 const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-  NEXT_PUBLIC_SITE_URL: z.string().url().transform((url) => url.replace(/\/+$/, '')),
+  NEXT_PUBLIC_SITE_URL: z
+    .string()
+    .url()
+    .transform((url) => url.replace(/\/+$/, '')),
 });
 
 const clientValues = {
@@ -29,7 +32,7 @@ const isServer = typeof window === 'undefined';
 
 const serverResult = isServer
   ? serverSchema.safeParse(process.env)
-  : ({ success: true as const, data: undefined });
+  : { success: true as const, data: undefined };
 
 if (!clientResult.success || (isServer && !serverResult.success)) {
   const issues: string[] = [];
@@ -55,9 +58,7 @@ const serverEnv: ServerEnv = isServer
   ? (serverResult as z.SafeParseSuccess<ServerEnv>).data
   : (new Proxy({} as ServerEnv, {
       get() {
-        throw new Error(
-          'Server env accessed in browser; import via a server-only module',
-        );
+        throw new Error('Server env accessed in browser; import via a server-only module');
       },
     }) as ServerEnv);
 
@@ -68,8 +69,6 @@ export const env = Object.freeze({
 
 export function assertServerOnly(): void {
   if (typeof window !== 'undefined') {
-    throw new Error(
-      'assertServerOnly: this module must not be imported in browser bundles',
-    );
+    throw new Error('assertServerOnly: this module must not be imported in browser bundles');
   }
 }

@@ -93,7 +93,7 @@ describe('PendingDuplicateFinalizer', () => {
     await waitFor(() => expect(duplicateMutate).toHaveBeenCalled());
 
     await act(async () => {
-      duplicateMutate.mock.calls[0][1].onSuccess({
+      duplicateMutate.mock.calls[0]![1].onSuccess({
         id: 'new-plan-id',
         name: 'Test Plan',
         shareSlug: 'test-slug',
@@ -116,9 +116,7 @@ describe('PendingDuplicateFinalizer', () => {
     await waitFor(() => expect(duplicateMutate).toHaveBeenCalled());
 
     await act(async () => {
-      duplicateMutate.mock.calls[0][1].onError(
-        new ApiError('Plan not found', 404, 'NOT_FOUND'),
-      );
+      duplicateMutate.mock.calls[0]![1].onError(new ApiError('Plan not found', 404, 'NOT_FOUND'));
     });
 
     expect(window.sessionStorage.getItem(PENDING_DUPLICATE_KEY)).toBeNull();
@@ -132,9 +130,7 @@ describe('PendingDuplicateFinalizer', () => {
     await waitFor(() => expect(duplicateMutate).toHaveBeenCalled());
 
     await act(async () => {
-      duplicateMutate.mock.calls[0][1].onError(
-        new ApiError('Internal Server Error', 500),
-      );
+      duplicateMutate.mock.calls[0]![1].onError(new ApiError('Internal Server Error', 500));
     });
 
     expect(window.sessionStorage.getItem(PENDING_DUPLICATE_KEY)).not.toBeNull();

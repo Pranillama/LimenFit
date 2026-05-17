@@ -8,10 +8,10 @@ Updates the authenticated user's settings. Creates the row if it does not yet ex
 
 ### Request body
 
-| Field | Type | Required |
-|-------|------|----------|
-| `weightUnit` | `"lbs" \| "kg"` | At least one required |
-| `restTimerDefaultSeconds` | integer 0–600 | At least one required |
+| Field                     | Type            | Required              |
+| ------------------------- | --------------- | --------------------- |
+| `weightUnit`              | `"lbs" \| "kg"` | At least one required |
+| `restTimerDefaultSeconds` | integer 0–600   | At least one required |
 
 At least one field must be present; a body with neither is rejected with `400 VALIDATION_ERROR`.
 

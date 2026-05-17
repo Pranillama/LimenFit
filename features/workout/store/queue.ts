@@ -295,7 +295,11 @@ function localIdForCreate(mutation: QueuedMutation): string | null {
 
 // Returns true when the entity identified by localId is still present in live state.
 // A false result means the entity was deleted optimistically while its create was in flight.
-function isEntityInState(state: StateSnapshot, localId: string, kind: QueuedMutation['kind']): boolean {
+function isEntityInState(
+  state: StateSnapshot,
+  localId: string,
+  kind: QueuedMutation['kind'],
+): boolean {
   if (kind === 'workout.create') {
     // discardDraft() clears meta; a new workout would have a different localId.
     return state.meta !== null && state.meta.localId === localId;
@@ -499,11 +503,14 @@ export async function flushQueue(
                 state,
               );
               if (compensating !== null) {
-                log.warn('Entity removed while create was in flight — enqueueing compensating delete', {
-                  kind: head.kind,
-                  localId,
-                  serverId: result.serverId,
-                });
+                log.warn(
+                  'Entity removed while create was in flight — enqueueing compensating delete',
+                  {
+                    kind: head.kind,
+                    localId,
+                    serverId: result.serverId,
+                  },
+                );
                 store.enqueueMutation(compensating);
               }
             }
@@ -526,7 +533,9 @@ export async function flushQueue(
           attempts: updatedAttempts,
           delayMs: delay,
         });
-        store.setSyncState({ lastFlushError: `HTTP ${result.status ?? 'network'} — retry in ${delay}ms` });
+        store.setSyncState({
+          lastFlushError: `HTTP ${result.status ?? 'network'} — retry in ${delay}ms`,
+        });
         scheduleRetry(store, fetchImpl, delay);
         break;
       } else {

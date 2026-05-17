@@ -36,35 +36,23 @@ export function PublicPlanViewer({ plan, viewerIsLoggedIn }: PublicPlanViewerPro
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">{plan.name}</h1>
-        <p className="text-xs text-muted-foreground">
-          Updated {formatUpdatedAt(plan.updatedAt)}
-        </p>
+        <p className="text-xs text-muted-foreground">Updated {formatUpdatedAt(plan.updatedAt)}</p>
       </header>
 
       <div className="flex flex-col gap-3">
         <CtaBanner />
-        <DuplicatePlanButton
-          shareSlug={plan.shareSlug}
-          viewerIsLoggedIn={viewerIsLoggedIn}
-        />
+        <DuplicatePlanButton shareSlug={plan.shareSlug} viewerIsLoggedIn={viewerIsLoggedIn} />
       </div>
 
       <div className="flex flex-col gap-4">
         {plan.workouts.map((workout, index) => (
-          <details
-            key={workout.id}
-            open={index === 0}
-            className="rounded-lg border bg-card p-4"
-          >
+          <details key={workout.id} open={index === 0} className="rounded-lg border bg-card p-4">
             <summary className="cursor-pointer font-medium">{workout.name}</summary>
             <div className="mt-3">
               {workout.exercises.length > 0 ? (
                 <ul className="space-y-1">
                   {workout.exercises.map((ex) => (
-                    <li
-                      key={ex.id}
-                      className="flex items-center justify-between text-sm"
-                    >
+                    <li key={ex.id} className="flex items-center justify-between text-sm">
                       <span>{ex.exerciseName}</span>
                       <span className="text-muted-foreground">
                         Target: {ex.targetSets} × {ex.targetReps}

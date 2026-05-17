@@ -86,7 +86,9 @@ describe('useSharePlanMutation', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect((capturedOptions as any).mutationFn({ id: 'plan-1' })).rejects.toThrow('Forbidden');
+    await expect((capturedOptions as any).mutationFn({ id: 'plan-1' })).rejects.toThrow(
+      'Forbidden',
+    );
 
     vi.unstubAllGlobals();
   });

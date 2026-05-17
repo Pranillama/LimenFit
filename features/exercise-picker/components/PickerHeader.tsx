@@ -48,12 +48,7 @@ export function PickerHeader({
           <X className="h-5 w-5" />
         </Button>
         <SheetTitle className="grow text-center">{title}</SheetTitle>
-        <Button
-          size="sm"
-          disabled={selectedCount === 0}
-          onClick={onConfirm}
-          className="shrink-0"
-        >
+        <Button size="sm" disabled={selectedCount === 0} onClick={onConfirm} className="shrink-0">
           {selectedCount > 0 ? `Add (${selectedCount})` : 'Add'}
         </Button>
       </div>

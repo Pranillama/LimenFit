@@ -71,14 +71,14 @@ describe('workoutExerciseReorderBodySchema', () => {
 
 describe('workoutExerciseDeleteBodySchema', () => {
   it('parses a valid body', () => {
-    expect(
-      workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: UUID }).success,
-    ).toBe(true);
+    expect(workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: UUID }).success).toBe(
+      true,
+    );
   });
 
   it('rejects a non-UUID clientMutationId', () => {
-    expect(
-      workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: 'x' }).success,
-    ).toBe(false);
+    expect(workoutExerciseDeleteBodySchema.safeParse({ clientMutationId: 'x' }).success).toBe(
+      false,
+    );
   });
 });

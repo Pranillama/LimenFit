@@ -29,11 +29,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function PublicPlanPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function PublicPlanPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   if (!SHARE_SLUG_RE.test(slug)) {

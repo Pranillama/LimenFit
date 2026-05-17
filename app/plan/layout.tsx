@@ -6,11 +6,7 @@ export const metadata: Metadata = {
   description: 'Public training plan on LimenFit',
 };
 
-export default function PublicPlanLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicPlanLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b">

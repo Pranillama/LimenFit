@@ -14,10 +14,7 @@ interface DuplicatePlanButtonProps {
   viewerIsLoggedIn: boolean;
 }
 
-export function DuplicatePlanButton({
-  shareSlug,
-  viewerIsLoggedIn,
-}: DuplicatePlanButtonProps) {
+export function DuplicatePlanButton({ shareSlug, viewerIsLoggedIn }: DuplicatePlanButtonProps) {
   const router = useRouter();
   const mutation = useDuplicatePlanMutation();
 

@@ -20,7 +20,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const { handleSignOut, isPending } = useHardenedSignOut();
 
   return (
-    <aside className="hidden md:flex md:w-60 md:flex-col md:border-r fixed left-0 top-0 h-full bg-background">
+    <aside className="fixed left-0 top-0 hidden h-full bg-background md:flex md:w-60 md:flex-col md:border-r">
       <div className="flex h-full flex-col px-3 py-4">
         <div className="mb-6 px-3">
           <span className="text-lg font-bold tracking-tight">LimenFit</span>

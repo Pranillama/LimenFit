@@ -13,12 +13,12 @@ import { ExercisePicker } from '@/features/exercise-picker';
 
 `ExercisePickerProps`:
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `open` | `boolean` | ✓ | Controls sheet open state |
-| `onOpenChange` | `(open: boolean) => void` | ✓ | Called when the sheet requests close |
-| `onConfirm` | `(exerciseIds: string[]) => void` | ✓ | Called with selected exercise IDs when the user taps Add |
-| `title` | `string` | — | Sheet heading (default `"Select Exercises"`) |
+| Prop           | Type                              | Required | Description                                              |
+| -------------- | --------------------------------- | -------- | -------------------------------------------------------- |
+| `open`         | `boolean`                         | ✓        | Controls sheet open state                                |
+| `onOpenChange` | `(open: boolean) => void`         | ✓        | Called when the sheet requests close                     |
+| `onConfirm`    | `(exerciseIds: string[]) => void` | ✓        | Called with selected exercise IDs when the user taps Add |
+| `title`        | `string`                          | —        | Sheet heading (default `"Select Exercises"`)             |
 
 **`onConfirm` type contract**: receives an array of canonical `exercises.id` UUIDs that exist
 in the database (both global catalog rows and user-created custom exercises). All IDs are
@@ -99,15 +99,16 @@ shown when a search query returns no results).
 
 `CustomExerciseDialogProps` (internal — consumed only by `ExercisePicker`):
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `open` | `boolean` | Controlled open state |
-| `onOpenChange` | `(open: boolean) => void` | Close handler |
-| `defaultName` | `string` | Pre-filled from the search query |
+| Prop               | Type                                     | Description                                       |
+| ------------------ | ---------------------------------------- | ------------------------------------------------- |
+| `open`             | `boolean`                                | Controlled open state                             |
+| `onOpenChange`     | `(open: boolean) => void`                | Close handler                                     |
+| `defaultName`      | `string`                                 | Pre-filled from the search query                  |
 | `defaultEquipment` | `ExerciseEquipment \| null \| undefined` | Pre-filled from the first active equipment filter |
-| `onCreated` | `(item: ExerciseListItem) => void` | Called on success; parent auto-selects the new ID |
+| `onCreated`        | `(item: ExerciseListItem) => void`       | Called on success; parent auto-selects the new ID |
 
 On success the dialog:
+
 1. Calls `mutation.mutateAsync` (POST `/api/exercises`) — see [API route](#api-route) below.
 2. Fires a `toast.success('Exercise created')`.
 3. Calls `onCreated(item)` — `ExercisePicker` appends the new ID to `selectedIds` and clears
@@ -125,10 +126,10 @@ Request body (validated by `exerciseCreateBodySchema` from `lib/schemas/exercise
 
 ```jsonc
 {
-  "clientMutationId": "<uuid>",   // idempotency key, also sent as Idempotency-Key header
+  "clientMutationId": "<uuid>", // idempotency key, also sent as Idempotency-Key header
   "name": "Incline Cable Fly",
   "category": "chest",
-  "equipment": "cable"            // null or omitted → bodyweight / no equipment
+  "equipment": "cable", // null or omitted → bodyweight / no equipment
 }
 ```
 
@@ -141,7 +142,7 @@ Response (201):
   "name": "Incline Cable Fly",
   "category": "chest",
   "equipment": "cable",
-  "isCustom": true
+  "isCustom": true,
 }
 ```
 
@@ -197,6 +198,7 @@ from `lib/idempotency` and sends it as both the `Idempotency-Key` header and a J
 field.
 
 On success:
+
 - Optimistically prepends the new exercise to `['exercises', 'library']` cache so it
   appears in the picker immediately without waiting for the network refetch.
 - Invalidates `['exercises']` (covers both `library` and `recent`) to trigger a refetch

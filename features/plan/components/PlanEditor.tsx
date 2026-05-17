@@ -173,11 +173,7 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
     });
   }
 
-  function handleTargetSetsChange(
-    workoutLocalId: string,
-    exerciseLocalId: string,
-    value: number,
-  ) {
+  function handleTargetSetsChange(workoutLocalId: string, exerciseLocalId: string, value: number) {
     setValue(
       'workouts',
       updateExerciseTargets(workouts, workoutLocalId, exerciseLocalId, { targetSets: value }),
@@ -185,11 +181,7 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
     );
   }
 
-  function handleTargetRepsChange(
-    workoutLocalId: string,
-    exerciseLocalId: string,
-    value: number,
-  ) {
+  function handleTargetRepsChange(workoutLocalId: string, exerciseLocalId: string, value: number) {
     setValue(
       'workouts',
       updateExerciseTargets(workouts, workoutLocalId, exerciseLocalId, { targetReps: value }),
@@ -250,9 +242,7 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
         <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
           Cancel
         </Button>
-        <h1 className="text-base font-semibold">
-          {mode === 'create' ? 'New Plan' : 'Edit Plan'}
-        </h1>
+        <h1 className="text-base font-semibold">{mode === 'create' ? 'New Plan' : 'Edit Plan'}</h1>
         <Button
           type="button"
           size="sm"
@@ -302,12 +292,7 @@ export function PlanEditor({ mode, initialPlan }: PlanEditorProps) {
         )}
 
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="flex-1"
-            onClick={handleAddWorkout}
-          >
+          <Button type="button" variant="outline" className="flex-1" onClick={handleAddWorkout}>
             + Add Workout
           </Button>
           <Button

@@ -58,7 +58,6 @@ export function LandingHero() {
         {/* Mobile: full-width text  |  Desktop: grid with text in right column */}
         <div className="w-full md:grid md:grid-cols-2 md:items-center">
           <div className="hidden md:block" /> {/* spacer — athlete image area */}
-
           {/* Container with staggered children — pattern from AnimatedHero */}
           <motion.div
             className="space-y-6 py-32 md:pl-4"
@@ -76,10 +75,7 @@ export function LandingHero() {
               <span className="text-white">More progress.</span>
             </motion.h1>
 
-            <motion.p
-              variants={itemVariants}
-              className="text-base text-white/60 sm:text-lg"
-            >
+            <motion.p variants={itemVariants} className="text-base text-white/60 sm:text-lg">
               Track workouts, analyze performance, and improve your training with AI-powered
               insights.
             </motion.p>

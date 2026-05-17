@@ -1,4 +1,10 @@
-import type { ActiveWorkoutExercise, ActiveWorkoutMeta, ActiveWorkoutState, SyncState, WeightUnit } from './types';
+import type {
+  ActiveWorkoutExercise,
+  ActiveWorkoutMeta,
+  ActiveWorkoutState,
+  SyncState,
+  WeightUnit,
+} from './types';
 
 /**
  * True when any set is logged, any exercise has been added, or any user-entered
@@ -69,9 +75,7 @@ export function selectIsCompletedSynced(state: ActiveWorkoutState): boolean {
  */
 export function selectShouldAutoClear(state: ActiveWorkoutState): boolean {
   return (
-    state.meta?.status === 'completed_synced' &&
-    state.queue.length === 0 &&
-    !state.sync.flushing
+    state.meta?.status === 'completed_synced' && state.queue.length === 0 && !state.sync.flushing
   );
 }
 

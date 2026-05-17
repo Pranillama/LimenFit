@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { setLogBodySchema, setEditBodySchema, setDeleteBodySchema } from '../set';
 
 const UUID = '550e8400-e29b-41d4-a716-446655440000';
-const ISO  = '2026-05-01T10:00:00.000Z';
+const ISO = '2026-05-01T10:00:00.000Z';
 
 describe('setLogBodySchema', () => {
   it('parses a valid body', () => {

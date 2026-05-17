@@ -9,7 +9,8 @@ import {
 import type { Database } from '@/lib/supabase/types';
 
 type ReorderRow = Database['public']['Functions']['reorder_workout_exercise']['Returns'][number];
-type DeleteRow = Database['public']['Functions']['delete_workout_exercise_in_progress']['Returns'][number];
+type DeleteRow =
+  Database['public']['Functions']['delete_workout_exercise_in_progress']['Returns'][number];
 
 export const runtime = 'nodejs';
 
@@ -48,10 +49,10 @@ export async function PATCH(
         // Single atomic UPDATE constrained to an in_progress parent workout.
         // Returns 0 rows when the exercise is missing, belongs to another user,
         // or the parent workout is completed/expired — all map to 404.
-        const { data: rows, error: rpcError } = await supabase.rpc(
-          'reorder_workout_exercise',
-          { p_workout_exercise_id: id, p_position: position },
-        );
+        const { data: rows, error: rpcError } = await supabase.rpc('reorder_workout_exercise', {
+          p_workout_exercise_id: id,
+          p_position: position,
+        });
 
         if (rpcError) throw rpcError;
 
@@ -120,7 +121,11 @@ export async function DELETE(
 
         if (!row.deleted) {
           throw new RouteError(
-            jsonError(422, 'WORKOUT_NOT_IN_PROGRESS', 'Cannot delete exercises from a completed or expired workout'),
+            jsonError(
+              422,
+              'WORKOUT_NOT_IN_PROGRESS',
+              'Cannot delete exercises from a completed or expired workout',
+            ),
           );
         }
 

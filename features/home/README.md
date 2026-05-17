@@ -17,9 +17,9 @@ Priority: active draft > completed today > empty.
 
 ## Ticket surface
 
-| Ticket | Files |
-|--------|-------|
-| T6/T9 | workout store (selectors, useActiveWorkoutStore) |
-| T10 | RecentActivityList → `/train/history/[id]` |
-| T11/T12 | "My Plans →" link → `/train/plans` |
-| T14 | this feature folder |
+| Ticket  | Files                                            |
+| ------- | ------------------------------------------------ |
+| T6/T9   | workout store (selectors, useActiveWorkoutStore) |
+| T10     | RecentActivityList → `/train/history/[id]`       |
+| T11/T12 | "My Plans →" link → `/train/plans`               |
+| T14     | this feature folder                              |

@@ -67,10 +67,15 @@ type PlanResponse = {
   workouts: PlanWorkoutResponse[];
 };
 
-async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string, userId: string): Promise<PlanRow | null> {
+async function fetchPlanById(
+  supabase: SupabaseClient<Database>,
+  planId: string,
+  userId: string,
+): Promise<PlanRow | null> {
   const { data, error } = await supabase
     .from('plans')
-    .select(`
+    .select(
+      `
       id, name, share_slug, is_public, created_at, updated_at,
       plan_workouts (
         id, name, position,
@@ -78,7 +83,8 @@ async function fetchPlanById(supabase: SupabaseClient<Database>, planId: string,
           id, exercise_id, target_sets, target_reps, position
         )
       )
-    `)
+    `,
+    )
     .eq('id', planId)
     .eq('user_id', userId)
     .maybeSingle();
@@ -162,19 +168,22 @@ export async function PATCH(
             })),
           }));
 
-          const { data: rows, error: rpcError } = await supabase.rpc(
-            'update_plan_with_children',
-            { p_plan_id: id, p_name: planName, p_workouts, p_client_mutation_id: clientMutationId },
-          );
+          const { data: rows, error: rpcError } = await supabase.rpc('update_plan_with_children', {
+            p_plan_id: id,
+            p_name: planName,
+            p_workouts,
+            p_client_mutation_id: clientMutationId,
+          });
           if (rpcError) throw rpcError;
           if (!rows || (rows as unknown[]).length === 0) {
             throw new RouteError(jsonError(404, 'NOT_FOUND', 'Plan not found'));
           }
         } else {
-          const { data: rows, error: updateError } = await supabase.rpc(
-            'update_plan_name',
-            { p_plan_id: id, p_name: name!, p_client_mutation_id: clientMutationId },
-          );
+          const { data: rows, error: updateError } = await supabase.rpc('update_plan_name', {
+            p_plan_id: id,
+            p_name: name!,
+            p_client_mutation_id: clientMutationId,
+          });
           if (updateError) throw updateError;
           if (!rows || (rows as unknown[]).length === 0) {
             throw new RouteError(jsonError(404, 'NOT_FOUND', 'Plan not found'));

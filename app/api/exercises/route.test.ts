@@ -28,8 +28,8 @@ const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
 
 const CLIENT_MUTATION_ID = '550e8400-e29b-41d4-a716-446655440000';
-const RESOURCE_ID        = '880e8400-e29b-41d4-a716-446655440000';
-const USER_ID            = 'user-aaa0-0000-0000-000000000000';
+const RESOURCE_ID = '880e8400-e29b-41d4-a716-446655440000';
+const USER_ID = 'user-aaa0-0000-0000-000000000000';
 
 function makeRequest(): Request {
   return new Request('http://localhost/api/exercises', {
@@ -165,7 +165,13 @@ describe('POST /api/exercises', () => {
               exerciseInsertCount++;
               if (exerciseInsertCount === 1) {
                 return Promise.resolve({
-                  data: { id: RESOURCE_ID, name: 'Push-up', category: 'chest', equipment: null, is_custom: true },
+                  data: {
+                    id: RESOURCE_ID,
+                    name: 'Push-up',
+                    category: 'chest',
+                    equipment: null,
+                    is_custom: true,
+                  },
                   error: null,
                 });
               }
@@ -180,7 +186,13 @@ describe('POST /api/exercises', () => {
           eq: vi.fn(() => ({
             single: vi.fn(() =>
               Promise.resolve({
-                data: { id: RESOURCE_ID, name: 'Push-up', category: 'chest', equipment: null, is_custom: true },
+                data: {
+                  id: RESOURCE_ID,
+                  name: 'Push-up',
+                  category: 'chest',
+                  equipment: null,
+                  is_custom: true,
+                },
                 error: null,
               }),
             ),
@@ -213,7 +225,13 @@ describe('POST /api/exercises', () => {
     const insertSpy = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({
-          data: { id: RESOURCE_ID, name: 'Push-up', category: 'chest', equipment: null, is_custom: true },
+          data: {
+            id: RESOURCE_ID,
+            name: 'Push-up',
+            category: 'chest',
+            equipment: null,
+            is_custom: true,
+          },
           error: null,
         }),
       }),
@@ -225,7 +243,13 @@ describe('POST /api/exercises', () => {
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
-              data: { id: RESOURCE_ID, name: 'Push-up', category: 'chest', equipment: null, is_custom: true },
+              data: {
+                id: RESOURCE_ID,
+                name: 'Push-up',
+                category: 'chest',
+                equipment: null,
+                is_custom: true,
+              },
               error: null,
             }),
           }),

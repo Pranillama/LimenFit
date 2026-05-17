@@ -3,6 +3,7 @@
 Route handlers for the `workouts` table. All routes share the `workouts_one_active_draft_per_user` partial unique index (`WHERE status = 'in_progress'`), which enforces a single active draft per user and is the source of all `23505` conflict handling documented below.
 
 All handlers:
+
 - Call `requireUser()` — middleware does **not** cover `/api/*`.
 - Wrap mutations in `withIdempotency` keyed on `clientMutationId`.
 - Return errors via `handleApiError` — no unhandled exceptions reach the client.
@@ -30,14 +31,14 @@ All handlers:
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| New draft created | `201` | `{ id, clientMutationId, alreadyExisted: false, existingDraft: null, name, startedAt, lastActivityAt, planWorkoutId }` |
-| Active draft already existed | `200` | `{ id, clientMutationId, alreadyExisted: true, existingDraft: { id, name, startedAt, lastActivityAt, planWorkoutId } }` |
-| Replay of a new-draft create | `200` | `{ id, clientMutationId, alreadyExisted: false, existingDraft: null, name, startedAt, lastActivityAt, planWorkoutId }` (original outcome preserved via response_metadata) |
-| Replay of an existing-draft create | `200` | `{ id, clientMutationId, alreadyExisted: true, existingDraft: { … } }` (original outcome preserved via response_metadata) |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                          | Status | Body                                                                                                                                                                      |
+| ---------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| New draft created                  | `201`  | `{ id, clientMutationId, alreadyExisted: false, existingDraft: null, name, startedAt, lastActivityAt, planWorkoutId }`                                                    |
+| Active draft already existed       | `200`  | `{ id, clientMutationId, alreadyExisted: true, existingDraft: { id, name, startedAt, lastActivityAt, planWorkoutId } }`                                                   |
+| Replay of a new-draft create       | `200`  | `{ id, clientMutationId, alreadyExisted: false, existingDraft: null, name, startedAt, lastActivityAt, planWorkoutId }` (original outcome preserved via response_metadata) |
+| Replay of an existing-draft create | `200`  | `{ id, clientMutationId, alreadyExisted: true, existingDraft: { … } }` (original outcome preserved via response_metadata)                                                 |
+| Invalid body                       | `400`  | `VALIDATION_ERROR`                                                                                                                                                        |
+| Unauthenticated                    | `401`  | `UNAUTHORIZED`                                                                                                                                                            |
 
 ### Idempotency contract
 
@@ -77,15 +78,15 @@ outcome-specific variant.
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Success | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Not found | `404` | `NOT_FOUND` |
-| Workout is expired | `422` | `WORKOUT_EXPIRED` |
-| Invalid UUID | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition          | Status | Body                       |
+| ------------------ | ------ | -------------------------- |
+| Success            | `200`  | `{ id, clientMutationId }` |
+| Replay             | `200`  | `{ id, clientMutationId }` |
+| Not found          | `404`  | `NOT_FOUND`                |
+| Workout is expired | `422`  | `WORKOUT_EXPIRED`          |
+| Invalid UUID       | `400`  | `INVALID_ID`               |
+| Invalid body       | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated    | `401`  | `UNAUTHORIZED`             |
 
 ---
 
@@ -108,13 +109,13 @@ outcome-specific variant.
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Deleted (or already gone) | `200` | `{ id, clientMutationId }` |
-| Replay | `200` | `{ id, clientMutationId }` |
-| Invalid UUID | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                 | Status | Body                       |
+| ------------------------- | ------ | -------------------------- |
+| Deleted (or already gone) | `200`  | `{ id, clientMutationId }` |
+| Replay                    | `200`  | `{ id, clientMutationId }` |
+| Invalid UUID              | `400`  | `INVALID_ID`               |
+| Invalid body              | `400`  | `VALIDATION_ERROR`         |
+| Unauthenticated           | `401`  | `UNAUTHORIZED`             |
 
 ---
 
@@ -145,16 +146,16 @@ The offline queue treats `409` as **retriable**, which would cause an infinite r
 
 ### Responses
 
-| Condition | Status | Body |
-|-----------|--------|------|
-| Restored | `200` | `{ id, clientMutationId, workout: { id, name, startedAt, lastActivityAt, planWorkoutId } }` |
-| Replay | `200` | Same shape, workout re-fetched from DB |
-| Not found / no longer expired | `404` | `NOT_FOUND` |
-| Target not in expired state | `422` | `NOT_EXPIRED` |
-| Active draft exists | `422` | `ACTIVE_DRAFT_EXISTS` with `details.activeDraft: { id, name, startedAt, lastActivityAt, planWorkoutId }` |
-| Invalid UUID | `400` | `INVALID_ID` |
-| Invalid body | `400` | `VALIDATION_ERROR` |
-| Unauthenticated | `401` | `UNAUTHORIZED` |
+| Condition                     | Status | Body                                                                                                     |
+| ----------------------------- | ------ | -------------------------------------------------------------------------------------------------------- |
+| Restored                      | `200`  | `{ id, clientMutationId, workout: { id, name, startedAt, lastActivityAt, planWorkoutId } }`              |
+| Replay                        | `200`  | Same shape, workout re-fetched from DB                                                                   |
+| Not found / no longer expired | `404`  | `NOT_FOUND`                                                                                              |
+| Target not in expired state   | `422`  | `NOT_EXPIRED`                                                                                            |
+| Active draft exists           | `422`  | `ACTIVE_DRAFT_EXISTS` with `details.activeDraft: { id, name, startedAt, lastActivityAt, planWorkoutId }` |
+| Invalid UUID                  | `400`  | `INVALID_ID`                                                                                             |
+| Invalid body                  | `400`  | `VALIDATION_ERROR`                                                                                       |
+| Unauthenticated               | `401`  | `UNAUTHORIZED`                                                                                           |
 
 ---
 

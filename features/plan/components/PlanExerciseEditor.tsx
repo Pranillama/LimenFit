@@ -47,7 +47,7 @@ export function PlanExerciseEditor({
     >
       <button
         type="button"
-        className="touch-none cursor-grab text-muted-foreground active:cursor-grabbing"
+        className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
         onPointerDown={(e) => controls.start(e)}
         aria-label="Drag to reorder exercise"
       >

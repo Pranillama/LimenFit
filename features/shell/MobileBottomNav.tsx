@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 export function MobileBottomNav() {
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background pb-[max(env(safe-area-inset-bottom),0px)]"
+      className="fixed inset-x-0 bottom-0 border-t bg-background pb-[max(env(safe-area-inset-bottom),0px)] md:hidden"
       aria-label="Mobile navigation"
     >
       <div className="flex">

@@ -18,7 +18,7 @@ export function LandingFooter() {
                       href={link.href}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {link.label}
                     </a>
@@ -26,7 +26,7 @@ export function LandingFooter() {
                     // TODO: replace # hrefs with real routes once Privacy/Terms pages exist
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {link.label}
                     </Link>

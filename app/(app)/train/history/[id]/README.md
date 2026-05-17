@@ -57,20 +57,20 @@ Exported from `features/workout/components/WorkoutDetailView.tsx`.
 ```ts
 interface WorkoutDetailDTO {
   id: string;
-  name: string | null;              // raw DB name; auto-named client-side if null/empty
+  name: string | null; // raw DB name; auto-named client-side if null/empty
   status: 'completed' | 'expired';
-  started_at: string;               // ISO 8601
+  started_at: string; // ISO 8601
   completed_at: string | null;
   expired_at: string | null;
   last_activity_at: string;
   plan_workout_id: string | null;
-  planName: string | null;          // resolved plan name, null if no plan
+  planName: string | null; // resolved plan name, null if no plan
   exercises: Array<{
     id: string;
     exercise_id: string;
     position: number;
     sets: Array<{
-      localId: string;              // = sets.id from DB; stable key for inline-edit phase
+      localId: string; // = sets.id from DB; stable key for inline-edit phase
       set_number: number;
       weight_value: number | null;
       weight_unit: string | null;
@@ -93,11 +93,11 @@ interface WorkoutDetailDTO {
 
 ## Action wiring
 
-| Button          | Status    | Handler |
-|-----------------|-----------|---------|
-| Repeat Workout  | wired     | `useStartWorkoutAction` with `buildRepeatIntent`; disabled when `status === 'expired'` |
-| Restore Workout | wired     | `useRestoreWorkoutMutation`; only rendered when `status === 'expired'` |
-| Delete          | wired     | `useDeleteWorkoutMutation`; navigates to `/train/history` on success |
+| Button          | Status | Handler                                                                                |
+| --------------- | ------ | -------------------------------------------------------------------------------------- |
+| Repeat Workout  | wired  | `useStartWorkoutAction` with `buildRepeatIntent`; disabled when `status === 'expired'` |
+| Restore Workout | wired  | `useRestoreWorkoutMutation`; only rendered when `status === 'expired'`                 |
+| Delete          | wired  | `useDeleteWorkoutMutation`; navigates to `/train/history` on success                   |
 
 When `status === 'expired'` the primary action slot shows **Restore Workout** instead of
 **Repeat Workout**. Inline set editing is also disabled until the workout is restored.
@@ -121,9 +121,11 @@ Restore is handled by `useRestoreWorkoutMutation` (see
 
 **Conflict handling** — the local pre-check (step 1), the server-side `422 ACTIVE_DRAFT_EXISTS`
 (step 2), and the in-flight race guard (step 5) all display the same verbatim toast:
+
 > "Finish or discard your current active workout before restoring this one."
 
 Other errors (`404 NOT_FOUND`, `422 NOT_EXPIRED`) show a generic toast:
+
 > "Could not restore this workout."
 
 An inline spinner replaces the button label while `restoreWorkout.isPending` is true.
@@ -131,6 +133,6 @@ An inline spinner replaces the button label while `restoreWorkout.isPending` is 
 ## Flow 6 reference
 
 > Flow 6, Step 3: User taps a history row → lands on `/train/history/:id` showing the
->   full workout with each exercise and logged sets, plus action buttons.
+> full workout with each exercise and logged sets, plus action buttons.
 > Flow 6, Step 5: User taps "Restore Workout" on an expired detail view → same restore
->   flow as the history list, ending with navigation to /train.
+> flow as the history list, ending with navigation to /train.

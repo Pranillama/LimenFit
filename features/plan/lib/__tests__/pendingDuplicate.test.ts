@@ -135,11 +135,13 @@ describe('pendingDuplicate', () => {
     vi.stubGlobal('window', undefined);
 
     expect(getPendingDuplicate()).toBeNull();
-    expect(() => setPendingDuplicate({
-      shareSlug: 'abc-def-ghi',
-      clientMutationId: 'mut-1',
-      createdAt: Date.now(),
-    })).not.toThrow();
+    expect(() =>
+      setPendingDuplicate({
+        shareSlug: 'abc-def-ghi',
+        clientMutationId: 'mut-1',
+        createdAt: Date.now(),
+      }),
+    ).not.toThrow();
     expect(() => clearPendingDuplicate()).not.toThrow();
   });
 });

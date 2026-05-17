@@ -19,7 +19,15 @@ export async function POST(request: Request): Promise<Response> {
     const userId = user.id;
 
     const body = setLogBodySchema.parse(await request.json());
-    const { clientMutationId, workoutExerciseId, setNumber, reps, weightValue, weightUnit, loggedAt } = body;
+    const {
+      clientMutationId,
+      workoutExerciseId,
+      setNumber,
+      reps,
+      weightValue,
+      weightUnit,
+      loggedAt,
+    } = body;
 
     const result = await withIdempotency({
       supabase,
@@ -45,7 +53,11 @@ export async function POST(request: Request): Promise<Response> {
         const workout = we.workouts as unknown as { id: string; status: string };
         if (workout.status !== 'in_progress') {
           throw new RouteError(
-            jsonError(422, 'WORKOUT_NOT_IN_PROGRESS', 'Cannot log sets on a completed or expired workout'),
+            jsonError(
+              422,
+              'WORKOUT_NOT_IN_PROGRESS',
+              'Cannot log sets on a completed or expired workout',
+            ),
           );
         }
 

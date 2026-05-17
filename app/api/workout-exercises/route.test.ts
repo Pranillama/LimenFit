@@ -28,10 +28,10 @@ const mockRequireUser = vi.mocked(requireUser);
 const mockWithIdempotency = vi.mocked(withIdempotency);
 
 const CLIENT_MUTATION_ID = '550e8400-e29b-41d4-a716-446655440000';
-const WORKOUT_ID         = '660e8400-e29b-41d4-a716-446655440000';
-const EXERCISE_ID        = '770e8400-e29b-41d4-a716-446655440000';
-const RESOURCE_ID        = '880e8400-e29b-41d4-a716-446655440000';
-const USER_ID            = 'user-aaa0-0000-0000-000000000000';
+const WORKOUT_ID = '660e8400-e29b-41d4-a716-446655440000';
+const EXERCISE_ID = '770e8400-e29b-41d4-a716-446655440000';
+const RESOURCE_ID = '880e8400-e29b-41d4-a716-446655440000';
+const USER_ID = 'user-aaa0-0000-0000-000000000000';
 
 function makeRequest(): Request {
   return new Request('http://localhost/api/workout-exercises', {
@@ -147,7 +147,10 @@ describe('POST /api/workout-exercises', () => {
             select: () => ({
               eq: () => ({
                 eq: () => ({
-                  maybeSingle: async () => ({ data: { id: WORKOUT_ID, status: 'in_progress' }, error: null }),
+                  maybeSingle: async () => ({
+                    data: { id: WORKOUT_ID, status: 'in_progress' },
+                    error: null,
+                  }),
                 }),
               }),
             }),

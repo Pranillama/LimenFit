@@ -5,8 +5,7 @@ import type { Database, Json } from '@/lib/supabase/types';
 
 assertServerOnly();
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class IdempotencyValidationError extends Error {
   constructor(message: string) {

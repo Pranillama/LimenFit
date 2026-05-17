@@ -26,7 +26,9 @@ export function useImportableWorkoutsQuery() {
     queryFn: async () => {
       const { data, error } = (await supabase
         .from('workouts')
-        .select('id, name, started_at, workout_exercises(id, exercise_id, position, sets(set_number, reps))')
+        .select(
+          'id, name, started_at, workout_exercises(id, exercise_id, position, sets(set_number, reps))',
+        )
         .eq('status', 'completed')
         .order('started_at', { ascending: false })
         .limit(50)) as unknown as {

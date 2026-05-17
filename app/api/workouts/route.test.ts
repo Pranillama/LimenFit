@@ -111,7 +111,11 @@ describe('POST /api/workouts — create draft (idempotency scenarios)', () => {
         user: { id: USER_ID } as any,
       });
 
-      let capturedResult: { resourceId: string | null; response: any; responseMetadata?: any } | null = null;
+      let capturedResult: {
+        resourceId: string | null;
+        response: any;
+        responseMetadata?: any;
+      } | null = null;
       mockWithIdempotency.mockImplementation(async (opts: any) => {
         if (capturedResult === null) {
           const r = await opts.handler();
@@ -220,14 +224,23 @@ describe('POST /api/workouts — create draft (idempotency scenarios)', () => {
         user: { id: USER_ID } as any,
       });
 
-      let capturedResult: { resourceId: string | null; response: any; responseMetadata?: any } | null = null;
+      let capturedResult: {
+        resourceId: string | null;
+        response: any;
+        responseMetadata?: any;
+      } | null = null;
       mockWithIdempotency.mockImplementation(async (opts: any) => {
         if (capturedResult === null) {
           const r = await opts.handler();
           capturedResult = r;
           return { replayed: false, resourceId: r.resourceId, response: r.response };
         }
-        return { replayed: true, resourceId: capturedResult.resourceId, responseMetadata: capturedResult.responseMetadata, response: null };
+        return {
+          replayed: true,
+          resourceId: capturedResult.resourceId,
+          responseMetadata: capturedResult.responseMetadata,
+          response: null,
+        };
       });
 
       const res1 = await POST(makeRequest());

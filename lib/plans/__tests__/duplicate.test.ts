@@ -7,11 +7,11 @@ vi.mock('@/lib/idempotency', () => ({
 
 import { duplicatePlanForUser, PlanNotFoundError } from '../duplicate';
 
-const SOURCE_PLAN_ID    = '11111111-0000-4000-8000-000000000001';
-const TARGET_USER_ID    = '22222222-0000-4000-8000-000000000002';
-const NEW_PLAN_ID       = '33333333-0000-4000-8000-000000000003';
-const EXISTING_PLAN_ID  = '44444444-0000-4000-8000-000000000004';
-const SHARE_SLUG        = 'abc-def-ghi';
+const SOURCE_PLAN_ID = '11111111-0000-4000-8000-000000000001';
+const TARGET_USER_ID = '22222222-0000-4000-8000-000000000002';
+const NEW_PLAN_ID = '33333333-0000-4000-8000-000000000003';
+const EXISTING_PLAN_ID = '44444444-0000-4000-8000-000000000004';
+const SHARE_SLUG = 'abc-def-ghi';
 const EXISTING_SHARE_SLUG = 'race-winner-slug';
 const REQUEST_MUTATION_ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -32,9 +32,7 @@ const PLAN_ROW = {
       id: 'wk-2',
       name: 'Day B',
       position: 1,
-      plan_exercises: [
-        { exercise_id: 'ex-row', target_sets: 4, target_reps: 6, position: 0 },
-      ],
+      plan_exercises: [{ exercise_id: 'ex-row', target_sets: 4, target_reps: 6, position: 0 }],
     },
   ],
 };
@@ -49,7 +47,10 @@ const PLAN_ROW = {
  */
 function makeSupabaseMock({
   fromResults = [PLAN_ROW] as Array<unknown>,
-  rpcResult = [{ plan_id: NEW_PLAN_ID, share_slug: SHARE_SLUG }] as Array<{ plan_id: string; share_slug: string }>,
+  rpcResult = [{ plan_id: NEW_PLAN_ID, share_slug: SHARE_SLUG }] as Array<{
+    plan_id: string;
+    share_slug: string;
+  }>,
   rpcError = null as { message: string; code?: string } | null,
 } = {}) {
   const fromCalls: any[] = [];
@@ -131,14 +132,14 @@ describe('duplicatePlanForUser', () => {
     expect(workouts).toHaveLength(2);
 
     expect(workouts[0]).toMatchObject({ name: 'Day A', position: 0 });
-    const exercises0 = workouts[0].exercises as Array<Record<string, unknown>>;
-    expect(exercises0[0]).toMatchObject({
+    const exercises0 = workouts[0]!.exercises as Array<Record<string, unknown>>;
+    expect(exercises0[0]!).toMatchObject({
       exercise_id: 'ex-squat',
       target_sets: 3,
       target_reps: 5,
       position: 0,
     });
-    expect(exercises0[1]).toMatchObject({
+    expect(exercises0[1]!).toMatchObject({
       exercise_id: 'ex-bench',
       target_sets: 3,
       target_reps: 8,
@@ -146,8 +147,8 @@ describe('duplicatePlanForUser', () => {
     });
 
     expect(workouts[1]).toMatchObject({ name: 'Day B', position: 1 });
-    const exercises1 = workouts[1].exercises as Array<Record<string, unknown>>;
-    expect(exercises1[0]).toMatchObject({
+    const exercises1 = workouts[1]!.exercises as Array<Record<string, unknown>>;
+    expect(exercises1[0]!).toMatchObject({
       exercise_id: 'ex-row',
       target_sets: 4,
       target_reps: 6,
@@ -210,10 +211,7 @@ describe('duplicatePlanForUser', () => {
 
   it('recovers from rpcError 23505 by selecting existing plan by (client_mutation_id, user_id)', async () => {
     const { supabase, fromCalls } = makeSupabaseMock({
-      fromResults: [
-        PLAN_ROW,
-        { id: EXISTING_PLAN_ID, share_slug: EXISTING_SHARE_SLUG },
-      ],
+      fromResults: [PLAN_ROW, { id: EXISTING_PLAN_ID, share_slug: EXISTING_SHARE_SLUG }],
       rpcResult: [],
       rpcError: { message: 'duplicate key value violates unique constraint', code: '23505' },
     });

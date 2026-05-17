@@ -9,31 +9,29 @@ const ON_PRIMARY = '#fafafa';
 
 export default function Icon() {
   return new ImageResponse(
-    (
-      <div
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        background: PRIMARY,
+        borderRadius: 6,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <span
         style={{
-          width: 32,
-          height: 32,
-          background: PRIMARY,
-          borderRadius: 6,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          color: ON_PRIMARY,
+          fontSize: 20,
+          fontWeight: 700,
+          fontFamily: 'serif',
+          lineHeight: 1,
         }}
       >
-        <span
-          style={{
-            color: ON_PRIMARY,
-            fontSize: 20,
-            fontWeight: 700,
-            fontFamily: 'serif',
-            lineHeight: 1,
-          }}
-        >
-          L
-        </span>
-      </div>
-    ),
+        L
+      </span>
+    </div>,
     { ...size },
   );
 }

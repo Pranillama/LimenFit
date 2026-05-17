@@ -71,10 +71,19 @@ const EXPECTED_PLAN_RESPONSE = {
   ],
 };
 
-function makePatchRequest(id = PLAN_ID, body: object = {
-  clientMutationId: CLIENT_MUTATION_ID,
-  workouts: [{ name: 'Day 1', position: 0, exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }] }],
-}): [Request, { params: Promise<{ id: string }> }] {
+function makePatchRequest(
+  id = PLAN_ID,
+  body: object = {
+    clientMutationId: CLIENT_MUTATION_ID,
+    workouts: [
+      {
+        name: 'Day 1',
+        position: 0,
+        exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }],
+      },
+    ],
+  },
+): [Request, { params: Promise<{ id: string }> }] {
   return [
     new Request(`http://localhost/api/plans/${id}`, {
       method: 'PATCH',
@@ -176,17 +185,26 @@ describe('PATCH /api/plans/[id]', () => {
     const [req, ctx] = makePatchRequest(PLAN_ID, {
       clientMutationId: CLIENT_MUTATION_ID,
       name: 'Updated Plan',
-      workouts: [{ name: 'Day 1', position: 0, exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }] }],
+      workouts: [
+        {
+          name: 'Day 1',
+          position: 0,
+          exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }],
+        },
+      ],
     });
     const res = await PATCH(req, ctx);
     const json = await res.json();
 
     expect(res.status).toBe(200);
     expect(json).toEqual(EXPECTED_PLAN_RESPONSE);
-    expect(supabase.rpc).toHaveBeenCalledWith('update_plan_with_children', expect.objectContaining({
-      p_plan_id: PLAN_ID,
-      p_name: 'Updated Plan',
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'update_plan_with_children',
+      expect.objectContaining({
+        p_plan_id: PLAN_ID,
+        p_name: 'Updated Plan',
+      }),
+    );
     const rpcCall = supabase.rpc.mock.calls[0]![1];
     expect(rpcCall.p_workouts[0].exercises[0].exercise_id).toBe(EXERCISE_ID);
     expect(rpcCall.p_workouts[0].exercises[0].target_sets).toBe(4);
@@ -216,14 +234,23 @@ describe('PATCH /api/plans/[id]', () => {
 
     const [req, ctx] = makePatchRequest(PLAN_ID, {
       clientMutationId: CLIENT_MUTATION_ID,
-      workouts: [{ name: 'Day 1', position: 0, exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }] }],
+      workouts: [
+        {
+          name: 'Day 1',
+          position: 0,
+          exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }],
+        },
+      ],
     });
     const res = await PATCH(req, ctx);
 
     expect(res.status).toBe(200);
-    expect(supabase.rpc).toHaveBeenCalledWith('update_plan_with_children', expect.objectContaining({
-      p_name: 'Current Name',
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'update_plan_with_children',
+      expect.objectContaining({
+        p_name: 'Current Name',
+      }),
+    );
   });
 
   it('returns 200 with nested shape on name-only patch', async () => {
@@ -247,11 +274,14 @@ describe('PATCH /api/plans/[id]', () => {
 
     expect(res.status).toBe(200);
     expect(json.name).toBe('Updated Plan');
-    expect(supabase.rpc).toHaveBeenCalledWith('update_plan_name', expect.objectContaining({
-      p_plan_id: PLAN_ID,
-      p_name: 'Updated Plan',
-      p_client_mutation_id: CLIENT_MUTATION_ID,
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'update_plan_name',
+      expect.objectContaining({
+        p_plan_id: PLAN_ID,
+        p_name: 'Updated Plan',
+        p_client_mutation_id: CLIENT_MUTATION_ID,
+      }),
+    );
   });
 
   it('returns 404 when RPC returns zero rows', async () => {
@@ -266,7 +296,13 @@ describe('PATCH /api/plans/[id]', () => {
     const [req, ctx] = makePatchRequest(PLAN_ID, {
       clientMutationId: CLIENT_MUTATION_ID,
       name: 'Updated Plan',
-      workouts: [{ name: 'Day 1', position: 0, exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }] }],
+      workouts: [
+        {
+          name: 'Day 1',
+          position: 0,
+          exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }],
+        },
+      ],
     });
     const res = await PATCH(req, ctx);
 
@@ -313,7 +349,13 @@ describe('PATCH /api/plans/[id]', () => {
     const patchBody = {
       clientMutationId: CLIENT_MUTATION_ID,
       name: 'Updated Plan',
-      workouts: [{ name: 'Day 1', position: 0, exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }] }],
+      workouts: [
+        {
+          name: 'Day 1',
+          position: 0,
+          exercises: [{ exerciseId: EXERCISE_ID, targetSets: 4, targetReps: 8, position: 0 }],
+        },
+      ],
     };
     const [req1, ctx1] = makePatchRequest(PLAN_ID, patchBody);
     const [req2, ctx2] = makePatchRequest(PLAN_ID, patchBody);
@@ -325,9 +367,12 @@ describe('PATCH /api/plans/[id]', () => {
     expect(res2.status).toBe(200);
     expect(json1.workouts[0].id).toBe(json2.workouts[0].id);
     expect(json1.updatedAt).toBe(json2.updatedAt);
-    expect(supabase.rpc).toHaveBeenCalledWith('update_plan_with_children', expect.objectContaining({
-      p_client_mutation_id: CLIENT_MUTATION_ID,
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'update_plan_with_children',
+      expect.objectContaining({
+        p_client_mutation_id: CLIENT_MUTATION_ID,
+      }),
+    );
   });
 
   it('uses resourceId from receipt on replay, not URL id', async () => {

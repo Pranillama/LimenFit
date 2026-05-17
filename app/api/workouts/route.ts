@@ -42,7 +42,11 @@ export async function POST(request: Request): Promise<Response> {
       clientMutationId,
       mutationType: 'workout.create',
       resourceType: 'workouts',
-      handler: async (): Promise<{ resourceId: string | null; response: CreateResponse; responseMetadata?: CreateResponseMetadata }> => {
+      handler: async (): Promise<{
+        resourceId: string | null;
+        response: CreateResponse;
+        responseMetadata?: CreateResponseMetadata;
+      }> => {
         // Return existing in-progress draft instead of creating a duplicate.
         const { data: existing, error: existingError } = await supabase
           .from('workouts')
@@ -148,16 +152,18 @@ export async function POST(request: Request): Promise<Response> {
       if (error) throw error;
 
       // Reconstruct the original response using stored metadata
-      const alreadyExisted = (result.responseMetadata as CreateResponseMetadata | undefined)?.alreadyExisted ?? false;
-      const existingDraft = alreadyExisted && w
-        ? {
-            id: w.id,
-            name: w.name,
-            startedAt: w.started_at,
-            lastActivityAt: w.last_activity_at,
-            planWorkoutId: w.plan_workout_id,
-          }
-        : null;
+      const alreadyExisted =
+        (result.responseMetadata as CreateResponseMetadata | undefined)?.alreadyExisted ?? false;
+      const existingDraft =
+        alreadyExisted && w
+          ? {
+              id: w.id,
+              name: w.name,
+              startedAt: w.started_at,
+              lastActivityAt: w.last_activity_at,
+              planWorkoutId: w.plan_workout_id,
+            }
+          : null;
 
       if (alreadyExisted) {
         return jsonOk({

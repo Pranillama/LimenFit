@@ -52,7 +52,9 @@ export async function PATCH(
           throw new RouteError(jsonError(404, 'NOT_FOUND', 'Set not found'));
         }
 
-        const { workout_id: workoutId } = set.workout_exercises as unknown as { workout_id: string };
+        const { workout_id: workoutId } = set.workout_exercises as unknown as {
+          workout_id: string;
+        };
 
         // Edits are allowed regardless of workout status — Flow 6 (inline editing) permits
         // modifying sets in completed workouts without re-opening them.
@@ -119,7 +121,9 @@ export async function DELETE(
           return { resourceId: id, response: { id, clientMutationId } };
         }
 
-        const { workout_id: workoutId } = set.workout_exercises as unknown as { workout_id: string };
+        const { workout_id: workoutId } = set.workout_exercises as unknown as {
+          workout_id: string;
+        };
 
         const { error: deleteError } = await supabase.from('sets').delete().eq('id', id);
         if (deleteError) throw deleteError;

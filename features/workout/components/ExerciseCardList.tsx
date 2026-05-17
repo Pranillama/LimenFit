@@ -36,8 +36,7 @@ export function ExerciseCardList({
     const added = storeIds.filter((id) => !survivingSet.has(id));
     const merged = [...surviving, ...added];
 
-    const changed =
-      merged.length !== localIds.length || merged.some((id, i) => id !== localIds[i]);
+    const changed = merged.length !== localIds.length || merged.some((id, i) => id !== localIds[i]);
     if (changed) setLocalIds(merged);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercises]);

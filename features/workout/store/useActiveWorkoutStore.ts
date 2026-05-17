@@ -86,7 +86,11 @@ export interface ActiveWorkoutStoreActions {
   markHydrated(): void;
   setUserSettings(patch: Partial<UserSettings>): void;
   resetStore(): void;
-  startDraft(params?: { planWorkoutId?: string | null; name?: string; exercises?: PreloadedExercise[] }): void;
+  startDraft(params?: {
+    planWorkoutId?: string | null;
+    name?: string;
+    exercises?: PreloadedExercise[];
+  }): void;
   addExercises(exerciseIds: string[]): void;
   removeExercise(localId: string): void;
   reorderExercises(orderedLocalIds: string[]): void;
@@ -321,7 +325,11 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
         // already synced (its removal will cascade on the server).
         const childSetsCoveredByParent = exercise.serverId !== null;
         const newTombstones: TombstoneMap = { ...s.tombstones };
-        newTombstones[localId] = { localId, entityKind: 'workoutExercise', coveredByParentDelete: false };
+        newTombstones[localId] = {
+          localId,
+          entityKind: 'workoutExercise',
+          coveredByParentDelete: false,
+        };
         for (const set of exercise.sets) {
           newTombstones[set.localId] = {
             localId: set.localId,
@@ -523,7 +531,10 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
         // Only append a server delete when the set was already synced.
         const queue =
           foundServerId !== null
-            ? [...filtered, buildSetDeleteMutation({ localId: setLocalId, serverId: foundServerId })]
+            ? [
+                ...filtered,
+                buildSetDeleteMutation({ localId: setLocalId, serverId: foundServerId }),
+              ]
             : filtered;
 
         return {
@@ -592,9 +603,17 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
           // and sets as covered by this parent deletion.
           const newTombstones: TombstoneMap = {};
           for (const ex of s.exercises) {
-            newTombstones[ex.localId] = { localId: ex.localId, entityKind: 'workoutExercise', coveredByParentDelete: true };
+            newTombstones[ex.localId] = {
+              localId: ex.localId,
+              entityKind: 'workoutExercise',
+              coveredByParentDelete: true,
+            };
             for (const set of ex.sets) {
-              newTombstones[set.localId] = { localId: set.localId, entityKind: 'set', coveredByParentDelete: true };
+              newTombstones[set.localId] = {
+                localId: set.localId,
+                entityKind: 'set',
+                coveredByParentDelete: true,
+              };
             }
           }
 
@@ -621,7 +640,11 @@ export const useActiveWorkoutStore = createAppStore<ActiveWorkoutStoreState, Per
         // workout localId so that if the create succeeds, the queue engine can detect
         // the discard and immediately send a server-side workout.discard.
         const newTombstones: TombstoneMap = {
-          [workoutLocalId]: { localId: workoutLocalId, entityKind: 'workout', coveredByParentDelete: false },
+          [workoutLocalId]: {
+            localId: workoutLocalId,
+            entityKind: 'workout',
+            coveredByParentDelete: false,
+          },
         };
 
         return {

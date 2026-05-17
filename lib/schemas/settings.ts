@@ -11,10 +11,9 @@ export const userSettingsPatchBodySchema = z
     weightUnit: z.enum(WEIGHT_UNITS).optional(),
     restTimerDefaultSeconds: z.number().int().min(0).max(600).optional(),
   })
-  .refine(
-    (data) => data.weightUnit !== undefined || data.restTimerDefaultSeconds !== undefined,
-    { message: 'At least one of weightUnit or restTimerDefaultSeconds must be provided' },
-  );
+  .refine((data) => data.weightUnit !== undefined || data.restTimerDefaultSeconds !== undefined, {
+    message: 'At least one of weightUnit or restTimerDefaultSeconds must be provided',
+  });
 
 export type UserSettingsPatchBody = z.infer<typeof userSettingsPatchBodySchema>;
 

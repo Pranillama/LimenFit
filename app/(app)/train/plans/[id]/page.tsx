@@ -30,11 +30,7 @@ export const metadata: Metadata = {
   title: 'Plan — LimenFit',
 };
 
-export default async function PlanDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function PlanDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!UUID_RE.test(id)) {
@@ -42,7 +38,9 @@ export default async function PlanDetailPage({
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: plan } = await supabase
     .from('plans')
@@ -111,9 +109,7 @@ export default async function PlanDetailPage({
                 <ul className="space-y-1">
                   {sortedExercises.map((ex) => (
                     <li key={ex.id} className="flex items-center justify-between text-sm">
-                      <span>
-                        {ex.exercises?.name ?? ex.exercise_id}
-                      </span>
+                      <span>{ex.exercises?.name ?? ex.exercise_id}</span>
                       <span className="text-muted-foreground">
                         Target: {ex.target_sets} × {ex.target_reps}
                       </span>

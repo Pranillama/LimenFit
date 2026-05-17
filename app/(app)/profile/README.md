@@ -31,15 +31,16 @@ Profile page — implemented in Phase 1 (T15).
 
 ## Files
 
-| File | Role |
-|------|------|
-| `page.tsx` | Server component — fetches user + settings, renders `ProfileView` inside `PageContainer` |
-| `sign-out-button.tsx` | Client component — full cleanup before sign-out (see below) |
-| `actions.ts` | Server action — Supabase sign-out + redirect to `/auth` |
+| File                  | Role                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `page.tsx`            | Server component — fetches user + settings, renders `ProfileView` inside `PageContainer` |
+| `sign-out-button.tsx` | Client component — full cleanup before sign-out (see below)                              |
+| `actions.ts`          | Server action — Supabase sign-out + redirect to `/auth`                                  |
 
 ## Settings mutations
 
 Settings changes go through `useUpdateSettingsMutation` (TanStack Query) which:
+
 - Optimistically applies the patch to the active-workout store.
 - PATCHes `/api/settings`.
 - On success, re-applies the canonical server row.

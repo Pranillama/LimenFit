@@ -34,9 +34,8 @@ export function RecentActivityList({ rows }: Props) {
                     <p className="mt-0.5 text-xs text-muted-foreground">{row.formattedDate}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {formatDuration(row.startedAt, row.endedAt ?? row.startedAt)} &middot;{' '}
-                      {row.exerciseCount}{' '}
-                      {row.exerciseCount === 1 ? 'exercise' : 'exercises'} &middot; {row.setCount}{' '}
-                      {row.setCount === 1 ? 'set' : 'sets'}
+                      {row.exerciseCount} {row.exerciseCount === 1 ? 'exercise' : 'exercises'}{' '}
+                      &middot; {row.setCount} {row.setCount === 1 ? 'set' : 'sets'}
                     </p>
                   </div>
                   {row.status === 'expired' && (

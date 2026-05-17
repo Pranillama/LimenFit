@@ -48,9 +48,7 @@ export function splitRecentVsAll(
   const filteredById = new Map(filtered.map((item) => [item.id, item]));
   const recentIdSet = new Set(recentIds);
 
-  const recent = recentIds
-    .filter((id) => filteredById.has(id))
-    .map((id) => filteredById.get(id)!);
+  const recent = recentIds.filter((id) => filteredById.has(id)).map((id) => filteredById.get(id)!);
 
   const all = filtered.filter((item) => !recentIdSet.has(item.id));
 

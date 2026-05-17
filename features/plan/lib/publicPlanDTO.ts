@@ -26,9 +26,7 @@ export interface PublicPlanDTO {
   workouts: PublicPlanWorkoutDTO[];
 }
 
-export async function fetchPublicPlanBySlug(
-  shareSlug: string,
-): Promise<PublicPlanDTO | null> {
+export async function fetchPublicPlanBySlug(shareSlug: string): Promise<PublicPlanDTO | null> {
   const supabase = createSupabaseAnonClient();
 
   const { data, error } = await supabase
