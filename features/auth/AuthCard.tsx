@@ -296,6 +296,7 @@ function LoginForm({ next }: { next?: string }) {
 }
 
 function SignUpForm({ onSuccess, next }: { onSuccess: () => void; next?: string }) {
+  const router = useRouter();
   const [serverError, setServerError] = useState('');
 
   const {
@@ -313,7 +314,7 @@ function SignUpForm({ onSuccess, next }: { onSuccess: () => void; next?: string 
       callbackUrl.searchParams.set('next', next);
       options.emailRedirectTo = callbackUrl.toString();
     }
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
       options,
@@ -322,7 +323,12 @@ function SignUpForm({ onSuccess, next }: { onSuccess: () => void; next?: string 
       setServerError(error.message);
       return;
     }
-    onSuccess();
+    if (data.session) {
+      router.refresh();
+      router.push(next ?? '/home');
+    } else {
+      onSuccess();
+    }
   };
 
   return (

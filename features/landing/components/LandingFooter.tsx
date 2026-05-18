@@ -1,5 +1,5 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { Dumbbell } from 'lucide-react';
 import { CONTACT_EMAIL, FOOTER_LINKS, GITHUB_URL } from '../lib/content';
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -47,7 +47,7 @@ export function LandingFooter() {
         {/* Left: wordmark + tagline + social icons */}
         <div>
           <Link href="/" className="flex items-center gap-2 text-white">
-            <Dumbbell className="h-6 w-6 text-brand-orange" />
+            <Image src="/icon.png" alt="LimenFit logo" width={24} height={24} />
             <span className="text-base font-bold uppercase tracking-[0.2em]">LimenFit</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/45">

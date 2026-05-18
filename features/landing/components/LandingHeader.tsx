@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Dumbbell, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const navLinks = [
   { label: 'home', href: '#home' },
@@ -26,7 +27,7 @@ export function LandingHeader() {
       <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-6 md:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-white focus:outline-none">
-          <Dumbbell className="h-6 w-6" />
+          <Image src="/icon.png" alt="LimenFit logo" width={24} height={24} />
           <span className="text-base font-bold uppercase tracking-[0.2em]">LimenFit</span>
         </Link>
 
