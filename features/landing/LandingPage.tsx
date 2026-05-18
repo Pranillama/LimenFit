@@ -14,18 +14,16 @@ export function LandingPage() {
       <LandingHero />
       {/* Orange divider between hero and features */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-brand-orange to-transparent opacity-60" />
-      <main className="mx-auto max-w-screen-xl px-4 sm:px-6">
+      <div className="mx-auto max-w-screen-xl px-4 sm:px-6">
         <MotionSection>
           <LandingFeatures />
         </MotionSection>
-        <MotionSection>
-          <LandingWhyLimenFit />
-        </MotionSection>
-        <MotionSection>
-          <LandingContact />
-        </MotionSection>
-      </main>
+      </div>
+      {/* Why is full-width so the PROGRESS. display word
+          overflows symmetrically and the parallax spans the viewport */}
+      <LandingWhyLimenFit />
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6">
+        <LandingContact />
         <LandingFooter />
       </div>
     </div>

@@ -1,6 +1,5 @@
-// TODO: swap these before launch
-export const GITHUB_URL = 'https://github.com/limenfit/limenfit';
-export const CONTACT_EMAIL = 'hello@limenfit.app';
+export const GITHUB_URL = 'https://github.com/Pranillama/LimenFit';
+export const CONTACT_EMAIL = 'limenfit@gmail.com';
 
 export const HERO = {
   headline: 'Log every set. Own every lift.',
@@ -76,17 +75,20 @@ export const FOOTER_LINKS: FooterLinkGroup[] = [
     label: 'Product',
     links: [
       { label: 'Get Started', href: '/auth' },
+      { label: 'Features', href: '#features' },
       { label: 'Sign in', href: '/auth' },
     ],
   },
   {
     label: 'Resources',
-    links: [{ label: 'GitHub', href: GITHUB_URL, external: true }],
+    links: [
+      { label: 'GitHub', href: GITHUB_URL, external: true },
+      { label: 'Documentation', href: '#' },
+    ],
   },
   {
     label: 'Legal',
     links: [
-      // TODO: replace # with real routes once Privacy/Terms pages exist
       { label: 'Privacy', href: '#' },
       { label: 'Terms', href: '#' },
     ],
