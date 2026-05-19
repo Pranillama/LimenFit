@@ -19,11 +19,25 @@ const { requestStartWorkout, subscribeResumeRequest, settleRequest } =
 
 // Minimal state shapes that satisfy selectHasActiveDraft.
 function stateWithDraft() {
-  return { meta: { localId: 'draft-1' } } as ReturnType<typeof useActiveWorkoutStore.getState>;
+  return { meta: { localId: 'draft-1', status: 'in_progress' } } as ReturnType<
+    typeof useActiveWorkoutStore.getState
+  >;
 }
 
 function stateNoDraft() {
   return { meta: null } as ReturnType<typeof useActiveWorkoutStore.getState>;
+}
+
+function stateWithCompletedLocal() {
+  return {
+    meta: { localId: 'workout-1', status: 'completed_local', workoutId: 'server-1' },
+  } as ReturnType<typeof useActiveWorkoutStore.getState>;
+}
+
+function stateWithCompletedSynced() {
+  return {
+    meta: { localId: 'workout-1', status: 'completed_synced', workoutId: 'server-1' },
+  } as ReturnType<typeof useActiveWorkoutStore.getState>;
 }
 
 describe('resumeCoordinator', () => {
@@ -41,6 +55,18 @@ describe('resumeCoordinator', () => {
   it('resolves immediately as discard-and-start when no active draft exists', async () => {
     mockGetState.mockReturnValue(stateNoDraft());
     const decision = await requestStartWorkout({ source: 'home' });
+    expect(decision).toBe('discard-and-start');
+  });
+
+  it('resolves immediately as sync-in-progress when store is in completed_local (protected state)', async () => {
+    mockGetState.mockReturnValue(stateWithCompletedLocal());
+    const decision = await requestStartWorkout({ source: 'home' });
+    expect(decision).toBe('sync-in-progress');
+  });
+
+  it('resolves immediately as discard-and-start when store holds a completed_synced summary', async () => {
+    mockGetState.mockReturnValue(stateWithCompletedSynced());
+    const decision = await requestStartWorkout({ source: 'history' });
     expect(decision).toBe('discard-and-start');
   });
 

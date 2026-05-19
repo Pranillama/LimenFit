@@ -20,7 +20,7 @@ vi.mock('@/lib/idempotency/server', () => ({
   },
 }));
 
-import { POST } from './route';
+import { POST, DELETE } from './route';
 import { requireUser } from '@/lib/api/auth';
 import { withIdempotency } from '@/lib/idempotency/server';
 
@@ -140,5 +140,122 @@ describe('POST /api/workouts/[id]/restore', () => {
     const json = await res.json();
     expect(json.error.code).toBe('ACTIVE_DRAFT_EXISTS');
     expect(json.error.details.activeDraft.id).toBe(DRAFT_ID);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// DELETE /api/workouts/[id]/restore — revert in_progress → expired
+// ---------------------------------------------------------------------------
+
+function makeDeleteRequest(workoutId = WORKOUT_ID): [Request, { params: Promise<{ id: string }> }] {
+  return [
+    new Request(`http://localhost/api/workouts/${workoutId}/restore`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientMutationId: VALID_UUID }),
+    }),
+    { params: Promise.resolve({ id: workoutId }) },
+  ];
+}
+
+function makeRevertSupabase(opts: { revertedRow: { id: string } | null; error?: unknown }) {
+  return {
+    from: vi.fn().mockReturnValue({
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: opts.revertedRow,
+                  error: opts.error ?? null,
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    }),
+  };
+}
+
+describe('DELETE /api/workouts/[id]/restore (revert in_progress → expired)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 401 when requireUser throws ApiAuthError', async () => {
+    const { ApiAuthError } = await import('@/lib/api/auth');
+    mockRequireUser.mockRejectedValueOnce(new ApiAuthError());
+
+    const [req, ctx] = makeDeleteRequest();
+    const res = await DELETE(req, ctx);
+
+    expect(res.status).toBe(401);
+    const json = await res.json();
+    expect(json.error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('returns 400 INVALID_ID for a non-UUID workout id', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeRevertSupabase({ revertedRow: null }) as any,
+      user: { id: USER_ID } as any,
+    });
+
+    const [req, ctx] = makeDeleteRequest('not-a-uuid');
+    const res = await DELETE(req, ctx);
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe('INVALID_ID');
+  });
+
+  it('returns 400 VALIDATION_ERROR when body fails schema validation', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeRevertSupabase({ revertedRow: null }) as any,
+      user: { id: USER_ID } as any,
+    });
+
+    const [, ctx] = makeDeleteRequest();
+    const res = await DELETE(
+      new Request(`http://localhost/api/workouts/${WORKOUT_ID}/restore`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientMutationId: 'not-a-uuid' }),
+      }),
+      ctx,
+    );
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 200 and reverts the workout to expired, preserving it in history', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeRevertSupabase({ revertedRow: { id: WORKOUT_ID } }) as any,
+      user: { id: USER_ID } as any,
+    });
+    mockWithIdempotency.mockImplementation(async (opts: any) => opts.handler());
+
+    const [req, ctx] = makeDeleteRequest();
+    const res = await DELETE(req, ctx);
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.id).toBe(WORKOUT_ID);
+  });
+
+  it('returns 200 idempotently when the workout is already expired or not found (not in_progress)', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeRevertSupabase({ revertedRow: null }) as any,
+      user: { id: USER_ID } as any,
+    });
+    mockWithIdempotency.mockImplementation(async (opts: any) => opts.handler());
+
+    const [req, ctx] = makeDeleteRequest();
+    const res = await DELETE(req, ctx);
+
+    expect(res.status).toBe(200);
   });
 });

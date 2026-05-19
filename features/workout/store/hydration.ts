@@ -1,5 +1,5 @@
 import { createSupabaseBrowserClient } from '@/lib/supabase';
-import { selectHasActiveDraft } from './selectors';
+import { selectHasActiveDraft, selectIsCompletedLocalProtected } from './selectors';
 import { useActiveWorkoutStore } from './useActiveWorkoutStore';
 import type { ServerWorkoutSnapshot } from './useActiveWorkoutStore';
 import type { ActiveWorkoutExercise, ActiveSet } from './types';
@@ -58,8 +58,9 @@ export async function hydrateActiveWorkout(store: typeof useActiveWorkoutStore):
     });
   }
 
-  // Step 2: local draft wins
+  // Step 2: local draft wins; completed_local is also protected until the queue drains
   if (selectHasActiveDraft(store.getState())) return;
+  if (selectIsCompletedLocalProtected(store.getState())) return;
 
   // Step 3: query the server for an in-progress workout — RLS restricts to current user
   const supabase = getClient();
@@ -148,9 +149,10 @@ export async function hydrateActiveWorkout(store: typeof useActiveWorkoutStore):
     exercises,
   };
 
-  // Re-check: a local draft may have been started while the Supabase request was in
-  // flight. Local draft always wins — do not overwrite it with the server snapshot.
+  // Re-check: a local draft may have been started (or workout completed) while the
+  // request was in flight. Both states win over the server snapshot.
   if (selectHasActiveDraft(store.getState())) return;
+  if (selectIsCompletedLocalProtected(store.getState())) return;
 
   store.getState().hydrateFromServer(snapshot);
 }

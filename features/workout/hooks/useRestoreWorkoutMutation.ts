@@ -7,17 +7,33 @@ import { newClientMutationId } from '@/lib/idempotency';
 import { useStartWorkoutAction } from './useStartWorkoutAction';
 import type { StartWorkoutResult } from './useStartWorkoutAction';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
-import { selectHasActiveDraft } from '../store/selectors';
+import { selectHasActiveDraft, selectIsCompletedLocalProtected } from '../store/selectors';
 import type { ServerWorkoutSnapshot } from '../store/useActiveWorkoutStore';
 import type { ActiveWorkoutExercise, ActiveSet } from '../store/types';
 import type { StartIntent } from '../store/resumeCoordinator';
 
 const CONFLICT_MSG = 'Finish or discard your current active workout before restoring this one.';
+const SYNC_IN_PROGRESS_MSG =
+  'Workout is still syncing. Please wait before starting another workout.';
 
 class RestoreConflictError extends Error {
   constructor() {
     super('active-draft-exists');
     this.name = 'RestoreConflictError';
+  }
+}
+
+export class SyncInProgressError extends Error {
+  constructor() {
+    super('sync-in-progress');
+    this.name = 'SyncInProgressError';
+  }
+}
+
+export class RestoreReconciliationError extends Error {
+  constructor() {
+    super('restore-reconciliation-failed');
+    this.name = 'RestoreReconciliationError';
   }
 }
 
@@ -54,6 +70,25 @@ interface WorkoutWithRelations {
 }
 
 /**
+ * Reverts an orphaned restored workout back to expired so it remains visible
+ * and restorable from History. Called when the server successfully flipped the
+ * workout to in_progress but the client subsequently cannot accept the draft.
+ * Throws on network error or non-ok HTTP so callers can detect compensation
+ * failure and surface a distinct reconciliation error instead of a blocked
+ * message that would be misleading about the actual server state.
+ */
+async function revertRestoredOrphan(id: string, fetchImpl: typeof fetch): Promise<void> {
+  const res = await fetchImpl(`/api/workouts/${id}/restore`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clientMutationId: newClientMutationId() }),
+  });
+  if (!res.ok) {
+    throw new Error(`Revert failed with HTTP ${res.status}`);
+  }
+}
+
+/**
  * Core restore logic extracted for testability. All dependencies that differ
  * between production and tests are injected as parameters.
  */
@@ -61,12 +96,17 @@ export async function runRestoreMutation(
   id: string,
   startWorkout: (intent: StartIntent) => Promise<StartWorkoutResult>,
   fetchImpl: typeof fetch = fetch,
+  invalidateRestoreTarget?: () => Promise<void>,
 ): Promise<void> {
   // Local active-draft pre-check: block before any server round-trip so a
   // pending local draft cannot be corrupted by the server restore flipping
   // the workout's status to in_progress first.
   if (selectHasActiveDraft(useActiveWorkoutStore.getState())) {
     throw new RestoreConflictError();
+  }
+  // completed_local is protected until the completion queue drains.
+  if (selectIsCompletedLocalProtected(useActiveWorkoutStore.getState())) {
+    throw new SyncInProgressError();
   }
 
   const clientMutationId = newClientMutationId();
@@ -90,6 +130,19 @@ export async function runRestoreMutation(
     }
     // 404 NOT_FOUND, 422 NOT_EXPIRED, or unexpected errors
     throw new Error(code ?? `HTTP ${res.status}`);
+  }
+
+  // Post-restore re-check: completed_local may have appeared while the server
+  // round-trip was in flight. The server already flipped the workout to
+  // in_progress, so we must revert the orphan before blocking the client.
+  if (selectIsCompletedLocalProtected(useActiveWorkoutStore.getState())) {
+    try {
+      await revertRestoredOrphan(id, fetchImpl);
+    } catch {
+      await invalidateRestoreTarget?.();
+      throw new RestoreReconciliationError();
+    }
+    throw new SyncInProgressError();
   }
 
   // Fetch the now-restored workout's full snapshot to hydrate the store.
@@ -143,8 +196,19 @@ export async function runRestoreMutation(
 
   const result = await startWorkout({ source: 'history-restore', payload: { snapshot } });
   if (result?.blocked) {
-    // Local draft appeared between the server pre-check and snapshot fetch.
-    throw new RestoreConflictError();
+    // Server restore already committed — revert the orphaned in_progress workout
+    // before surfacing the block so no hidden draft is left behind. Only surface
+    // the blocked error once revert is confirmed; a revert failure means the
+    // server state is unknown, so surface a distinct reconciliation error instead.
+    const blockedError =
+      result.reason === 'sync-in-progress' ? new SyncInProgressError() : new RestoreConflictError();
+    try {
+      await revertRestoredOrphan(id, fetchImpl);
+    } catch {
+      await invalidateRestoreTarget?.();
+      throw new RestoreReconciliationError();
+    }
+    throw blockedError;
   }
 }
 
@@ -153,13 +217,20 @@ export function useRestoreWorkoutMutation() {
   const startWorkout = useStartWorkoutAction();
 
   return useMutation<void, Error, { id: string }>({
-    mutationFn: ({ id }) => runRestoreMutation(id, startWorkout),
+    mutationFn: ({ id }) =>
+      runRestoreMutation(id, startWorkout, fetch, () =>
+        queryClient.invalidateQueries({ queryKey: ['workout-history'] }),
+      ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['workout-history'] });
     },
     onError: (err) => {
       if (err instanceof RestoreConflictError) {
         toast.error(CONFLICT_MSG);
+      } else if (err instanceof SyncInProgressError) {
+        toast.error(SYNC_IN_PROGRESS_MSG);
+      } else if (err instanceof RestoreReconciliationError) {
+        toast.error('Could not complete the restore. Please refresh and try again.');
       } else {
         toast.error('Could not restore this workout.');
       }

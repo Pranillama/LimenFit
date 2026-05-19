@@ -23,10 +23,12 @@ const { hydrateActiveWorkout } = await import('../hydration');
 
 function makeStore(overrides: {
   hasDraft?: () => boolean;
+  completedLocal?: () => boolean;
   hydrateFromServer?: ReturnType<typeof vi.fn>;
 }) {
   const hydrateFromServer = overrides.hydrateFromServer ?? vi.fn();
   const hasDraft = overrides.hasDraft ?? (() => false);
+  const completedLocal = overrides.completedLocal ?? (() => false);
   return {
     persist: {
       hasHydrated: () => true,
@@ -34,7 +36,11 @@ function makeStore(overrides: {
     },
     getState: () =>
       ({
-        meta: hasDraft() ? { localId: 'local-draft' } : null,
+        meta: hasDraft()
+          ? { localId: 'local-draft', status: 'in_progress' as const }
+          : completedLocal()
+            ? { localId: 'local-draft', status: 'completed_local' as const }
+            : null,
         exercises: [],
         queue: [],
         quarantine: [],
@@ -114,6 +120,36 @@ describe('hydrateActiveWorkout', () => {
     const store = makeStore({});
 
     await expect(hydrateActiveWorkout(store)).rejects.toBeTruthy();
+  });
+
+  it('does not apply server snapshot when store is in completed_local (protected state)', async () => {
+    mockMaybeSingle = () => Promise.resolve({ data: serverRow, error: null });
+    const hydrateFromServer = vi.fn();
+    const store = makeStore({ completedLocal: () => true, hydrateFromServer });
+
+    await hydrateActiveWorkout(store);
+
+    expect(hydrateFromServer).not.toHaveBeenCalled();
+  });
+
+  it('does not apply server snapshot when completed_local appears while query is in flight', async () => {
+    let resolveQuery!: (value: { data: unknown; error: null }) => void;
+    mockMaybeSingle = () =>
+      new Promise<{ data: unknown; error: null }>((r) => {
+        resolveQuery = r;
+      });
+
+    const hydrateFromServer = vi.fn();
+    let isCompletedLocal = false;
+    const store = makeStore({ completedLocal: () => isCompletedLocal, hydrateFromServer });
+
+    const hydratePromise = hydrateActiveWorkout(store);
+
+    isCompletedLocal = true;
+    resolveQuery({ data: serverRow, error: null });
+    await hydratePromise;
+
+    expect(hydrateFromServer).not.toHaveBeenCalled();
   });
 
   it('swallows PGRST301 JWT errors silently', async () => {

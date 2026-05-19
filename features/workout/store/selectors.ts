@@ -24,7 +24,7 @@ export function selectIsDirty(state: ActiveWorkoutState): boolean {
 
 /** True when there is an active draft workout in the store. */
 export function selectHasActiveDraft(state: ActiveWorkoutState): boolean {
-  return state.meta !== null;
+  return state.meta !== null && state.meta.status === 'in_progress';
 }
 
 /** Returns the active draft meta, or null when no workout is active. */
@@ -61,6 +61,14 @@ export function selectSyncState(state: ActiveWorkoutState): SyncState {
 
 /** True when the workout has ended locally but the completed patch has not yet drained from the queue. */
 export function selectIsCompletedLocal(state: ActiveWorkoutState): boolean {
+  return state.meta?.status === 'completed_local';
+}
+
+/**
+ * True when the store is in the completed_local protected state — blocks server hydration,
+ * restore operations, and new draft starts until the completion queue drains.
+ */
+export function selectIsCompletedLocalProtected(state: ActiveWorkoutState): boolean {
   return state.meta?.status === 'completed_local';
 }
 

@@ -1,11 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { toast } from '@/components/ui/sonner';
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 import { requestStartWorkout, type StartIntent } from '../store/resumeCoordinator';
-import { selectHasActiveDraft } from '../store/selectors';
+import { selectHasActiveDraft, selectIsCompletedLocalProtected } from '../store/selectors';
 
-export type StartWorkoutBlockedResult = { blocked: true; reason: 'active-draft-exists' };
+const SYNC_IN_PROGRESS_MSG =
+  'Workout is still syncing. Please wait before starting another workout.';
+
+export type StartWorkoutBlockedResult =
+  | { blocked: true; reason: 'active-draft-exists' }
+  | { blocked: true; reason: 'sync-in-progress' };
 export type StartWorkoutResult = void | StartWorkoutBlockedResult;
 
 /**
@@ -26,6 +32,9 @@ export function useStartWorkoutAction() {
       if (selectHasActiveDraft(useActiveWorkoutStore.getState())) {
         return { blocked: true, reason: 'active-draft-exists' };
       }
+      if (selectIsCompletedLocalProtected(useActiveWorkoutStore.getState())) {
+        return { blocked: true, reason: 'sync-in-progress' };
+      }
       useActiveWorkoutStore.getState().hydrateFromServer(intent.payload.snapshot);
       router.push('/train');
       return;
@@ -40,7 +49,12 @@ export function useStartWorkoutAction() {
 
       case 'discard-and-start': {
         const state = useActiveWorkoutStore.getState();
-        state.discardDraft();
+        const status = state.meta?.status;
+        if (status === 'completed_local' || status === 'completed_synced') {
+          state.clearCompletedSession();
+        } else {
+          state.discardDraft();
+        }
         if (intent.source === 'plan') {
           state.startDraft({
             planWorkoutId: intent.payload.planWorkoutId,
@@ -55,6 +69,10 @@ export function useStartWorkoutAction() {
         router.push('/train');
         break;
       }
+
+      case 'sync-in-progress':
+        toast.error(SYNC_IN_PROGRESS_MSG);
+        return { blocked: true, reason: 'sync-in-progress' };
 
       case 'cancel':
         // User dismissed — no-op.

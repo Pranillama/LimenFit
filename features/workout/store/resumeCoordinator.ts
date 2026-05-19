@@ -1,10 +1,10 @@
-import { selectHasActiveDraft } from './selectors';
+import { selectHasActiveDraft, selectIsCompletedLocalProtected } from './selectors';
 import { useActiveWorkoutStore, type ServerWorkoutSnapshot } from './useActiveWorkoutStore';
 import type { PreloadedExercise } from './types';
 
 // ---------- Public types ----------
 
-export type StartDecision = 'resume' | 'discard-and-start' | 'cancel';
+export type StartDecision = 'resume' | 'discard-and-start' | 'cancel' | 'sync-in-progress';
 
 /**
  * Discriminated union of start intents. Each source carries only the payload
@@ -77,7 +77,14 @@ export function settleRequest(decision: StartDecision): void {
  * the promise permanently pending.
  */
 export function requestStartWorkout(intent: StartIntent): Promise<StartDecision> {
-  if (!selectHasActiveDraft(useActiveWorkoutStore.getState())) {
+  const state = useActiveWorkoutStore.getState();
+
+  // completed_local is protected — the completion queue has not yet drained.
+  if (selectIsCompletedLocalProtected(state)) {
+    return Promise.resolve('sync-in-progress');
+  }
+
+  if (!selectHasActiveDraft(state)) {
     return Promise.resolve('discard-and-start');
   }
 

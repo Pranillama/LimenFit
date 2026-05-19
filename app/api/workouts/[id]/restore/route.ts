@@ -173,3 +173,60 @@ export async function POST(
     return handleApiError(err);
   }
 }
+
+// Reverts an in_progress workout back to expired so a blocked restore leaves
+// the workout visible and restorable from History rather than hard-deleting it.
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+): Promise<Response> {
+  try {
+    const { supabase, user } = await requireUser();
+    const userId = user.id;
+    const { id } = await params;
+
+    if (!UUID_RE.test(id)) {
+      return jsonError(400, 'INVALID_ID', 'id must be a valid UUID');
+    }
+
+    const body = workoutRestoreBodySchema.parse(await request.json());
+    const { clientMutationId } = body;
+
+    const result = await withIdempotency({
+      supabase,
+      userId,
+      clientMutationId,
+      mutationType: 'workout.restore-revert',
+      resourceType: 'workouts',
+      handler: async () => {
+        const { data: reverted, error: updateError } = await supabase
+          .from('workouts')
+          .update({
+            status: 'expired',
+            expired_at: new Date().toISOString(),
+          })
+          .eq('id', id)
+          .eq('user_id', userId)
+          .eq('status', 'in_progress')
+          .select('id')
+          .maybeSingle();
+
+        if (updateError) throw updateError;
+
+        // Row not found or already expired — treat as idempotent success so the
+        // client can confirm compensation without re-trying on stale state.
+        void reverted;
+        return { resourceId: id, response: { id, clientMutationId } };
+      },
+    });
+
+    if (result.replayed) {
+      return jsonOk({ id, clientMutationId });
+    }
+
+    return jsonOk(result.response!);
+  } catch (err) {
+    if (err instanceof RouteError) return err.response;
+    return handleApiError(err);
+  }
+}
