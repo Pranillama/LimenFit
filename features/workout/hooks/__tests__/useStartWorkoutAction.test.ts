@@ -125,7 +125,10 @@ describe('useStartWorkoutAction — discard-and-start branch', () => {
   it('calls discardDraft (not clearCompletedSession) for in_progress draft on plan intent', async () => {
     mockGetState.mockReturnValue(makeState('in_progress', 'server-id-1'));
     const startWorkout = useStartWorkoutAction();
-    await startWorkout({ source: 'plan', payload: { planWorkoutId: 'plan-xyz', planWorkoutName: 'Leg Day' } });
+    await startWorkout({
+      source: 'plan',
+      payload: { planWorkoutId: 'plan-xyz', planWorkoutName: 'Leg Day' },
+    });
     expect(mockDiscardDraft).toHaveBeenCalledOnce();
     expect(mockClearCompletedSession).not.toHaveBeenCalled();
     expect(mockStartDraft).toHaveBeenCalledWith({
@@ -178,7 +181,10 @@ describe('useStartWorkoutAction — history-restore branch', () => {
     mockSelectIsCompletedLocalProtected.mockReturnValue(true);
 
     const startWorkout = useStartWorkoutAction();
-    const result = await startWorkout({ source: 'history-restore', payload: { snapshot: fakeSnapshot } });
+    const result = await startWorkout({
+      source: 'history-restore',
+      payload: { snapshot: fakeSnapshot },
+    });
 
     expect(result).toEqual({ blocked: true, reason: 'sync-in-progress' });
     expect(mockHydrateFromServer).not.toHaveBeenCalled();
@@ -190,7 +196,10 @@ describe('useStartWorkoutAction — history-restore branch', () => {
     mockSelectIsCompletedLocalProtected.mockReturnValue(false);
 
     const startWorkout = useStartWorkoutAction();
-    const result = await startWorkout({ source: 'history-restore', payload: { snapshot: fakeSnapshot } });
+    const result = await startWorkout({
+      source: 'history-restore',
+      payload: { snapshot: fakeSnapshot },
+    });
 
     expect(result).toEqual({ blocked: true, reason: 'active-draft-exists' });
     expect(mockHydrateFromServer).not.toHaveBeenCalled();

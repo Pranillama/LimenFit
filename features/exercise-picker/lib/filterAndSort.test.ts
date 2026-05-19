@@ -5,10 +5,22 @@ import type { ExerciseListItem, ExerciseFilters } from '../types';
 const noFilters: ExerciseFilters = { equipment: [], categories: [] };
 
 const items: ExerciseListItem[] = [
-  { id: '1', name: 'Barbell Bench Press', category: 'chest', equipment: 'barbell', isCustom: false },
+  {
+    id: '1',
+    name: 'Barbell Bench Press',
+    category: 'chest',
+    equipment: 'barbell',
+    isCustom: false,
+  },
   { id: '2', name: 'Dumbbell Curl', category: 'arms', equipment: 'dumbbell', isCustom: false },
   { id: '3', name: 'Pull Up', category: 'back', equipment: null, isCustom: false },
-  { id: '4', name: 'Romanian Deadlift', category: 'hamstrings', equipment: 'barbell', isCustom: false },
+  {
+    id: '4',
+    name: 'Romanian Deadlift',
+    category: 'hamstrings',
+    equipment: 'barbell',
+    isCustom: false,
+  },
   { id: '5', name: 'Squat', category: 'legs', equipment: 'barbell', isCustom: false },
 ];
 

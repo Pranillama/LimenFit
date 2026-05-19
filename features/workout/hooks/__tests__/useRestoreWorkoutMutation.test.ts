@@ -129,9 +129,7 @@ describe('runRestoreMutation — post-restore race: completed_local appears mid-
     const fetchSpy = makeRestoreAndCleanupFetch();
     const startWorkout = vi.fn();
 
-    await expect(
-      runRestoreMutation('workout-123', startWorkout, fetchSpy),
-    ).rejects.toMatchObject({
+    await expect(runRestoreMutation('workout-123', startWorkout, fetchSpy)).rejects.toMatchObject({
       name: 'SyncInProgressError',
       message: 'sync-in-progress',
     });
@@ -159,9 +157,9 @@ describe('runRestoreMutation — post-restore race: completed_local appears mid-
     const fetchSpy = vi.fn();
     const startWorkout = vi.fn();
 
-    await expect(
-      runRestoreMutation('workout-123', startWorkout, fetchSpy),
-    ).rejects.toMatchObject({ name: 'SyncInProgressError' });
+    await expect(runRestoreMutation('workout-123', startWorkout, fetchSpy)).rejects.toMatchObject({
+      name: 'SyncInProgressError',
+    });
 
     // No fetch calls at all — blocked before the server round-trip.
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -180,9 +178,7 @@ describe('runRestoreMutation — startWorkout blocked after successful restore',
     const fetchSpy = makeRestoreAndCleanupFetch();
     const startWorkout = vi.fn().mockResolvedValue({ blocked: true, reason: 'sync-in-progress' });
 
-    await expect(
-      runRestoreMutation('workout-123', startWorkout, fetchSpy),
-    ).rejects.toMatchObject({
+    await expect(runRestoreMutation('workout-123', startWorkout, fetchSpy)).rejects.toMatchObject({
       name: 'SyncInProgressError',
       message: 'sync-in-progress',
     });
@@ -201,11 +197,11 @@ describe('runRestoreMutation — startWorkout blocked after successful restore',
     mockCreateSupabase.mockReturnValue(makeSnapshotSupabase(fakeSnapshotRow));
 
     const fetchSpy = makeRestoreAndCleanupFetch();
-    const startWorkout = vi.fn().mockResolvedValue({ blocked: true, reason: 'active-draft-exists' });
+    const startWorkout = vi
+      .fn()
+      .mockResolvedValue({ blocked: true, reason: 'active-draft-exists' });
 
-    await expect(
-      runRestoreMutation('workout-123', startWorkout, fetchSpy),
-    ).rejects.toMatchObject({
+    await expect(runRestoreMutation('workout-123', startWorkout, fetchSpy)).rejects.toMatchObject({
       name: 'RestoreConflictError',
       message: 'active-draft-exists',
     });
