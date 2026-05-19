@@ -1,6 +1,9 @@
+import { revalidateTag } from 'next/cache';
+
 import { requireUser } from '@/lib/api/auth';
 import { handleApiError, jsonError, jsonOk } from '@/lib/api/responses';
 import { withIdempotency } from '@/lib/idempotency/server';
+import { insightsTag } from '@/lib/insights';
 import { workoutDiscardBodySchema, workoutPatchBodySchema } from '@/lib/schemas/workout';
 import type { Database } from '@/lib/supabase/types';
 import { UUID_RE } from '@/lib/utils';
@@ -88,15 +91,26 @@ export async function PATCH(
         // The status guard ensures a concurrent status change between the two queries cannot
         // leave completed_at populated on a row that is no longer completed.
         if (status === 'completed') {
-          const { error: completedAtError } = await supabase
+          const { data: flipped, error: completedAtError } = await supabase
             .from('workouts')
             .update({ completed_at: now })
             .eq('id', id)
             .eq('user_id', userId)
             .eq('status', 'completed')
-            .is('completed_at', null);
+            .is('completed_at', null)
+            .select('id');
 
           if (completedAtError) throw completedAtError;
+
+          // Only invalidate on the first real completion — if completed_at was already
+          // set the WHERE clause matches nothing and flipped is empty.
+          if (flipped && flipped.length > 0) {
+            try {
+              revalidateTag(insightsTag(userId));
+            } catch (err) {
+              console.error('[insights] revalidateTag failed — cache may be stale:', err);
+            }
+          }
         }
 
         return { resourceId: id, response: { id, clientMutationId } };
