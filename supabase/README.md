@@ -4,8 +4,8 @@ Database migrations and seed data.
 
 > **Production migrations** are applied automatically via GitHub Actions — see the root `README.md` under `## Migration workflow (remote)` for secrets, the automated trigger, and the manual escape hatch. This file covers local development only.
 
-- `migrations/` will be populated with schema migrations in T3.
-- `seed.sql` is owned by T3 (currently empty).
+- `migrations/` — all Phase 1 schema migrations are applied. Run `pnpm db:reset` to replay them against the local DB.
+- `seed.sql` — pre-populated with the global strength exercise library (bodyweight, barbell, dumbbell, cable, and machine exercises; no cardio rows). Custom exercises are created by users at runtime.
 - `functions/` is reserved for Supabase Edge Functions and is not used in Phase 1.
 
 ---
@@ -31,7 +31,7 @@ The five `db:*` scripts are wired to the Supabase CLI:
 
 ---
 
-## No-op migration verification (acceptance criterion #4)
+## No-op migration smoke test
 
 To verify the end-to-end migration workflow without committing real schema, run the following against your local Supabase instance:
 
@@ -40,11 +40,11 @@ pnpm exec supabase migration new noop_check
 pnpm db:reset
 ```
 
-**Delete the generated noop file** (`supabase/migrations/*_noop_check.sql`) before committing — it is intentionally transient and must not land in the repo. Real schema migrations are owned by T3.
+**Delete the generated noop file** (`supabase/migrations/*_noop_check.sql`) before committing — it is intentionally transient and must not land in the repo.
 
 ---
 
-## Phase 1 schema acceptance verification
+## Phase 1 schema verification
 
 Run these checks after `pnpm db:reset` completes with no errors.
 
@@ -52,7 +52,7 @@ Run these checks after `pnpm db:reset` completes with no errors.
 
 ```bash
 pnpm db:reset
-# Expected: all 4 migrations apply with no errors
+# Expected: all 11 migrations apply with no errors
 ```
 
 ### 2. One-active-draft constraint

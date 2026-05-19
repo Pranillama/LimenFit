@@ -43,7 +43,7 @@ Install pnpm if needed: `corepack enable && corepack prepare pnpm@9.15.0 --activ
 ```
 limenfit/
 ├── app/
-│   ├── (auth)/              # Auth routes: sign-in, sign-up, reset — T4
+│   ├── (auth)/              # Auth routes: single tabbed /auth page (login + sign-up via AuthCard) and /auth/callback (OAuth code exchange) — T4
 │   ├── (app)/               # Authenticated app shell and pages — T5
 │   │   ├── home/            # Home page — T14
 │   │   ├── train/           # Active training session — T9
@@ -62,23 +62,34 @@ limenfit/
 │   ├── fonts.ts             # Inter via next/font (--font-sans variable)
 │   ├── layout.tsx           # Root layout with font + CSS-variable wiring
 │   ├── providers.tsx        # Client boundary: QueryClientProvider + dev-only Devtools
-│   └── page.tsx             # Root landing page — checks session, redirects authenticated users to /home; shows landing UI to anonymous users (T1)
+│   └── page.tsx             # Server Component — checks the Supabase session, redirects authenticated users to /home, otherwise renders the landing page from @/features/landing
 ├── components/
-│   └── ui/                  # shadcn primitives — current: Button
+│   ├── ui/                  # shadcn primitives
+│   ├── discard-confirmation-dialog.tsx  # Shared confirmation dialog
+│   ├── page-container.tsx   # Shared page container
+│   └── page-skeleton.tsx    # Shared page skeleton
 ├── features/
-│   ├── workout/             # Workout feature — T6, T9, T10
-│   ├── plan/                # Training plan feature — T11, T12, T13
+│   ├── auth/                # Auth forms and UI — T4
 │   ├── exercise-picker/     # Exercise picker — T8
-│   └── home/                # Home screen feature — T14
-├── hooks/                   # Shared custom React hooks — T5 onwards
+│   ├── home/                # Home screen feature — T14
+│   ├── landing/             # Public landing page — T17
+│   ├── plan/                # Training plan feature — T11, T12, T13
+│   ├── profile/             # User profile — T15
+│   ├── shell/               # App shell layout — T5
+│   └── workout/             # Workout feature — T6, T9, T10
+├── hooks/                   # Shared custom React hooks
 ├── lib/
+│   ├── api/                 # Shared API utilities
+│   ├── auth/                # Auth helpers
 │   ├── env.ts               # Zod env validation, fail-fast at import
-│   ├── utils/               # General-purpose utilities (cn helper)
-│   ├── auth/                # Auth helpers — placeholder session in T1, replaced by real Supabase helper in T4
-│   ├── supabase/            # Four typed client factories (server.ts, browser.ts, anon.ts, service-role.ts) + types.ts placeholder — T2
+│   ├── exercises/           # Exercise-related utilities — T8
 │   ├── idempotency/         # Idempotency key helpers — T7
-│   └── schemas/             # Shared Zod schemas — T7, T8, T11, T15
-├── middleware.ts             # Auth middleware stub — implemented by T4; public routes (/ and /plan/[slug]) must be excluded from its matcher
+│   ├── plans/               # Plan-related utilities — T11, T12, T13
+│   ├── schemas/             # Shared Zod schemas — T7, T8, T11, T15
+│   ├── settings/            # Settings utilities — T15
+│   ├── supabase/            # Four typed client factories (server.ts, browser.ts, anon.ts, service-role.ts) + types.ts — T2
+│   └── utils/               # General-purpose utilities (cn helper)
+├── middleware.ts             # Auth middleware — protects /home, /train, and /profile (and their subpaths) via matcher; public routes (/, /auth/*, /plan/[slug]) run without middleware
 ├── stores/                  # Zustand stores for client state — T6
 ├── styles/
 │   └── globals.css          # Tailwind layers + shadcn new-york neutral theme variables
@@ -87,7 +98,7 @@ limenfit/
 │   ├── migrations/          # SQL migrations — T2/T3
 │   ├── seed.sql             # Seed data — T3 (empty in T1)
 │   └── functions/           # Edge Functions — reserved, not used in Phase 1
-├── public/                  # Static assets (.gitkeep — icons generated via app/icon.tsx and app/apple-icon.tsx)
+├── public/                  # Static assets: landing images used by the T17 landing page (hero-athlete.png, fatslogging.png, plansharing.png, aiinsight.png, formanalysis.png, offlinefirst.png, icon.png); metadata icons (favicon, apple-touch-icon) are generated at request time via app/icon.tsx and app/apple-icon.tsx and are not stored here
 ├── .github/
 │   └── workflows/           # CI quality gate (ci.yml) + remote migration (supabase-migrate.yml)
 ├── .env.example             # Required environment variables (template)
@@ -108,15 +119,11 @@ limenfit/
 
 The following routes are publicly accessible without authentication:
 
-- `/` — landing page placeholder (this ticket, T1).
+- `/` — Server Component that reads the Supabase session server-side; authenticated users are redirected to `/home`, anonymous users see the landing page rendered from `@/features/landing`.
+- `/auth` — single tabbed authentication page (login and sign-up, rendered by `AuthCard`); `/auth/callback` handles OAuth code exchange and redirects to the sanitized `next` param or `/home`.
 - `/plan/[slug]` — public shareable plan page (T13).
 
-The T4 implementer must ensure both routes bypass auth checks. The two recommended approaches are:
-
-- **Omit them from `config.matcher`** — middleware only runs on paths listed in the matcher, so leaving `/` and `/plan/[slug]` out means the middleware never executes for those requests.
-- **Use a negative-lookahead matcher** — write a single regex pattern that matches all paths _except_ `/` and `/plan/:slug`, e.g. `/((?!plan/).*)` extended to exclude the root.
-
-Alternatively, the middleware function itself may early-return `NextResponse.next()` when `req.nextUrl.pathname` matches those paths, but the matcher-exclusion approach is preferred because it avoids running middleware code at all.
+Authenticated routes (`/home`, `/train`, `/profile`, and their subpaths) are protected by the `matcher`-based pattern in `middleware.ts`. Because the middleware config only lists those specific paths, all public routes above are excluded from middleware execution entirely — the middleware never runs for them.
 
 ---
 
@@ -134,7 +141,7 @@ Copy `.env.example` to `.env.local` and fill in the values before running the de
 
 `lib/env.ts` validates all variables at import time and throws a single readable error listing every missing or invalid variable. The server variables are guarded by a browser Proxy that throws if accessed in client bundles.
 
-Removing `NEXT_PUBLIC_SUPABASE_URL` (or running with no `.env.local`) causes any module that imports `lib/env` to throw the readable Zod schema error at import time, listing every missing or invalid variable. The current `app/page.tsx` deliberately does **not** import `lib/env` (directly or transitively), so the landing page continues to render even without environment variables — only modules that actually need env will fail. As of T2, all four modules under `lib/supabase/` import `@/lib/env`, so any Server Component, Route Handler, or client bundle that transitively imports a Supabase client factory will now fail at boot if a required env var is missing. The T1 prediction that “T4 will introduce the first real consumer via `lib/supabase/server`” is now satisfied earlier by T2.
+Removing `NEXT_PUBLIC_SUPABASE_URL` (or running with no `.env.local`) causes any module that imports `lib/env` to throw the readable Zod schema error at import time, listing every missing or invalid variable. `app/page.tsx` imports `createSupabaseServerClient` from `@/lib/supabase/server-exports`, which imports `@/lib/supabase/server`, which imports `@/lib/env` — so visiting `/` will **not** render without the required env vars present at boot. All four modules under `lib/supabase/` import `@/lib/env`, so any Server Component, Route Handler, or client bundle that transitively imports a Supabase client factory will fail at boot if a required env var is missing.
 
 ---
 
@@ -260,7 +267,7 @@ Two GitHub Actions workflows manage automation for this repository.
 
 ### `ci.yml` — quality gate (PRs and pushes to `main`)
 
-Runs on every pull request and every push to `main`. Steps: ESLint lint, Prettier format check, TypeScript type check (`tsc --noEmit`), Vitest test suite, and `pnpm build`. All five steps must pass before a PR can be merged.
+Runs on every pull request and every push to `main`. Steps: install dependencies (`pnpm install --frozen-lockfile`), ESLint lint, Prettier format check, TypeScript type check (`tsc --noEmit`), Vitest test suite, and `pnpm build`. All six steps must pass before a PR can be merged.
 
 The build step runs with placeholder values for all required build-time variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `NEXT_PUBLIC_SITE_URL`) to satisfy `lib/env.ts`'s Zod validation without a real Supabase project or domain.
 
@@ -326,10 +333,10 @@ Use this checklist to confirm the T2 acceptance criteria are met:
 Use this checklist to confirm the T1 acceptance criteria are met:
 
 1. `pnpm install` completes without errors.
-2. `pnpm dev` starts cleanly with no console warnings; visiting `/` shows the wordmark (`LimenFit`), the verbatim tagline (`Fast workout logging. Soon: AI form analysis.`), and a working `Get Started` CTA pointing to `/auth` (404 expected until T4 lands).
-3. Temporarily edit `lib/auth/session.ts` to return a fake `{ userId: 'test' }` — visiting `/` should redirect to `/home` (404 expected until T5). Revert before committing.
+2. `pnpm dev` starts cleanly with no console warnings; visiting `/` renders the landing page (shipped in T17) with a `Get Started` CTA that links to `/auth`.
+3. Sign in via `/auth` with a real Supabase account and navigate to `/` — `app/page.tsx` checks the session server-side and redirects authenticated users to `/home`.
 4. `pnpm lint`, `pnpm type-check`, `pnpm format:check`, and `pnpm build` all pass.
-5. Removing `.env.local` (or omitting `NEXT_PUBLIC_SUPABASE_URL`) leaves `/` rendering, but importing `lib/env` from a REPL or test harness throws the aggregated Zod issue list.
+5. Any module that imports `lib/env` directly or transitively — including `app/page.tsx` via `lib/supabase/server-exports` → `lib/supabase/server` → `lib/env` — will fail to boot if required env vars are missing; the Zod-aggregated error message lists every missing variable.
 6. The repository tree matches the "Where things live" diagram above.
 
 ---

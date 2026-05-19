@@ -31,11 +31,13 @@ Profile page — implemented in Phase 1 (T15).
 
 ## Files
 
-| File                  | Role                                                                                     |
-| --------------------- | ---------------------------------------------------------------------------------------- |
-| `page.tsx`            | Server component — fetches user + settings, renders `ProfileView` inside `PageContainer` |
-| `sign-out-button.tsx` | Client component — full cleanup before sign-out (see below)                              |
-| `actions.ts`          | Server action — Supabase sign-out + redirect to `/auth`                                  |
+| File                  | Role                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| `page.tsx`            | Server component — fetches the authenticated user, renders `ProfileView` inside `PageContainer` |
+| `sign-out-button.tsx` | Client component — full cleanup before sign-out (see below)                                 |
+| `actions.ts`          | Server action — Supabase sign-out + redirect to `/auth`                                     |
+
+> **Settings hydration:** User settings (weight unit, default rest timer) are fetched in `app/(app)/template.tsx` via `getOrCreateUserSettings`, then pushed into the active-workout store by `<SettingsHydrator>`. `profile/page.tsx` does **not** independently fetch settings — it reads them from the already-hydrated store through `ProfileView`.
 
 ## Settings mutations
 

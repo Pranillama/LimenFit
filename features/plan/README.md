@@ -36,7 +36,7 @@ Use `DiscardConfirmationDialog` from `@/components/discard-confirmation-dialog` 
 
 ## T12: My Plans list + read-only detail
 
-Adds the browsable plan surfaces. No editor yet (that's T13+).
+Adds the browsable plan surfaces.
 
 ### New files
 
@@ -55,8 +55,8 @@ app/(app)/train/plans/
   [id]/
     page.tsx                  Server Component — plan detail (workouts + exercises + Start/Delete)
     loading.tsx               PageSkeleton wrapper
-    edit/page.tsx             Placeholder — "Plan editor coming soon"
-  new/page.tsx                Placeholder — "Plan editor coming soon"
+    edit/page.tsx             Server Component — fetches plan, renders <PlanEditor mode="edit" />
+  new/page.tsx                Server Component — renders <PlanEditor mode="create" />
 ```
 
 ### Key design decisions
@@ -111,3 +111,42 @@ The **Save Plan** button is disabled until: plan name is non-empty, ≥ 1 workou
 ### Dirty tracking
 
 `isDirty` is computed by comparing the current `name` + JSON-serialised `workouts` against a snapshot taken at mount. On Cancel: no-op exit if not dirty; `DiscardConfirmationDialog` (title "Discard plan?") otherwise.
+
+## T13: Public plan sharing and duplicate-to-account
+
+Adds the public plan viewer (`/plan/[slug]`) and the duplicate flow.
+
+### New files
+
+```
+features/plan/
+  components/
+    PublicPlanViewer.tsx        'use client' — renders a shared plan for unauthenticated viewers;
+                                shows DuplicatePlanButton for signed-in users
+    DuplicatePlanButton.tsx     'use client' — POST /api/plans/duplicate; on success navigates
+                                to the new plan's detail page (/train/plans/[id])
+    SharePlanButton.tsx         'use client' — calls PATCH /api/plans/[id] to set is_public=true
+                                and copies the share URL to the clipboard
+    PendingDuplicateFinalizer.tsx  'use client' — reads sessionStorage for a pending duplicate
+                                (written before unauthenticated redirect) and resumes it post-login
+  hooks/
+    useDuplicatePlanMutation.ts   TanStack mutation: POST /api/plans/duplicate
+    useSharePlanMutation.ts       TanStack mutation: PATCH /api/plans/[id] (sets is_public)
+  lib/
+    publicPlanDTO.ts            fetchPublicPlanBySlug(slug) — anon client query; returns
+                                plan + workouts + exercise names or null
+    pendingDuplicate.ts         sessionStorage helper: savePendingDuplicate / clearPendingDuplicate
+
+app/plan/[slug]/
+  layout.tsx                  Minimal layout (no app shell — public route)
+  page.tsx                    Server Component — resolves slug via fetchPublicPlanBySlug,
+                              calls notFound() if missing, renders <PublicPlanViewer />
+```
+
+### Share URL format
+
+Plans receive a `share_slug` on creation via the `create_plan_with_children` Postgres RPC. The slug is produced by `generate_share_slug()` (defined in `supabase/migrations/20260421150313_helpers.sql`), which encodes 16 random bytes as URL-safe base64 — a high-entropy, database-generated value. The public URL is `/plan/<share_slug>`. Sharing is opt-in: `is_public` is `false` by default; `SharePlanButton` toggles it.
+
+### Unauthenticated duplicate flow
+
+If a visitor clicks Duplicate while not signed in, `DuplicatePlanButton` saves `{ shareSlug, clientMutationId }` to sessionStorage via `setPendingDuplicate` (from `lib/pendingDuplicate.ts`) and redirects to `/auth?next=/train/plans`. After sign-in, `PendingDuplicateFinalizer` (mounted in the app shell) reads the sessionStorage entry, fires `POST /api/plans/duplicate` with the stored `shareSlug` and `clientMutationId`, and navigates to the new plan's detail route (`/train/plans/${plan.id}`). The pending entry is cleared on success; on a `NOT_FOUND` error it is also cleared (plan no longer available), while other errors leave it intact for retry.

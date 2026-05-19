@@ -20,17 +20,17 @@ There are two barrel files in this directory with distinct import surfaces:
 - **`lib/supabase/index.ts`** (`@/lib/supabase`) — client-safe barrel. Exports only `createSupabaseBrowserClient` and the `Database` type. Server-only factories are intentionally absent to prevent accidental bundling into client chunks.
 - **`lib/supabase/server-exports.ts`** (`@/lib/supabase/server-exports`) — server-only barrel. Exports `createSupabaseServerClient`, `createSupabaseAnonClient`, `createSupabaseServiceRoleClient`, and `Database`. Safe to import only from Server Components, Server Actions, and Route Handlers.
 
-> **AC3 status (T2):** AC3 — "all four typed client factories are importable from `@/lib/supabase`" — is **not currently satisfied**. The `@/lib/supabase` barrel (`index.ts`) intentionally exports only the browser factory to avoid server-secret leakage into client bundles. If AC3 requires the single barrel to cover all four factories, a runtime change must re-export the server, anon, and service-role helpers from `lib/supabase/index.ts` — but this is unsafe without additional guards (e.g., `server-only` package or a build-time boundary). Use `@/lib/supabase/server-exports` for server-side consumers in the meantime.
+> **Single-barrel note:** The `@/lib/supabase` barrel (`index.ts`) intentionally exports only `createSupabaseBrowserClient` and `Database` to prevent server secrets from leaking into client bundles. All server-side consumers must import from `@/lib/supabase/server-exports` or the individual submodule paths.
 
 ## Database types
 
-The `Database` type used to parameterize all four clients is a placeholder defined in `lib/supabase/types.ts`:
+The `Database` type used to parameterize all four clients is a generated typed schema surface defined in `lib/supabase/types.ts`, produced by `supabase gen types typescript`. It covers all Phase 1 tables (`exercises`, `workouts`, `workout_exercises`, `sets`, `plans`, `plan_workouts`, `plan_exercises`, `mutation_receipts`, `user_settings`) with full `Row`, `Insert`, and `Update` shapes.
 
-```ts
-export type Database = Record<string, unknown>;
+To regenerate after a schema migration:
+
+```bash
+pnpm exec supabase gen types typescript --local > lib/supabase/types.ts
 ```
-
-It will be replaced by the output of `supabase gen types typescript` in T3, once the schema migrations are established.
 
 ## Server-only safety
 
