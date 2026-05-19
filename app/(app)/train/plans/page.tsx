@@ -18,7 +18,7 @@ export default async function PlansPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: plans } = await supabase
+  const { data: plans, error: plansError } = await supabase
     .from('plans')
     .select(
       `id, name, updated_at,
@@ -29,6 +29,8 @@ export default async function PlansPage() {
     )
     .eq('user_id', user!.id)
     .order('updated_at', { ascending: false });
+
+  if (plansError) throw plansError;
 
   const rows: PlanRowDTO[] = (plans ?? []).map((p) => {
     const workouts = (p.plan_workouts ?? []) as { id: string; plan_exercises: { id: string }[] }[];

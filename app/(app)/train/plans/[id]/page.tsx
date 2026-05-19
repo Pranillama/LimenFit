@@ -42,7 +42,7 @@ export default async function PlanDetailPage({ params }: { params: Promise<{ id:
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: plan } = await supabase
+  const { data: plan, error: planError } = await supabase
     .from('plans')
     .select(
       `id, name, updated_at, share_slug, is_public,
@@ -58,6 +58,7 @@ export default async function PlanDetailPage({ params }: { params: Promise<{ id:
     .eq('user_id', user!.id)
     .maybeSingle();
 
+  if (planError) throw planError;
   if (!plan) {
     notFound();
   }

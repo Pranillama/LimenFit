@@ -1,22 +1,24 @@
+import Fuse from 'fuse.js';
 import type { ExerciseListItem, ExerciseFilters } from '../types';
 
 /**
  * Filter strategy:
  *   - Within each facet: OR  (e.g. equipment=[barbell,dumbbell] → barbell OR dumbbell)
  *   - Across facets:     AND (equipment filter AND category filter must both pass)
- *   - Text: all whitespace-split tokens must appear as case-insensitive substrings of the name
- *
- * Preserves the upstream alphabetical sort order; never re-sorts.
+ *   - Text (non-empty query): fuzzy search on `name` via Fuse.js
+ *       · Typo-tolerant: small edit distances are tolerated (threshold 0.4)
+ *       · Ranked by relevance score: best matches first
+ *       · Empty query: all facet-matching items preserved in original alphabetical order
+ *   - Equipment filter: items with `equipment === null` are excluded when the
+ *     equipment facet is active (they have no equipment to match against)
  */
 export function filterExercises(
   items: ExerciseListItem[],
   q: string,
   filters: ExerciseFilters,
 ): ExerciseListItem[] {
-  const trimmed = q.trim().toLowerCase();
-  const tokens = trimmed ? trimmed.split(/\s+/) : [];
-
-  return items.filter((item) => {
+  // Apply faceted filters first (OR within facet, AND across facets)
+  const facetFiltered = items.filter((item) => {
     if (filters.categories.length > 0 && !filters.categories.includes(item.category)) {
       return false;
     }
@@ -27,13 +29,30 @@ export function filterExercises(
       }
     }
 
-    if (tokens.length > 0) {
-      const name = item.name.toLowerCase();
-      return tokens.every((token) => name.includes(token));
-    }
-
     return true;
   });
+
+  const trimmed = q.trim();
+  if (!trimmed) {
+    // Empty query: return facet-filtered items in their original alphabetical order
+    return facetFiltered;
+  }
+
+  // Non-empty query: fuzzy search over the facet-filtered set, ranked by relevance
+  const fuse = new Fuse(facetFiltered, {
+    keys: ['name'],
+    // 0 = perfect match only, 1 = match anything; 0.4 tolerates ~2-char typos
+    threshold: 0.4,
+    // Return score so we can rely on Fuse's own sort (best first)
+    includeScore: true,
+    // Favour prefix / contiguous matches via location bias
+    minMatchCharLength: 1,
+    ignoreLocation: false,
+    location: 0,
+    distance: 200,
+  });
+
+  return fuse.search(trimmed).map((result) => result.item);
 }
 
 /**

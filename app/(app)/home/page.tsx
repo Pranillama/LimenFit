@@ -14,7 +14,7 @@ export default async function HomePage() {
 
   const thresholdIso = new Date(Date.now() - LOOKBACK_DAYS * 86_400_000).toISOString();
 
-  const { data: workouts } = await supabase
+  const { data: workouts, error } = await supabase
     .from('workouts')
     .select(
       `id, name, started_at, completed_at, expired_at, status,
@@ -24,9 +24,11 @@ export default async function HomePage() {
          sets ( id )
        )`,
     )
-    .in('status', ['completed', 'expired'])
+    .eq('status', 'completed')
     .gte('started_at', thresholdIso)
     .order('started_at', { ascending: false });
+
+  if (error !== null) throw error;
 
   const dto = buildHomeDashboardDTO(workouts ?? []);
 

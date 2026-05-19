@@ -38,11 +38,6 @@ export function RecentActivityList({ rows }: Props) {
                       &middot; {row.setCount} {row.setCount === 1 ? 'set' : 'sets'}
                     </p>
                   </div>
-                  {row.status === 'expired' && (
-                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                      Expired
-                    </span>
-                  )}
                 </div>
               </Link>
             </li>

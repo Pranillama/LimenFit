@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExercisePicker } from '@/features/exercise-picker';
 import { formatDuration } from '@/features/workout/lib/format';
-import { selectActiveDraftMeta, selectSyncBadge } from '@/features/workout/store/selectors';
+import {
+  selectActiveDraftMeta,
+  selectIsCompletedLocalProtected,
+  selectSyncBadge,
+} from '@/features/workout/store/selectors';
 import { useActiveWorkoutStore } from '@/features/workout/store/useActiveWorkoutStore';
 
 import type { HomeWorkoutSummary } from '../lib/homeDashboardDTO';
@@ -26,9 +30,11 @@ export function TodaysWorkoutCard({ todayCompletions }: Props) {
   const hydrated = useActiveWorkoutStore((s) => s.hydrated);
   const meta = useActiveWorkoutStore(selectActiveDraftMeta);
   const syncBadge = useActiveWorkoutStore(selectSyncBadge);
+  const isCompletedLocal = useActiveWorkoutStore(selectIsCompletedLocalProtected);
   const [pickerOpen, setPickerOpen] = React.useState(false);
 
   function handlePickerConfirm(ids: string[]) {
+    if (useActiveWorkoutStore.getState().meta?.status === 'completed_local') return;
     useActiveWorkoutStore.getState().startDraft({
       exercises: ids.map((id) => ({ exerciseId: id })),
     });
@@ -37,6 +43,16 @@ export function TodaysWorkoutCard({ todayCompletions }: Props) {
 
   if (!hydrated) {
     return <Skeleton className="h-[120px] w-full rounded-lg" />;
+  }
+
+  if (isCompletedLocal) {
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <p className="text-sm text-muted-foreground">
+          Workout is still syncing. Please wait before starting another workout.
+        </p>
+      </div>
+    );
   }
 
   const isActiveDraft = meta?.status === 'in_progress';

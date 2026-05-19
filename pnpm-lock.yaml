@@ -41,6 +41,9 @@ importers:
       framer-motion:
         specifier: ^11
         version: 11.18.2(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      fuse.js:
+        specifier: ^7.3.0
+        version: 7.3.0
       lucide-react:
         specifier: ^0.469.0
         version: 0.469.0(react@19.2.5)
@@ -1967,6 +1970,10 @@ packages:
 
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
+
+  fuse.js@7.3.0:
+    resolution: {integrity: sha512-plz8RVjfcDedTGfVngWH1jmJvBvAwi1v2jecfDerbEnMcmOYUEEwKFTHbNoCiYyzaK2Ws8lABkTCcRSqCY1q4w==}
+    engines: {node: '>=10'}
 
   generator-function@2.0.1:
     resolution: {integrity: sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==}
@@ -5175,6 +5182,8 @@ snapshots:
       is-callable: 1.2.7
 
   functions-have-names@1.2.3: {}
+
+  fuse.js@7.3.0: {}
 
   generator-function@2.0.1: {}
 

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function HistoryPage() {
   const supabase = await createSupabaseServerClient();
 
-  const { data: workouts } = await supabase
+  const { data: workouts, error } = await supabase
     .from('workouts')
     .select(
       `id, name, started_at, completed_at, expired_at, status,
@@ -25,6 +25,10 @@ export default async function HistoryPage() {
     )
     .in('status', ['completed', 'expired'])
     .order('started_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
 
   const rows: HistoryRowDTO[] = (workouts ?? []).map((w) => {
     const wExercises = (w.workout_exercises ?? [])

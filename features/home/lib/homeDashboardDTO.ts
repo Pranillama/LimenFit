@@ -10,7 +10,7 @@ export interface HomeWorkoutSummary {
   durationMs: number;
   exerciseCount: number;
   setCount: number;
-  status: 'completed' | 'expired';
+  status: 'completed';
 }
 
 export interface HomeDashboardDTO {
@@ -38,7 +38,7 @@ type RawWorkout = {
 
 export function buildHomeDashboardDTO(rows: RawWorkout[]): HomeDashboardDTO {
   const recentCompletions: HomeWorkoutSummary[] = rows
-    .filter((w) => w.status === 'completed' || w.status === 'expired')
+    .filter((w) => w.status === 'completed')
     .map((w): HomeWorkoutSummary => {
       const wExercises = (w.workout_exercises ?? [])
         .slice()
@@ -59,10 +59,7 @@ export function buildHomeDashboardDTO(rows: RawWorkout[]): HomeDashboardDTO {
 
       const resolvedName = w.name && w.name.trim() ? w.name.trim() : autoNameWorkout(exerciseNames);
 
-      const endedAt =
-        w.status === 'completed'
-          ? (w.completed_at ?? w.started_at)
-          : (w.expired_at ?? w.started_at);
+      const endedAt = w.completed_at ?? w.started_at;
 
       const durationMs = Math.max(
         0,
@@ -82,7 +79,7 @@ export function buildHomeDashboardDTO(rows: RawWorkout[]): HomeDashboardDTO {
         durationMs,
         exerciseCount: uniqueExercises.length,
         setCount,
-        status: w.status as 'completed' | 'expired',
+        status: 'completed',
       };
     })
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());

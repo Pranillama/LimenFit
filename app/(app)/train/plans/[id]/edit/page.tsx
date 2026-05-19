@@ -38,7 +38,7 @@ export default async function EditPlanPage({ params }: { params: Promise<{ id: s
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: plan } = await supabase
+  const { data: plan, error: planError } = await supabase
     .from('plans')
     .select(
       `id, name,
@@ -53,6 +53,7 @@ export default async function EditPlanPage({ params }: { params: Promise<{ id: s
     .eq('user_id', user!.id)
     .maybeSingle();
 
+  if (planError) throw planError;
   if (!plan) {
     notFound();
   }
