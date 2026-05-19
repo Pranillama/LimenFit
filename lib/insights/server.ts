@@ -181,7 +181,7 @@ async function fetchWorkoutRowsForExercise(
 export async function getInsightsBundle(
   userId: string,
   opts?: { now?: Date },
-): Promise<InsightsBundle & { messages: InsightMessage[] }> {
+): Promise<InsightsBundle & { messages: InsightMessage[]; completedWorkoutCount: number }> {
   const now = opts?.now ?? new Date();
   const supabase = await createSupabaseServerClient();
 
@@ -203,7 +203,7 @@ export async function getInsightsBundle(
         exerciseNameById: (id) => exerciseNameById.get(id) ?? '',
       });
 
-      return { ...bundle, messages };
+      return { ...bundle, messages, completedWorkoutCount: rows.length };
     },
     ['insights', userId],
     { tags: [insightsTag(userId)], revalidate: 3600 },
