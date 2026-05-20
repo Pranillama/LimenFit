@@ -25,6 +25,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
   rowsToKernelInput,
   getInsightsBundle,
+  getOneRepMaxSeriesForExercise,
   computeWorkoutsPerWeekSeries,
   CONSISTENCY_WEEKS,
 } from '@/lib/insights/server';
@@ -192,6 +193,98 @@ describe('getInsightsBundle cache behavior', () => {
     await getInsightsBundle('user-123');
 
     expect(mockFrom).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getOneRepMaxSeriesForExercise
+// ---------------------------------------------------------------------------
+
+describe('getOneRepMaxSeriesForExercise', () => {
+  beforeEach(() => {
+    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn);
+  });
+
+  function makeExerciseQuery(rows: ReturnType<typeof makeRawRow>[]) {
+    const mockQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: rows, error: null }),
+    };
+    const mockFrom = vi.fn().mockReturnValue(mockQuery);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ from: mockFrom } as any);
+    return mockQuery;
+  }
+
+  it('returns one point per completed workout containing the exercise', async () => {
+    const row1 = makeRawRow({ id: 'wk-001', started_at: '2026-01-05T09:00:00.000Z' });
+    const row2 = makeRawRow({ id: 'wk-002', started_at: '2026-01-12T09:00:00.000Z' });
+    makeExerciseQuery([row1, row2]);
+
+    const result = await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID);
+    expect(result).toHaveLength(2);
+    expect(result.map((p) => p.workoutId)).toEqual(expect.arrayContaining(['wk-001', 'wk-002']));
+  });
+
+  it('uses the heaviest e1RM set in the workout, not just the heaviest weight', async () => {
+    const row = makeRawRow();
+    // Set A: 80 lbs × 1 rep  → e1RM = 80 (single-rep, Epley returns weight unchanged)
+    // Set B: 60 lbs × 15 reps → e1RM = 60 × (1 + 15/30) = 90
+    // An impl that picks the heaviest *weight* chooses A (e1RM=80).
+    // The correct impl picks the highest e1RM, which is B (e1RM=90).
+    row.workout_exercises[0].sets = [
+      { id: 's1', weight_value: 80, weight_unit: 'lbs', reps: 1, logged_at: STARTED_AT },
+      { id: 's2', weight_value: 60, weight_unit: 'lbs', reps: 15, logged_at: STARTED_AT },
+    ];
+    makeExerciseQuery([row]);
+
+    const [point] = await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID);
+    expect(point.e1rm).toBeCloseTo(60 * (1 + 15 / 30)); // 90, not 80
+  });
+
+  it('ignores expired workouts (only completed status is queried)', async () => {
+    const mockQuery = makeExerciseQuery([]);
+
+    await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID);
+
+    // The DB-side filter must be applied — removing it from fetchWorkoutRowsForExercise
+    // would mean expired/in-progress workouts contaminate the series.
+    expect(mockQuery.eq).toHaveBeenCalledWith('status', 'completed');
+  });
+
+  it('ignores sets with zero weight', async () => {
+    const row = makeRawRow();
+    row.workout_exercises[0].sets = [
+      { id: 's1', weight_value: 0, weight_unit: 'lbs', reps: 10, logged_at: STARTED_AT },
+    ];
+    makeExerciseQuery([row]);
+
+    const result = await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID);
+    expect(result).toHaveLength(0);
+  });
+
+  it('produces one point even when an exercise appears twice in the same workout', async () => {
+    const row = makeRawRow();
+    // Duplicate workout_exercise row for the same exercise (should merge into one point)
+    row.workout_exercises = [
+      {
+        id: 'we-001',
+        exercise_id: EXERCISE_ID,
+        exercises: { name: 'Bench Press', category: 'chest' },
+        sets: [{ id: 's1', weight_value: 100, weight_unit: 'lbs', reps: 5, logged_at: STARTED_AT }],
+      },
+      {
+        id: 'we-002',
+        exercise_id: EXERCISE_ID,
+        exercises: { name: 'Bench Press', category: 'chest' },
+        sets: [{ id: 's2', weight_value: 110, weight_unit: 'lbs', reps: 3, logged_at: STARTED_AT }],
+      },
+    ];
+    makeExerciseQuery([row]);
+
+    const result = await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID);
+    expect(result).toHaveLength(1);
   });
 });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 
 import { DiscardConfirmationDialog } from '@/components/discard-confirmation-dialog';
 import { Button } from '@/components/ui/button';
@@ -191,7 +192,14 @@ export function WorkoutDetailView({ workout }: Props) {
             const name = lookup.nameOf(ex.exercise_id) || 'Exercise';
             return (
               <div key={ex.id} className="rounded-lg border bg-card">
-                <div className="px-4 py-3 font-medium">{name}</div>
+                <div className="px-4 py-3 font-medium">
+                  <Link
+                    href={`/train/exercises/${ex.exercise_id}`}
+                    className="hover:underline"
+                  >
+                    {name}
+                  </Link>
+                </div>
                 {ex.sets.length > 0 && (
                   <table className="w-full text-sm">
                     <thead>
