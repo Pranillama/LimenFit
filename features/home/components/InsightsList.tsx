@@ -1,6 +1,7 @@
 import { Activity, Minus, TrendingUp } from 'lucide-react';
 
 import type { InsightMessage } from '@/features/insights/lib/types';
+import { InsightsEmptyCard } from '@/features/insights/components/InsightsEmptyCard';
 
 interface Props {
   messages: InsightMessage[];
@@ -15,11 +16,7 @@ const iconMap = {
 
 export function InsightsList({ messages, hasEnoughData }: Props) {
   if (!hasEnoughData) {
-    return (
-      <div className="rounded-lg border bg-card p-4">
-        <p className="text-sm text-muted-foreground">Keep logging to unlock insights</p>
-      </div>
-    );
+    return <InsightsEmptyCard />;
   }
 
   return (

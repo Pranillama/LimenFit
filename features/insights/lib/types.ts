@@ -83,11 +83,18 @@ export interface PlateauSignal {
   isPlateauing: boolean;
 }
 
+/** Completed-workout count for one ISO week (Monday-anchored). */
+export interface WorkoutsPerWeekPoint {
+  weekStart: string;
+  count: number;
+}
+
 export interface InsightsBundle {
   oneRepMaxSeries: OneRepMaxPoint[];
   volumeTrend: VolumeTrendPoint[];
   consistency: ConsistencyScore;
   plateaus: PlateauSignal[];
+  workoutsPerWeek: WorkoutsPerWeekPoint[];
 }
 
 export interface InsightMessage {

@@ -11,7 +11,9 @@ import type {
   SetSample,
   WeightUnit,
   WorkoutSample,
+  WorkoutsPerWeekPoint,
 } from '@/features/insights/lib/types';
+import { getMondayDate, toIsoDateString } from '@/features/insights/lib/weekHelpers';
 import { computeOneRepMaxSeries } from '@/features/insights/lib/oneRepMax';
 import { computeVolumeTrend } from '@/features/insights/lib/volumeTrend';
 import { computeConsistencyScore } from '@/features/insights/lib/consistency';
@@ -21,6 +23,7 @@ import { generateInsightMessages } from '@/features/insights/lib/messages';
 assertServerOnly();
 
 export const INSIGHTS_LOOKBACK_WEEKS = 26;
+export const CONSISTENCY_WEEKS = 12;
 
 export function insightsTag(userId: string): string {
   return `insights:${userId}`;
@@ -51,6 +54,44 @@ type RawWorkoutRow = {
   status: string;
   workout_exercises: RawWorkoutExercise[];
 };
+
+// ---------------------------------------------------------------------------
+// Pure helpers — exported so unit tests can exercise them without Supabase
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds a rolling N-week workout-count series from completed WorkoutSamples.
+ * De-duplicates at the workout ID level so each session is counted once
+ * regardless of how many exercises it contains.
+ */
+export function computeWorkoutsPerWeekSeries(
+  workouts: WorkoutSample[],
+  opts: { now: Date; weeks?: number },
+): WorkoutsPerWeekPoint[] {
+  const weeks = opts.weeks ?? CONSISTENCY_WEEKS;
+  const weekWorkoutIds = new Map<string, Set<string>>();
+
+  for (const workout of workouts) {
+    const weekStart = toIsoDateString(getMondayDate(new Date(workout.startedAt)));
+    if (!weekWorkoutIds.has(weekStart)) weekWorkoutIds.set(weekStart, new Set());
+    weekWorkoutIds.get(weekStart)!.add(workout.id);
+  }
+
+  const currentMonday = getMondayDate(opts.now);
+  const result: WorkoutsPerWeekPoint[] = [];
+
+  for (let i = weeks - 1; i >= 0; i--) {
+    const d = new Date(
+      currentMonday.getFullYear(),
+      currentMonday.getMonth(),
+      currentMonday.getDate() - i * 7,
+    );
+    const weekStart = toIsoDateString(d);
+    result.push({ weekStart, count: weekWorkoutIds.get(weekStart)?.size ?? 0 });
+  }
+
+  return result;
+}
 
 // ---------------------------------------------------------------------------
 // Pure mapper — exported so unit tests can exercise it without Supabase
@@ -197,8 +238,15 @@ export async function getInsightsBundle(
       });
       const consistency = computeConsistencyScore(workouts, { now });
       const plateaus = detectPlateaus(oneRepMaxSeries);
+      const workoutsPerWeek = computeWorkoutsPerWeekSeries(workouts, { now });
 
-      const bundle: InsightsBundle = { oneRepMaxSeries, volumeTrend, consistency, plateaus };
+      const bundle: InsightsBundle = {
+        oneRepMaxSeries,
+        volumeTrend,
+        consistency,
+        plateaus,
+        workoutsPerWeek,
+      };
       const messages = generateInsightMessages(bundle, {
         exerciseNameById: (id) => exerciseNameById.get(id) ?? '',
       });

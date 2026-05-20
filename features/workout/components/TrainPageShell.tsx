@@ -1,5 +1,7 @@
 'use client';
 
+import type * as React from 'react';
+
 import { PageContainer } from '@/components/page-container';
 import { PageSkeleton } from '@/components/page-skeleton';
 
@@ -9,7 +11,11 @@ import { ActiveWorkoutSession } from './ActiveWorkoutSession';
 import { EndWorkoutSummary } from './EndWorkoutSummary';
 import { StartWorkoutEmptyState } from './StartWorkoutEmptyState';
 
-export function TrainPageShell() {
+interface Props {
+  insightsPanel?: React.ReactNode;
+}
+
+export function TrainPageShell({ insightsPanel }: Props) {
   const hydrated = useActiveWorkoutStore((s) => s.hydrated);
   const meta = useActiveWorkoutStore(selectActiveDraftMeta);
 
@@ -24,7 +30,7 @@ export function TrainPageShell() {
   if (meta === null) {
     return (
       <PageContainer title="Train">
-        <StartWorkoutEmptyState />
+        <StartWorkoutEmptyState insightsPanel={insightsPanel} />
       </PageContainer>
     );
   }

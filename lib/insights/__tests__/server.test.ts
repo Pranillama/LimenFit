@@ -22,7 +22,13 @@ vi.mock('@/lib/supabase/server', () => ({
 
 import { unstable_cache } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { rowsToKernelInput, getInsightsBundle } from '@/lib/insights/server';
+import {
+  rowsToKernelInput,
+  getInsightsBundle,
+  computeWorkoutsPerWeekSeries,
+  CONSISTENCY_WEEKS,
+} from '@/lib/insights/server';
+import type { WorkoutSample } from '@/features/insights/lib/types';
 
 const WORKOUT_ID = 'wk-001';
 const EXERCISE_ID = 'ex-bench';
@@ -186,5 +192,84 @@ describe('getInsightsBundle cache behavior', () => {
     await getInsightsBundle('user-123');
 
     expect(mockFrom).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeWorkoutsPerWeekSeries
+// ---------------------------------------------------------------------------
+
+function makeWorkout(id: string, startedAt: string, sets: WorkoutSample['exercises'][number]['sets'] = []): WorkoutSample {
+  return {
+    id,
+    startedAt,
+    status: 'completed',
+    exercises: sets.length > 0
+      ? [{ exerciseId: 'ex-bench', exerciseName: 'Bench Press', muscleGroup: 'chest', sets, workoutId: id, workoutDate: startedAt }]
+      : [],
+  };
+}
+
+describe('computeWorkoutsPerWeekSeries', () => {
+  // Monday 2026-01-05 is the week anchor used by STARTED_AT above
+  const NOW = new Date('2026-01-12T12:00:00.000Z'); // Monday of week 2
+
+  it('returns CONSISTENCY_WEEKS entries', () => {
+    const result = computeWorkoutsPerWeekSeries([], { now: NOW });
+    expect(result).toHaveLength(CONSISTENCY_WEEKS);
+  });
+
+  it('counts a workout with weighted sets in the correct week', () => {
+    const workout = makeWorkout('wk-A', '2026-01-12T09:00:00.000Z', [
+      { id: 's1', weight: 100, reps: 5, weightUnit: 'lbs' },
+    ]);
+    const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
+    const lastWeek = result[result.length - 1];
+    expect(lastWeek.weekStart).toBe('2026-01-12');
+    expect(lastWeek.count).toBe(1);
+  });
+
+  it('counts a completed workout with NO sets (no e1RM-producing exercises)', () => {
+    // This workout would be silently omitted by oneRepMaxSeries — it must still count here.
+    const workout = makeWorkout('wk-bodyweight', '2026-01-12T09:00:00.000Z');
+    const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
+    const lastWeek = result[result.length - 1];
+    expect(lastWeek.weekStart).toBe('2026-01-12');
+    expect(lastWeek.count).toBe(1);
+  });
+
+  it('counts a workout with zero-weight sets (bodyweight) that produces no e1RM', () => {
+    const workout = makeWorkout('wk-bw', '2026-01-12T09:00:00.000Z', [
+      { id: 's1', weight: 0, reps: 20, weightUnit: 'lbs' },
+    ]);
+    const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
+    expect(result[result.length - 1].count).toBe(1);
+  });
+
+  it('de-duplicates the same workout ID across multiple exercises', () => {
+    const exercises: WorkoutSample['exercises'] = [
+      { exerciseId: 'ex-sq', exerciseName: 'Squat', muscleGroup: 'legs', sets: [{ id: 's1', weight: 80, reps: 5, weightUnit: 'kg' }], workoutId: 'wk-multi', workoutDate: '2026-01-12T09:00:00.000Z' },
+      { exerciseId: 'ex-dl', exerciseName: 'Deadlift', muscleGroup: 'back', sets: [{ id: 's2', weight: 100, reps: 3, weightUnit: 'kg' }], workoutId: 'wk-multi', workoutDate: '2026-01-12T09:00:00.000Z' },
+    ];
+    const workout: WorkoutSample = { id: 'wk-multi', startedAt: '2026-01-12T09:00:00.000Z', status: 'completed', exercises };
+    const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
+    expect(result[result.length - 1].count).toBe(1);
+  });
+
+  it('spreads workouts across two different weeks', () => {
+    const w1 = makeWorkout('wk-1', '2026-01-05T09:00:00.000Z'); // week of Jan 5
+    const w2 = makeWorkout('wk-2', '2026-01-12T09:00:00.000Z'); // week of Jan 12
+    const result = computeWorkoutsPerWeekSeries([w1, w2], { now: NOW });
+    const secondToLast = result[result.length - 2];
+    const last = result[result.length - 1];
+    expect(secondToLast.weekStart).toBe('2026-01-05');
+    expect(secondToLast.count).toBe(1);
+    expect(last.weekStart).toBe('2026-01-12');
+    expect(last.count).toBe(1);
+  });
+
+  it('returns all-zero counts when there are no workouts', () => {
+    const result = computeWorkoutsPerWeekSeries([], { now: NOW });
+    expect(result.every((pt) => pt.count === 0)).toBe(true);
   });
 });

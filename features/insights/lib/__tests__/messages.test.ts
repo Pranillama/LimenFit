@@ -7,6 +7,7 @@ const EMPTY_BUNDLE: InsightsBundle = {
   volumeTrend: [],
   consistency: { avgWorkoutsPerWeek: 0, streakWeeks: 0, weeksAnalyzed: 4 },
   plateaus: [],
+  workoutsPerWeek: [],
 };
 
 const noName = () => '';

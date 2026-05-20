@@ -8,7 +8,11 @@ import { ExercisePicker } from '@/features/exercise-picker';
 
 import { useActiveWorkoutStore } from '../store/useActiveWorkoutStore';
 
-export function StartWorkoutEmptyState() {
+interface Props {
+  insightsPanel?: React.ReactNode;
+}
+
+export function StartWorkoutEmptyState({ insightsPanel }: Props) {
   const [pickerOpen, setPickerOpen] = React.useState(false);
 
   function handleConfirm(ids: string[]) {
@@ -36,6 +40,8 @@ export function StartWorkoutEmptyState() {
           </li>
         </ul>
       </div>
+
+      {insightsPanel}
 
       <ExercisePicker
         open={pickerOpen}
