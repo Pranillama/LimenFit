@@ -71,17 +71,17 @@ describe('rowsToKernelInput', () => {
       startedAt: STARTED_AT,
       status: 'completed',
     });
-    expect(workouts[0].exercises).toHaveLength(1);
+    expect(workouts[0]!.exercises).toHaveLength(1);
 
     expect(allExerciseSamples).toHaveLength(1);
-    const sample = allExerciseSamples[0];
+    const sample = allExerciseSamples[0]!;
     expect(sample.exerciseId).toBe(EXERCISE_ID);
     expect(sample.exerciseName).toBe('Bench Press');
     expect(sample.muscleGroup).toBe('chest');
     expect(sample.workoutId).toBe(WORKOUT_ID);
     expect(sample.workoutDate).toBe(STARTED_AT);
     expect(sample.sets).toHaveLength(1);
-    expect(sample.sets[0]).toMatchObject({
+    expect(sample.sets[0]!).toMatchObject({
       id: SET_ID,
       weight: 100,
       reps: 5,
@@ -93,9 +93,9 @@ describe('rowsToKernelInput', () => {
 
   it('maps weight_value → weight field on SetSample', () => {
     const row = makeRawRow();
-    row.workout_exercises[0].sets[0].weight_value = 142.5;
+    row.workout_exercises[0]!.sets[0]!.weight_value = 142.5;
     const { allExerciseSamples } = rowsToKernelInput([row]);
-    expect(allExerciseSamples[0].sets[0].weight).toBe(142.5);
+    expect(allExerciseSamples[0]!.sets[0]!.weight).toBe(142.5);
   });
 
   it('skips workout_exercise rows with null exercises (exercise deleted)', () => {
@@ -103,7 +103,7 @@ describe('rowsToKernelInput', () => {
     (row.workout_exercises[0] as any).exercises = null;
     const { allExerciseSamples, workouts } = rowsToKernelInput([row]);
     expect(allExerciseSamples).toHaveLength(0);
-    expect(workouts[0].exercises).toHaveLength(0);
+    expect(workouts[0]!.exercises).toHaveLength(0);
   });
 
   it('collects exercise names across multiple workouts', () => {
@@ -138,23 +138,23 @@ describe('rowsToKernelInput', () => {
 
   it('handles workout with no sets', () => {
     const row = makeRawRow();
-    row.workout_exercises[0].sets = [];
+    row.workout_exercises[0]!.sets = [];
     const { allExerciseSamples } = rowsToKernelInput([row]);
-    expect(allExerciseSamples[0].sets).toHaveLength(0);
+    expect(allExerciseSamples[0]!.sets).toHaveLength(0);
   });
 
   it('preserves status as-is from the DB row', () => {
     const row = makeRawRow();
     (row as any).status = 'expired';
     const { workouts } = rowsToKernelInput([row]);
-    expect(workouts[0].status).toBe('expired');
+    expect(workouts[0]!.status).toBe('expired');
   });
 
   it('correctly passes weight_unit through to SetSample', () => {
     const row = makeRawRow();
-    row.workout_exercises[0].sets[0].weight_unit = 'kg';
+    row.workout_exercises[0]!.sets[0]!.weight_unit = 'kg';
     const { allExerciseSamples } = rowsToKernelInput([row]);
-    expect(allExerciseSamples[0].sets[0].weightUnit).toBe('kg');
+    expect(allExerciseSamples[0]!.sets[0]!.weightUnit).toBe('kg');
   });
 });
 
@@ -164,19 +164,19 @@ describe('getInsightsBundle cache behavior', () => {
   beforeEach(() => {
     cacheStore = new Map();
     vi.mocked(unstable_cache).mockImplementation(
-      (fn: (...args: unknown[]) => unknown, keyParts: unknown[]) =>
+      ((fn: (...args: unknown[]) => unknown, keyParts?: string[]) =>
         async () => {
-          const key = (keyParts as string[]).join(':');
+          const key = (keyParts ?? []).join(':');
           if (cacheStore.has(key)) return cacheStore.get(key);
           const result = await (fn as () => Promise<unknown>)();
           cacheStore.set(key, result);
           return result;
-        },
+        }) as any,
     );
   });
 
   afterEach(() => {
-    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn);
+    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn as any);
   });
 
   it('calls the Supabase query once for two identical calls', async () => {
@@ -202,7 +202,7 @@ describe('getInsightsBundle cache behavior', () => {
 
 describe('getOneRepMaxSeriesForExercise', () => {
   beforeEach(() => {
-    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn);
+    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn as any);
   });
 
   function makeExerciseQuery(rows: ReturnType<typeof makeRawRow>[]) {
@@ -233,13 +233,13 @@ describe('getOneRepMaxSeriesForExercise', () => {
     // Set B: 60 lbs × 15 reps → e1RM = 60 × (1 + 15/30) = 90
     // An impl that picks the heaviest *weight* chooses A (e1RM=80).
     // The correct impl picks the highest e1RM, which is B (e1RM=90).
-    row.workout_exercises[0].sets = [
+    row.workout_exercises[0]!.sets = [
       { id: 's1', weight_value: 80, weight_unit: 'lbs', reps: 1, logged_at: STARTED_AT },
       { id: 's2', weight_value: 60, weight_unit: 'lbs', reps: 15, logged_at: STARTED_AT },
     ];
     makeExerciseQuery([row]);
 
-    const [point] = await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID);
+    const point = (await getOneRepMaxSeriesForExercise('user-1', EXERCISE_ID))[0]!;
     expect(point.e1rm).toBeCloseTo(60 * (1 + 15 / 30)); // 90, not 80
   });
 
@@ -255,7 +255,7 @@ describe('getOneRepMaxSeriesForExercise', () => {
 
   it('ignores sets with zero weight', async () => {
     const row = makeRawRow();
-    row.workout_exercises[0].sets = [
+    row.workout_exercises[0]!.sets = [
       { id: 's1', weight_value: 0, weight_unit: 'lbs', reps: 10, logged_at: STARTED_AT },
     ];
     makeExerciseQuery([row]);
@@ -317,7 +317,7 @@ describe('computeWorkoutsPerWeekSeries', () => {
       { id: 's1', weight: 100, reps: 5, weightUnit: 'lbs' },
     ]);
     const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
-    const lastWeek = result[result.length - 1];
+    const lastWeek = result[result.length - 1]!;
     expect(lastWeek.weekStart).toBe('2026-01-12');
     expect(lastWeek.count).toBe(1);
   });
@@ -326,7 +326,7 @@ describe('computeWorkoutsPerWeekSeries', () => {
     // This workout would be silently omitted by oneRepMaxSeries — it must still count here.
     const workout = makeWorkout('wk-bodyweight', '2026-01-12T09:00:00.000Z');
     const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
-    const lastWeek = result[result.length - 1];
+    const lastWeek = result[result.length - 1]!;
     expect(lastWeek.weekStart).toBe('2026-01-12');
     expect(lastWeek.count).toBe(1);
   });
@@ -336,7 +336,7 @@ describe('computeWorkoutsPerWeekSeries', () => {
       { id: 's1', weight: 0, reps: 20, weightUnit: 'lbs' },
     ]);
     const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
-    expect(result[result.length - 1].count).toBe(1);
+    expect(result[result.length - 1]!.count).toBe(1);
   });
 
   it('de-duplicates the same workout ID across multiple exercises', () => {
@@ -346,15 +346,15 @@ describe('computeWorkoutsPerWeekSeries', () => {
     ];
     const workout: WorkoutSample = { id: 'wk-multi', startedAt: '2026-01-12T09:00:00.000Z', status: 'completed', exercises };
     const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
-    expect(result[result.length - 1].count).toBe(1);
+    expect(result[result.length - 1]!.count).toBe(1);
   });
 
   it('spreads workouts across two different weeks', () => {
     const w1 = makeWorkout('wk-1', '2026-01-05T09:00:00.000Z'); // week of Jan 5
     const w2 = makeWorkout('wk-2', '2026-01-12T09:00:00.000Z'); // week of Jan 12
     const result = computeWorkoutsPerWeekSeries([w1, w2], { now: NOW });
-    const secondToLast = result[result.length - 2];
-    const last = result[result.length - 1];
+    const secondToLast = result[result.length - 2]!;
+    const last = result[result.length - 1]!;
     expect(secondToLast.weekStart).toBe('2026-01-05');
     expect(secondToLast.count).toBe(1);
     expect(last.weekStart).toBe('2026-01-12');

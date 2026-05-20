@@ -24,7 +24,7 @@ function resolveDominantUnit(
     counts.set(s.weightUnit, (counts.get(s.weightUnit) ?? 0) + 1);
   }
   if (counts.size === 0) return undefined;
-  if (counts.size === 1) return [...counts.keys()][0];
+  if (counts.size === 1) return [...counts.keys()][0]!;
 
   let dominant: WeightUnit | undefined;
   let topCount = 0;
@@ -77,14 +77,14 @@ export function computeOneRepMaxSeries(
     if (validSets.length === 0) continue;
 
     let best = 0;
-    let topSet = validSets[0];
+    let topSet = validSets[0]!;
     for (const s of validSets) {
       const e = estimateOneRepMax(s.weight, s.reps);
       if (e > best) best = e;
       if (s.weight > topSet.weight) topSet = s;
     }
 
-    const first = group[0];
+    const first = group[0]!;
     results.push({
       workoutId: first.workoutId,
       workoutDate: first.workoutDate,

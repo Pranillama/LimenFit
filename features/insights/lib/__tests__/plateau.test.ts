@@ -48,8 +48,8 @@ describe('detectPlateaus', () => {
     // 100 → 101 = 1% < 2% → plateau
     const signals = detectPlateaus(BENCH_SESSIONS);
     expect(signals).toHaveLength(1);
-    expect(signals[0].isPlateauing).toBe(true);
-    expect(signals[0].exerciseId).toBe('bench');
+    expect(signals[0]!.isPlateauing).toBe(true);
+    expect(signals[0]!.exerciseId).toBe('bench');
   });
 
   it('does not flag when improvement exceeds threshold', () => {
@@ -60,8 +60,8 @@ describe('detectPlateaus', () => {
       point('squat', '2024-01-22T10:00:00Z', 110),
     ];
     const signals = detectPlateaus(improving);
-    expect(signals[0].isPlateauing).toBe(false);
-    expect(signals[0].e1rmChangePct).toBeGreaterThanOrEqual(2);
+    expect(signals[0]!.isPlateauing).toBe(false);
+    expect(signals[0]!.e1rmChangePct).toBeGreaterThanOrEqual(2);
   });
 
   it('flags declining e1RM as plateauing (signed change < threshold)', () => {
@@ -71,7 +71,7 @@ describe('detectPlateaus', () => {
       point('dl', '2024-01-15T10:00:00Z', 147),
       point('dl', '2024-01-22T10:00:00Z', 146),
     ];
-    const [signal] = detectPlateaus(declining);
+    const signal = detectPlateaus(declining)[0]!;
     expect(signal.isPlateauing).toBe(true);
     expect(signal.e1rmChangePct).toBeLessThan(0);
   });
@@ -84,7 +84,7 @@ describe('detectPlateaus', () => {
       // Recent sessions are flat
       ...BENCH_SESSIONS,
     ];
-    const [signal] = detectPlateaus(extraSessions, { minSessions: 4 });
+    const signal = detectPlateaus(extraSessions, { minSessions: 4 })[0]!;
     // Window is the last 4 → BENCH_SESSIONS (100→101 = 1%)
     expect(signal.isPlateauing).toBe(true);
     expect(signal.sessionsAnalyzed).toBe(4);
@@ -111,7 +111,7 @@ describe('detectPlateaus', () => {
       point('bench', '2024-01-08T10:00:00Z', 101),
     ];
     // minSessions=2 → enough data
-    const [signal] = detectPlateaus(series, { minSessions: 2 });
+    const signal = detectPlateaus(series, { minSessions: 2 })[0]!;
     expect(signal).toBeDefined();
     expect(signal.isPlateauing).toBe(true);
   });
@@ -125,9 +125,9 @@ describe('detectPlateaus', () => {
       point('bench', '2024-01-22T10:00:00Z', 104),
     ];
     // Default 2% → not plateau (4% > 2%)
-    expect(detectPlateaus(series)[0].isPlateauing).toBe(false);
+    expect(detectPlateaus(series)[0]!.isPlateauing).toBe(false);
     // Custom 5% → is plateau (4% < 5%)
-    expect(detectPlateaus(series, { flatThresholdPct: 5 })[0].isPlateauing).toBe(true);
+    expect(detectPlateaus(series, { flatThresholdPct: 5 })[0]!.isPlateauing).toBe(true);
   });
 
   it('handles sparse data — exercise present in only some of the series dates', () => {
@@ -152,7 +152,7 @@ describe('detectPlateaus', () => {
       point('bench', '2023-12-08T10:00:00Z', 92),
       ...BENCH_SESSIONS, // 4 more
     ];
-    const [signal] = detectPlateaus(extra, { minSessions: 4 });
+    const signal = detectPlateaus(extra, { minSessions: 4 })[0]!;
     expect(signal.sessionsAnalyzed).toBe(4);
   });
 
@@ -164,7 +164,7 @@ describe('detectPlateaus', () => {
       point('bench', '2024-01-15T10:00:00Z', 120, 'bench', 100, 6),  // 100 kg × 6 → e1RM up
       point('bench', '2024-01-22T10:00:00Z', 133, 'bench', 100, 10), // 100 kg × 10 → e1RM +33%
     ];
-    const [signal] = detectPlateaus(series, { minSessions: 4 });
+    const signal = detectPlateaus(series, { minSessions: 4 })[0]!;
     // e1rmChangePct ≈ 33% which is above flatThreshold=2%, but top-set weight is flat
     expect(signal.topSetImproving).toBe(false);
     expect(signal.isPlateauing).toBe(true);
@@ -177,7 +177,7 @@ describe('detectPlateaus', () => {
       point('squat', '2024-01-15T10:00:00Z', 110, 'squat', 107, 5),
       point('squat', '2024-01-22T10:00:00Z', 116, 'squat', 112, 5),
     ];
-    const [signal] = detectPlateaus(series, { minSessions: 4 });
+    const signal = detectPlateaus(series, { minSessions: 4 })[0]!;
     expect(signal.topSetImproving).toBe(true);
     expect(signal.isPlateauing).toBe(false);
   });

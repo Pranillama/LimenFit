@@ -47,16 +47,16 @@ describe('computeOneRepMaxSeries', () => {
   });
 
   it('computes e1RM for a single-set sample', () => {
-    const [point] = computeOneRepMaxSeries([
+    const point = computeOneRepMaxSeries([
       makeSample({ sets: [{ id: 's1', weight: 100, reps: 1, weightUnit: 'kg' }] }),
-    ]);
+    ])[0]!;
     expect(point.e1rm).toBe(100);
     expect(point.weightUnit).toBe('kg');
     expect(point.exerciseId).toBe('bench-press');
   });
 
   it('picks the max e1RM across multiple sets', () => {
-    const [point] = computeOneRepMaxSeries([
+    const point = computeOneRepMaxSeries([
       makeSample({
         sets: [
           { id: 's1', weight: 80, reps: 10, weightUnit: 'kg' }, // e1RM ≈ 106.7
@@ -64,7 +64,7 @@ describe('computeOneRepMaxSeries', () => {
           { id: 's3', weight: 100, reps: 1, weightUnit: 'kg' }, // e1RM = 100
         ],
       }),
-    ]);
+    ])[0]!;
     expect(point.e1rm).toBeCloseTo(80 * (1 + 10 / 30));
     expect(point.weightUnit).toBe('kg');
   });
@@ -78,7 +78,7 @@ describe('computeOneRepMaxSeries', () => {
 
   it('uses dominant unit and ignores minority-unit sets', () => {
     // 3 kg sets vs 1 lb set — kg dominates
-    const [point] = computeOneRepMaxSeries([
+    const point = computeOneRepMaxSeries([
       makeSample({
         sets: [
           { id: 's1', weight: 100, reps: 5, weightUnit: 'kg' },
@@ -87,7 +87,7 @@ describe('computeOneRepMaxSeries', () => {
           { id: 's4', weight: 300, reps: 5, weightUnit: 'lbs' }, // should be ignored
         ],
       }),
-    ]);
+    ])[0]!;
     // Best kg set: 100 × (1 + 5/30) ≈ 116.67 — higher than 110 × 1 = 110
     expect(point.e1rm).toBeCloseTo(100 * (1 + 5 / 30));
     expect(point.weightUnit).toBe('kg');
@@ -106,7 +106,7 @@ describe('computeOneRepMaxSeries', () => {
   });
 
   it('uses preferredUnit to break ties', () => {
-    const [point] = computeOneRepMaxSeries(
+    const point = computeOneRepMaxSeries(
       [
         makeSample({
           sets: [
@@ -116,7 +116,7 @@ describe('computeOneRepMaxSeries', () => {
         }),
       ],
       { preferredUnit: 'lbs' },
-    );
+    )[0]!;
     expect(point.weightUnit).toBe('lbs');
     expect(point.e1rm).toBeCloseTo(225 * (1 + 5 / 30));
   });
@@ -131,21 +131,21 @@ describe('computeOneRepMaxSeries', () => {
   });
 
   it('preserves workoutId, workoutDate, exerciseName on output', () => {
-    const [point] = computeOneRepMaxSeries([makeSample()]);
+    const point = computeOneRepMaxSeries([makeSample()])[0]!;
     expect(point.workoutId).toBe('w1');
     expect(point.workoutDate).toBe('2024-01-15T10:00:00Z');
     expect(point.exerciseName).toBe('Bench Press');
   });
 
   it('exposes topSetWeight and topSetReps for the heaviest set', () => {
-    const [point] = computeOneRepMaxSeries([
+    const point = computeOneRepMaxSeries([
       makeSample({
         sets: [
           { id: 's1', weight: 80, reps: 10, weightUnit: 'kg' }, // higher e1RM but lighter
           { id: 's2', weight: 110, reps: 1, weightUnit: 'kg' }, // heaviest set
         ],
       }),
-    ]);
+    ])[0]!;
     expect(point.topSetWeight).toBe(110);
     expect(point.topSetReps).toBe(1);
   });
@@ -159,7 +159,7 @@ describe('computeOneRepMaxSeries', () => {
     const result = computeOneRepMaxSeries(samples);
     expect(result).toHaveLength(1);
     // Best e1RM across both sets: 110×3 ≈ 121 vs 100×5 ≈ 116.7
-    expect(result[0].e1rm).toBeCloseTo(estimateOneRepMax(110, 3));
-    expect(result[0].topSetWeight).toBe(110);
+    expect(result[0]!.e1rm).toBeCloseTo(estimateOneRepMax(110, 3));
+    expect(result[0]!.topSetWeight).toBe(110);
   });
 });

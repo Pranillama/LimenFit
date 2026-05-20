@@ -43,18 +43,18 @@ export function detectPlateaus(
       .sort((a, b) => a.workoutDate.localeCompare(b.workoutDate));
     const window = sorted.slice(-minSessions);
 
-    const firstE1rm = window[0].e1rm;
-    const lastE1rm = window[window.length - 1].e1rm;
+    const firstE1rm = window[0]!.e1rm;
+    const lastE1rm = window[window.length - 1]!.e1rm;
 
     const e1rmChangePct =
       firstE1rm === 0 ? 0 : ((lastE1rm - firstE1rm) / firstE1rm) * 100;
 
     const topSetImproving =
-      window[window.length - 1].topSetWeight > window[0].topSetWeight;
+      window[window.length - 1]!.topSetWeight > window[0]!.topSetWeight;
 
     results.push({
       exerciseId,
-      exerciseName: points[0].exerciseName,
+      exerciseName: points[0]!.exerciseName,
       sessionsAnalyzed: window.length,
       e1rmChangePct,
       topSetImproving,

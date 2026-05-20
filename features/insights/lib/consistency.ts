@@ -55,7 +55,7 @@ export function computeConsistencyScore(
   // Trailing streak from most recent → oldest
   let streakWeeks = 0;
   for (let i = buckets.length - 1; i >= 0; i--) {
-    if (counts[i] >= target) streakWeeks++;
+    if ((counts[i] ?? 0) >= target) streakWeeks++;
     else break;
   }
 

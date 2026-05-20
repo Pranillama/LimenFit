@@ -72,8 +72,8 @@ describe('computeVolumeTrend', () => {
       [sample('bench', '2024-01-15T10:00:00Z', 100, 5)],
       { groupBy: 'exerciseId', weeks: 4 },
     );
-    expect(points[0].deltaVolume).toBeNull();
-    expect(points[0].direction).toBe('flat');
+    expect(points[0]!.deltaVolume).toBeNull();
+    expect(points[0]!.direction).toBe('flat');
   });
 
   it('computes delta and direction across consecutive weeks', () => {
@@ -84,10 +84,10 @@ describe('computeVolumeTrend', () => {
       sample('bench', '2024-01-29T10:00:00Z', 90, 5),   // week 4: 450 → -14% → down
     ];
     const points = computeVolumeTrend(samples, { groupBy: 'exerciseId', weeks: 4 });
-    expect(points[0].direction).toBe('flat');  // no prior
-    expect(points[1].direction).toBe('up');
-    expect(points[2].direction).toBe('flat');
-    expect(points[3].direction).toBe('down');
+    expect(points[0]!.direction).toBe('flat');  // no prior
+    expect(points[1]!.direction).toBe('up');
+    expect(points[2]!.direction).toBe('flat');
+    expect(points[3]!.direction).toBe('down');
   });
 
   it('flat direction when |delta| is exactly at the 5% boundary', () => {
@@ -130,7 +130,7 @@ describe('computeVolumeTrend', () => {
     expect(points).toHaveLength(4);
     // Dec 25 2023 is a Monday, so it is a valid week bucket; the oldest of the
     // last 4 is Dec 25 (Dec 25, Jan 1, Jan 8, Jan 15).
-    expect(points[0].weekStart).toBe('2023-12-25');
+    expect(points[0]!.weekStart).toBe('2023-12-25');
   });
 
   it('fills a missing week with zero volume so delta compares true week-over-week', () => {

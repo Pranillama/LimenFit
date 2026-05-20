@@ -46,8 +46,11 @@ export function computeVolumeTrend(
   const observedWeeks = [...volumeMap.keys()].sort();
   const sortedWeeks: string[] = [];
   if (observedWeeks.length > 0) {
-    const latestWeek = observedWeeks[observedWeeks.length - 1];
-    const [y, m, d] = latestWeek.split('-').map(Number);
+    const latestWeek = observedWeeks[observedWeeks.length - 1]!;
+    const parts = latestWeek.split('-').map(Number);
+    const y = parts[0]!;
+    const m = parts[1]!;
+    const d = parts[2]!;
     for (let i = opts.weeks - 1; i >= 0; i--) {
       sortedWeeks.push(toIsoDateString(new Date(y, m - 1, d - i * 7)));
     }

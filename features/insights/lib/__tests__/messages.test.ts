@@ -41,10 +41,10 @@ describe('generateInsightMessages', () => {
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
       expect(msgs).toHaveLength(1);
-      expect(msgs[0].severity).toBe('warning');
-      expect(msgs[0].id).toBe('plateau-bench');
-      expect(msgs[0].text).toContain('Bench Press');
-      expect(msgs[0].text).toContain('4 sessions');
+      expect(msgs[0]!.severity).toBe('warning');
+      expect(msgs[0]!.id).toBe('plateau-bench');
+      expect(msgs[0]!.text).toContain('Bench Press');
+      expect(msgs[0]!.text).toContain('4 sessions');
     });
 
     it('does not emit a message for non-plateauing exercises', () => {
