@@ -16,12 +16,12 @@ Both results are combined via **`buildHomeInsightsDTO`** (`lib/homeDashboardDTO.
 
 `HomeInsightsDTO` contains:
 
-| Field | Source | Used by |
-|---|---|---|
-| `workoutsThisWeek` | Computed server-side from `recentCompletions` + current week | `QuickStatsRow` |
-| `consistency.message` | Derived from `ConsistencyScore` in the bundle | `QuickStatsRow` |
-| `topMessages` | Top 3 `InsightMessage[]`, severity-prioritized (warning → positive → info) | `InsightsList` |
-| `volumeDeltas` | Latest volume trend per muscle group: `direction` + `deltaVolume` (numeric delta vs prior period, `null` when no prior period exists) | Reserved for chip row (future) |
+| Field                 | Source                                                                                                                                | Used by                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `workoutsThisWeek`    | Computed server-side from `recentCompletions` + current week                                                                          | `QuickStatsRow`                |
+| `consistency.message` | Derived from `ConsistencyScore` in the bundle                                                                                         | `QuickStatsRow`                |
+| `topMessages`         | Top 3 `InsightMessage[]`, severity-prioritized (warning → positive → info)                                                            | `InsightsList`                 |
+| `volumeDeltas`        | Latest volume trend per muscle group: `direction` + `deltaVolume` (numeric delta vs prior period, `null` when no prior period exists) | Reserved for chip row (future) |
 
 ### Source of truth
 
@@ -29,13 +29,13 @@ Both results are combined via **`buildHomeInsightsDTO`** (`lib/homeDashboardDTO.
 
 ## Components
 
-| Component | Description |
-|---|---|
-| `QuickStatsRow` | 2-column grid — "Workouts This Week" + "Consistency" tile (server data, renders on first paint) |
-| `InsightsList` | Stacked cards for top 3 insight messages; shows empty state when `<3` workouts in lookback |
-| `TodaysWorkoutCard` | Today's workout status; client-gated on `clientNow` + active workout store |
-| `RecentActivityList` | Last 5 completed workouts |
-| `AnalyzeTeaserCard` | Reserved for T19/T20 (untouched) |
+| Component            | Description                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| `QuickStatsRow`      | 2-column grid — "Workouts This Week" + "Consistency" tile (server data, renders on first paint) |
+| `InsightsList`       | Stacked cards for top 3 insight messages; shows empty state when `<3` workouts in lookback      |
+| `TodaysWorkoutCard`  | Today's workout status; client-gated on `clientNow` + active workout store                      |
+| `RecentActivityList` | Last 5 completed workouts                                                                       |
+| `AnalyzeTeaserCard`  | Reserved for T19/T20 (untouched)                                                                |
 
 ## Today's Workout Card
 

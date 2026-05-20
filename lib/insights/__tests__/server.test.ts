@@ -163,20 +163,23 @@ describe('getInsightsBundle cache behavior', () => {
 
   beforeEach(() => {
     cacheStore = new Map();
-    vi.mocked(unstable_cache).mockImplementation(
-      ((fn: (...args: unknown[]) => unknown, keyParts?: string[]) =>
-        async () => {
-          const key = (keyParts ?? []).join(':');
-          if (cacheStore.has(key)) return cacheStore.get(key);
-          const result = await (fn as () => Promise<unknown>)();
-          cacheStore.set(key, result);
-          return result;
-        }) as any,
-    );
+    vi.mocked(unstable_cache).mockImplementation(((
+        fn: (...args: unknown[]) => unknown,
+        keyParts?: string[],
+      ) =>
+      async () => {
+        const key = (keyParts ?? []).join(':');
+        if (cacheStore.has(key)) return cacheStore.get(key);
+        const result = await (fn as () => Promise<unknown>)();
+        cacheStore.set(key, result);
+        return result;
+      }) as any);
   });
 
   afterEach(() => {
-    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn as any);
+    vi.mocked(unstable_cache).mockImplementation(
+      (fn: (...args: unknown[]) => unknown) => fn as any,
+    );
   });
 
   it('calls the Supabase query once for two identical calls', async () => {
@@ -202,7 +205,9 @@ describe('getInsightsBundle cache behavior', () => {
 
 describe('getOneRepMaxSeriesForExercise', () => {
   beforeEach(() => {
-    vi.mocked(unstable_cache).mockImplementation((fn: (...args: unknown[]) => unknown) => fn as any);
+    vi.mocked(unstable_cache).mockImplementation(
+      (fn: (...args: unknown[]) => unknown) => fn as any,
+    );
   });
 
   function makeExerciseQuery(rows: ReturnType<typeof makeRawRow>[]) {
@@ -292,14 +297,28 @@ describe('getOneRepMaxSeriesForExercise', () => {
 // computeWorkoutsPerWeekSeries
 // ---------------------------------------------------------------------------
 
-function makeWorkout(id: string, startedAt: string, sets: WorkoutSample['exercises'][number]['sets'] = []): WorkoutSample {
+function makeWorkout(
+  id: string,
+  startedAt: string,
+  sets: WorkoutSample['exercises'][number]['sets'] = [],
+): WorkoutSample {
   return {
     id,
     startedAt,
     status: 'completed',
-    exercises: sets.length > 0
-      ? [{ exerciseId: 'ex-bench', exerciseName: 'Bench Press', muscleGroup: 'chest', sets, workoutId: id, workoutDate: startedAt }]
-      : [],
+    exercises:
+      sets.length > 0
+        ? [
+            {
+              exerciseId: 'ex-bench',
+              exerciseName: 'Bench Press',
+              muscleGroup: 'chest',
+              sets,
+              workoutId: id,
+              workoutDate: startedAt,
+            },
+          ]
+        : [],
   };
 }
 
@@ -341,10 +360,29 @@ describe('computeWorkoutsPerWeekSeries', () => {
 
   it('de-duplicates the same workout ID across multiple exercises', () => {
     const exercises: WorkoutSample['exercises'] = [
-      { exerciseId: 'ex-sq', exerciseName: 'Squat', muscleGroup: 'legs', sets: [{ id: 's1', weight: 80, reps: 5, weightUnit: 'kg' }], workoutId: 'wk-multi', workoutDate: '2026-01-12T09:00:00.000Z' },
-      { exerciseId: 'ex-dl', exerciseName: 'Deadlift', muscleGroup: 'back', sets: [{ id: 's2', weight: 100, reps: 3, weightUnit: 'kg' }], workoutId: 'wk-multi', workoutDate: '2026-01-12T09:00:00.000Z' },
+      {
+        exerciseId: 'ex-sq',
+        exerciseName: 'Squat',
+        muscleGroup: 'legs',
+        sets: [{ id: 's1', weight: 80, reps: 5, weightUnit: 'kg' }],
+        workoutId: 'wk-multi',
+        workoutDate: '2026-01-12T09:00:00.000Z',
+      },
+      {
+        exerciseId: 'ex-dl',
+        exerciseName: 'Deadlift',
+        muscleGroup: 'back',
+        sets: [{ id: 's2', weight: 100, reps: 3, weightUnit: 'kg' }],
+        workoutId: 'wk-multi',
+        workoutDate: '2026-01-12T09:00:00.000Z',
+      },
     ];
-    const workout: WorkoutSample = { id: 'wk-multi', startedAt: '2026-01-12T09:00:00.000Z', status: 'completed', exercises };
+    const workout: WorkoutSample = {
+      id: 'wk-multi',
+      startedAt: '2026-01-12T09:00:00.000Z',
+      status: 'completed',
+      exercises,
+    };
     const result = computeWorkoutsPerWeekSeries([workout], { now: NOW });
     expect(result[result.length - 1]!.count).toBe(1);
   });

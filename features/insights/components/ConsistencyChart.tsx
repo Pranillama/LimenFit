@@ -49,10 +49,7 @@ export function ConsistencyChart({ data, targetPerWeek = 3 }: Props) {
           width={24}
         />
         <Tooltip
-          formatter={(value: number) => [
-            `${value} workout${value !== 1 ? 's' : ''}`,
-            'Workouts',
-          ]}
+          formatter={(value: number) => [`${value} workout${value !== 1 ? 's' : ''}`, 'Workouts']}
           labelFormatter={(label) => `Week of ${label}`}
           contentStyle={{
             backgroundColor: 'hsl(var(--card))',
@@ -72,12 +69,7 @@ export function ConsistencyChart({ data, targetPerWeek = 3 }: Props) {
             fill: 'hsl(var(--warning))',
           }}
         />
-        <Bar
-          dataKey="count"
-          name="Workouts"
-          fill="hsl(var(--primary))"
-          radius={[3, 3, 0, 0]}
-        />
+        <Bar dataKey="count" name="Workouts" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

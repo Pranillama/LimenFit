@@ -31,11 +31,7 @@ export function InsightsPanel({ bundle, completedWorkoutCount, unit }: Props) {
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-muted-foreground">Volume by muscle group</h3>
         <MuscleGroupVolumeChips data={bundle.volumeTrend} />
-        <VolumeTrendChart
-          data={bundle.volumeTrend}
-          groupBy="muscleGroup"
-          unit={detectedUnit}
-        />
+        <VolumeTrendChart data={bundle.volumeTrend} groupBy="muscleGroup" unit={detectedUnit} />
       </div>
 
       <div className="space-y-2">

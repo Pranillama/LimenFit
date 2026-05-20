@@ -25,7 +25,9 @@ describe('estimateOneRepMax', () => {
   });
 });
 
-function makeSample(overrides: Partial<ExerciseHistorySample> & { sets?: ExerciseHistorySample['sets'] } = {}): ExerciseHistorySample {
+function makeSample(
+  overrides: Partial<ExerciseHistorySample> & { sets?: ExerciseHistorySample['sets'] } = {},
+): ExerciseHistorySample {
   return {
     exerciseId: 'bench-press',
     exerciseName: 'Bench Press',
@@ -60,7 +62,7 @@ describe('computeOneRepMaxSeries', () => {
       makeSample({
         sets: [
           { id: 's1', weight: 80, reps: 10, weightUnit: 'kg' }, // e1RM ≈ 106.7
-          { id: 's2', weight: 90, reps: 5, weightUnit: 'kg' },  // e1RM = 105
+          { id: 's2', weight: 90, reps: 5, weightUnit: 'kg' }, // e1RM = 105
           { id: 's3', weight: 100, reps: 1, weightUnit: 'kg' }, // e1RM = 100
         ],
       }),

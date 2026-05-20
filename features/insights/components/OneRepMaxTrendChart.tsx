@@ -28,9 +28,7 @@ function formatE1rm(value: number, unit: WeightUnit): string {
 
 export function OneRepMaxTrendChart({ points, unit }: OneRepMaxTrendChartProps) {
   if (points.length < 2) {
-    return (
-      <InsightsEmptyCard message="Log at least 2 sessions of this exercise to see a trend" />
-    );
+    return <InsightsEmptyCard message="Log at least 2 sessions of this exercise to see a trend" />;
   }
 
   const rows = points.map((p) => ({

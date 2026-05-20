@@ -25,8 +25,7 @@ export function computeVolumeTrend(
 
   for (const sample of samples) {
     const weekStart = getMondayIso(sample.workoutDate);
-    const groupKey =
-      opts.groupBy === 'muscleGroup' ? sample.muscleGroup : sample.exerciseId;
+    const groupKey = opts.groupBy === 'muscleGroup' ? sample.muscleGroup : sample.exerciseId;
 
     if (!volumeMap.has(weekStart)) volumeMap.set(weekStart, new Map());
     const weekMap = volumeMap.get(weekStart)!;

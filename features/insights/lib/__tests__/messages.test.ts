@@ -164,8 +164,20 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         volumeTrend: [
-          { weekStart: '2024-01-08', groupKey: 'bench', totalVolume: 3000, deltaVolume: null, direction: 'flat' },
-          { weekStart: '2024-01-15', groupKey: 'bench', totalVolume: 5000, deltaVolume: 2000, direction: 'up' },
+          {
+            weekStart: '2024-01-08',
+            groupKey: 'bench',
+            totalVolume: 3000,
+            deltaVolume: null,
+            direction: 'flat',
+          },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'bench',
+            totalVolume: 5000,
+            deltaVolume: 2000,
+            direction: 'up',
+          },
         ],
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
@@ -178,7 +190,13 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         volumeTrend: [
-          { weekStart: '2024-01-15', groupKey: 'full_body', totalVolume: 5000, deltaVolume: 500, direction: 'up' },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'full_body',
+            totalVolume: 5000,
+            deltaVolume: 500,
+            direction: 'up',
+          },
         ],
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: () => '' });
@@ -190,7 +208,13 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         volumeTrend: [
-          { weekStart: '2024-01-15', groupKey: 'bench', totalVolume: 4500, deltaVolume: 50, direction: 'flat' },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'bench',
+            totalVolume: 4500,
+            deltaVolume: 50,
+            direction: 'flat',
+          },
         ],
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
@@ -203,11 +227,24 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         plateaus: [
-          { exerciseId: 'bench', exerciseName: 'Bench Press', sessionsAnalyzed: 4, e1rmChangePct: 0.8, topSetImproving: false, isPlateauing: true },
+          {
+            exerciseId: 'bench',
+            exerciseName: 'Bench Press',
+            sessionsAnalyzed: 4,
+            e1rmChangePct: 0.8,
+            topSetImproving: false,
+            isPlateauing: true,
+          },
         ],
         consistency: { avgWorkoutsPerWeek: 4, streakWeeks: 4, weeksAnalyzed: 4 },
         volumeTrend: [
-          { weekStart: '2024-01-15', groupKey: 'bench', totalVolume: 5000, deltaVolume: 500, direction: 'up' },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'bench',
+            totalVolume: 5000,
+            deltaVolume: 500,
+            direction: 'up',
+          },
         ],
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
@@ -222,11 +259,24 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         plateaus: [
-          { exerciseId: 'bench', exerciseName: 'Bench Press', sessionsAnalyzed: 4, e1rmChangePct: 0.5, topSetImproving: false, isPlateauing: true },
+          {
+            exerciseId: 'bench',
+            exerciseName: 'Bench Press',
+            sessionsAnalyzed: 4,
+            e1rmChangePct: 0.5,
+            topSetImproving: false,
+            isPlateauing: true,
+          },
         ],
         consistency: { avgWorkoutsPerWeek: 4.5, streakWeeks: 5, weeksAnalyzed: 4 },
         volumeTrend: [
-          { weekStart: '2024-01-15', groupKey: 'squat', totalVolume: 6000, deltaVolume: 1000, direction: 'up' },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'squat',
+            totalVolume: 6000,
+            deltaVolume: 1000,
+            direction: 'up',
+          },
         ],
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
@@ -243,7 +293,14 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         plateaus: [
-          { exerciseId: 'bench', exerciseName: 'Bench Press', sessionsAnalyzed: 4, e1rmChangePct: 0.8, topSetImproving: false, isPlateauing: true },
+          {
+            exerciseId: 'bench',
+            exerciseName: 'Bench Press',
+            sessionsAnalyzed: 4,
+            e1rmChangePct: 0.8,
+            topSetImproving: false,
+            isPlateauing: true,
+          },
         ],
       };
       expect(generateInsightMessages(bundle, { exerciseNameById: nameById })).toEqual([
@@ -273,7 +330,13 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         volumeTrend: [
-          { weekStart: '2024-01-15', groupKey: 'bench', totalVolume: 5000, deltaVolume: 500, direction: 'up' },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'bench',
+            totalVolume: 5000,
+            deltaVolume: 500,
+            direction: 'up',
+          },
         ],
       };
       expect(generateInsightMessages(bundle, { exerciseNameById: nameById })).toEqual([
@@ -289,11 +352,24 @@ describe('generateInsightMessages', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         plateaus: [
-          { exerciseId: 'bench', exerciseName: 'Bench Press', sessionsAnalyzed: 4, e1rmChangePct: 0.5, topSetImproving: false, isPlateauing: true },
+          {
+            exerciseId: 'bench',
+            exerciseName: 'Bench Press',
+            sessionsAnalyzed: 4,
+            e1rmChangePct: 0.5,
+            topSetImproving: false,
+            isPlateauing: true,
+          },
         ],
         consistency: { avgWorkoutsPerWeek: 4.5, streakWeeks: 5, weeksAnalyzed: 4 },
         volumeTrend: [
-          { weekStart: '2024-01-15', groupKey: 'squat', totalVolume: 6000, deltaVolume: 1000, direction: 'up' },
+          {
+            weekStart: '2024-01-15',
+            groupKey: 'squat',
+            totalVolume: 6000,
+            deltaVolume: 1000,
+            direction: 'up',
+          },
         ],
       };
       expect(generateInsightMessages(bundle, { exerciseNameById: nameById })).toEqual([

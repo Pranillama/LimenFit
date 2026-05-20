@@ -193,10 +193,7 @@ export function WorkoutDetailView({ workout }: Props) {
             return (
               <div key={ex.id} className="rounded-lg border bg-card">
                 <div className="px-4 py-3 font-medium">
-                  <Link
-                    href={`/train/exercises/${ex.exercise_id}`}
-                    className="hover:underline"
-                  >
+                  <Link href={`/train/exercises/${ex.exercise_id}`} className="hover:underline">
                     {name}
                   </Link>
                 </div>

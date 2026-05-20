@@ -159,9 +159,9 @@ describe('detectPlateaus', () => {
   it('flags plateau when top-set weight stalls even though e1RM exceeds threshold', () => {
     // e1RM rises >2% (more reps at same weight) but top-set weight never increases
     const series = [
-      point('bench', '2024-01-01T10:00:00Z', 100, 'bench', 100, 1),  // 100 kg × 1
-      point('bench', '2024-01-08T10:00:00Z', 110, 'bench', 100, 3),  // 100 kg × 3 → e1RM up
-      point('bench', '2024-01-15T10:00:00Z', 120, 'bench', 100, 6),  // 100 kg × 6 → e1RM up
+      point('bench', '2024-01-01T10:00:00Z', 100, 'bench', 100, 1), // 100 kg × 1
+      point('bench', '2024-01-08T10:00:00Z', 110, 'bench', 100, 3), // 100 kg × 3 → e1RM up
+      point('bench', '2024-01-15T10:00:00Z', 120, 'bench', 100, 6), // 100 kg × 6 → e1RM up
       point('bench', '2024-01-22T10:00:00Z', 133, 'bench', 100, 10), // 100 kg × 10 → e1RM +33%
     ];
     const signal = detectPlateaus(series, { minSessions: 4 })[0]!;

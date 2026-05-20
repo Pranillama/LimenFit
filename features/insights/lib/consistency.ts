@@ -49,8 +49,7 @@ export function computeConsistencyScore(
 
   const counts = buckets.map((b) => countPerWeek.get(b)!);
 
-  const avgWorkoutsPerWeek =
-    weeks === 0 ? 0 : counts.reduce((s, c) => s + c, 0) / weeks;
+  const avgWorkoutsPerWeek = weeks === 0 ? 0 : counts.reduce((s, c) => s + c, 0) / weeks;
 
   // Trailing streak from most recent → oldest
   let streakWeeks = 0;

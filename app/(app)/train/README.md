@@ -7,6 +7,7 @@ Active training session page and per-exercise history views.
 ### `exercises/[id]`
 
 Server-rendered detail page for a single exercise (`/train/exercises/<uuid>`). Shows:
+
 - Est. 1RM trend chart (Recharts `LineChart`, `OneRepMaxTrendChart` component)
 - Stats block: best e1RM, last e1RM, 30-day delta
 - Last 5 completed sessions containing this exercise, linking to `/train/history/<workoutId>`

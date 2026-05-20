@@ -10,11 +10,7 @@ import type { ExerciseCategory } from '@/lib/exercises/catalog';
 import { OneRepMaxTrendChart } from '@/features/insights/components/OneRepMaxTrendChart';
 import type { WeightUnit } from '@/features/insights/lib/types';
 
-export default async function ExerciseDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function ExerciseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!UUID_RE.test(id)) {
@@ -70,8 +66,9 @@ export default async function ExerciseDetailPage({
     return acc;
   }, {});
   const unit: WeightUnit =
-    (Object.entries(unitCounts).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as WeightUnit) ??
-    'lbs';
+    (Object.entries(unitCounts).sort(
+      ([, a], [, b]) => (b ?? 0) - (a ?? 0),
+    )[0]?.[0] as WeightUnit) ?? 'lbs';
   const normalizedPoints = sortedPoints.filter((p) => p.weightUnit === unit);
 
   const bestE1rm = normalizedPoints.reduce<number | null>(
@@ -154,9 +151,7 @@ export default async function ExerciseDetailPage({
                         : '',
                 ].join(' ')}
               >
-                {delta30 === null
-                  ? '—'
-                  : `${delta30 > 0 ? '+' : ''}${Math.round(delta30)}`}{' '}
+                {delta30 === null ? '—' : `${delta30 > 0 ? '+' : ''}${Math.round(delta30)}`}{' '}
                 {delta30 !== null && (
                   <span className="text-xs font-normal text-muted-foreground">{unit}</span>
                 )}

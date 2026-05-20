@@ -1,4 +1,8 @@
-import type { InsightMessage, InsightsBundle, VolumeTrendPoint } from '@/features/insights/lib/types';
+import type {
+  InsightMessage,
+  InsightsBundle,
+  VolumeTrendPoint,
+} from '@/features/insights/lib/types';
 import { autoNameWorkout } from '@/features/workout/lib/format';
 
 export const LOOKBACK_DAYS = 14;

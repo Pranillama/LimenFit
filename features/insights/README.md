@@ -29,10 +29,10 @@ features/insights/
 
 All Supabase I/O lives in `lib/insights/server.ts` (server-only module). The public API:
 
-| Function | Purpose |
-|---|---|
-| `getInsightsBundle(userId)` | Full bundle for the home dashboard — all metrics in one cached call |
-| `getOneRepMaxSeriesForExercise(userId, exerciseId)` | Per-exercise e1RM series for `/train/exercises/[id]` |
+| Function                                            | Purpose                                                             |
+| --------------------------------------------------- | ------------------------------------------------------------------- |
+| `getInsightsBundle(userId)`                         | Full bundle for the home dashboard — all metrics in one cached call |
+| `getOneRepMaxSeriesForExercise(userId, exerciseId)` | Per-exercise e1RM series for `/train/exercises/[id]`                |
 
 Both are wrapped in `unstable_cache` with the tag `insights:<userId>` and a 1-hour revalidation.
 
