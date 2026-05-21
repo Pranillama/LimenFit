@@ -6,9 +6,32 @@
 
 import { z } from 'zod';
 
+const optionalNonEmpty = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((v) => (v === '' ? undefined : v), schema.optional());
+
+const boolEnv = z.preprocess(
+  (v) => (v === undefined || v === '' ? false : v),
+  z.union([z.boolean(), z.string()]).transform((v, ctx) => {
+    if (typeof v === 'boolean') return v;
+    if (v === '1' || v === 'true') return true;
+    if (v === '0' || v === 'false') return false;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'expected "1", "true", "0", "false", or empty',
+    });
+    return z.NEVER;
+  }),
+);
+
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  // Required only when LIMENFIT_FEATURE_AI_ASSISTANT is on — enforced at call site in lib/ai/env.ts.
+  GOOGLE_GENAI_API_KEY: optionalNonEmpty(z.string().min(1)),
+  LIMENFIT_FEATURE_AI_ASSISTANT: boolEnv,
+  LIMENFIT_AI_LOG_PROMPT_TEXT: boolEnv,
+  // Reserved for the future Redis-backed rate limiter; not consumed in this ticket.
+  REDIS_URL: optionalNonEmpty(z.string().url()),
 });
 
 const clientSchema = z.object({

@@ -265,9 +265,7 @@ describe('generateInsightMessages', () => {
     it('fires for a stale group with matching one-rep-max-backed data', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        oneRepMaxSeries: [
-          makeOrm({ muscleGroup: 'chest', workoutDate: '2026-01-01T10:00:00Z' }),
-        ],
+        oneRepMaxSeries: [makeOrm({ muscleGroup: 'chest', workoutDate: '2026-01-01T10:00:00Z' })],
         lastSeenByGroup: { chest: '2026-01-01T10:00:00Z' },
       };
       const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });

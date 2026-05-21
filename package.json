@@ -25,6 +25,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@google/genai": "^2.5.0",
     "@hookform/resolvers": "^3",
     "@radix-ui/react-dialog": "^1",
     "@radix-ui/react-slot": "^1",
