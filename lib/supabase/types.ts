@@ -9,6 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_chat_logs: {
+        Row: {
+          created_at: string
+          id: string
+          latency_ms: number
+          prompt_hash: string
+          prompt_text: string | null
+          status: string
+          tokens_in: number
+          tokens_out: number
+          tool_calls: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latency_ms: number
+          prompt_hash: string
+          prompt_text?: string | null
+          status: string
+          tokens_in: number
+          tokens_out: number
+          tool_calls?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latency_ms?: number
+          prompt_hash?: string
+          prompt_text?: string | null
+          status?: string
+          tokens_in?: number
+          tokens_out?: number
+          tool_calls?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage_daily: {
+        Row: {
+          date: string
+          tokens_in: number
+          tokens_out: number
+          user_id: string
+        }
+        Insert: {
+          date: string
+          tokens_in?: number
+          tokens_out?: number
+          user_id: string
+        }
+        Update: {
+          date?: string
+          tokens_in?: number
+          tokens_out?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           category: string
