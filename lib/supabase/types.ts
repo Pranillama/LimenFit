@@ -419,6 +419,15 @@ export type Database = {
         Args: { p_plan_id: string; p_name: string; p_client_mutation_id: string }
         Returns: Array<{ plan_id: string }>
       }
+      record_ai_tokens: {
+        Args: {
+          p_user_id: string
+          p_date: string
+          p_tokens_in: number
+          p_tokens_out: number
+        }
+        Returns: void
+      }
     }
     Enums: {
       weight_unit: "lbs" | "kg"
