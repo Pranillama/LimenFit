@@ -49,6 +49,8 @@ export interface OneRepMaxPoint {
   workoutDate: string;
   exerciseId: string;
   exerciseName: string;
+  /** Muscle group of the source exercise — used to prove a group has ORM-backed data. */
+  muscleGroup: MuscleGroup;
   e1rm: number;
   weightUnit: WeightUnit;
   /** Heaviest single set (by weight) used in this session, for top-set plateau detection. */
@@ -89,16 +91,31 @@ export interface WorkoutsPerWeekPoint {
   count: number;
 }
 
+export interface PersonalRecord {
+  exerciseId: string;
+  exerciseName: string;
+  workoutDate: string;
+  topSetWeight: number;
+  topSetReps: number;
+  e1rm: number;
+  weightUnit: WeightUnit;
+  priorBestE1rm: number | null;
+}
+
 export interface InsightsBundle {
   oneRepMaxSeries: OneRepMaxPoint[];
   volumeTrend: VolumeTrendPoint[];
   consistency: ConsistencyScore;
   plateaus: PlateauSignal[];
   workoutsPerWeek: WorkoutsPerWeekPoint[];
+  personalRecords: PersonalRecord[];
+  lastSeenByGroup: Record<string, string>;
 }
 
 export interface InsightMessage {
   id: string;
   severity: 'info' | 'positive' | 'warning';
   text: string;
+  href?: string;
+  category: 'pr' | 'plateau' | 'gap' | 'volume' | 'consistency';
 }

@@ -19,6 +19,8 @@ import { computeVolumeTrend } from '@/features/insights/lib/volumeTrend';
 import { computeConsistencyScore } from '@/features/insights/lib/consistency';
 import { detectPlateaus } from '@/features/insights/lib/plateau';
 import { generateInsightMessages } from '@/features/insights/lib/messages';
+import { derivePersonalRecords } from '@/features/insights/lib/personalRecords';
+import { deriveLastSeenByGroup } from '@/features/insights/lib/lastSeen';
 
 assertServerOnly();
 
@@ -239,6 +241,8 @@ export async function getInsightsBundle(
       const consistency = computeConsistencyScore(workouts, { now });
       const plateaus = detectPlateaus(oneRepMaxSeries);
       const workoutsPerWeek = computeWorkoutsPerWeekSeries(workouts, { now });
+      const personalRecords = derivePersonalRecords(oneRepMaxSeries);
+      const lastSeenByGroup = deriveLastSeenByGroup(allExerciseSamples);
 
       const bundle: InsightsBundle = {
         oneRepMaxSeries,
@@ -246,9 +250,12 @@ export async function getInsightsBundle(
         consistency,
         plateaus,
         workoutsPerWeek,
+        personalRecords,
+        lastSeenByGroup,
       };
       const messages = generateInsightMessages(bundle, {
         exerciseNameById: (id) => exerciseNameById.get(id) ?? '',
+        now,
       });
 
       return { ...bundle, messages, completedWorkoutCount: rows.length };

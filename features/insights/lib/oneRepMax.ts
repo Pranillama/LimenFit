@@ -90,6 +90,7 @@ export function computeOneRepMaxSeries(
       workoutDate: first.workoutDate,
       exerciseId: first.exerciseId,
       exerciseName: first.exerciseName,
+      muscleGroup: first.muscleGroup,
       e1rm: best,
       weightUnit: unit,
       topSetWeight: topSet.weight,

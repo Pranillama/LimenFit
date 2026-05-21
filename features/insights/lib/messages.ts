@@ -1,95 +1,151 @@
-import type { InsightMessage, InsightsBundle, VolumeTrendPoint } from './types';
+import type { InsightMessage, InsightsBundle, OneRepMaxPoint, VolumeTrendPoint } from './types';
 
 interface MessageContext {
-  /** Resolves an exerciseId to its display name. Returns empty string when unknown. */
   exerciseNameById: (id: string) => string;
+  now: Date;
 }
 
-/** Capitalizes a snake_case key for display (e.g. "full_body" → "Full Body"). */
 function formatGroupKey(key: string, ctx: MessageContext): string {
   const name = ctx.exerciseNameById(key);
   if (name) return name;
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+const DAY_MS = 86_400_000;
+
 /**
- * Generates human-readable insight messages from a computed InsightsBundle.
- *
- * Messages are plain prose — no raw coefficients or formula outputs. The
- * function is deterministic: the same bundle always produces the same messages
- * in the same order.
+ * Builds the ranked insight-chip feed from a computed InsightsBundle.
+ * Buckets: PR (≤2) → plateau (≤1) → gap (≤1) → volume; capped at 4 total.
  */
 export function generateInsightMessages(
   bundle: InsightsBundle,
   ctx: MessageContext,
 ): InsightMessage[] {
-  const messages: InsightMessage[] = [];
+  const nowMs = ctx.now.getTime();
 
-  // --- Plateau warnings ---
+  // --- Rule A: Personal records within the last 7 days ---
+  const recentPrRecords = [...bundle.personalRecords]
+    .filter((pr) => nowMs - new Date(pr.workoutDate).getTime() <= 7 * DAY_MS)
+    .sort((a, b) => b.workoutDate.localeCompare(a.workoutDate))
+    .slice(0, 2);
+
+  const prChips: InsightMessage[] = recentPrRecords.map((pr) => ({
+    id: `pr-${pr.exerciseId}-${pr.workoutDate}`,
+    severity: 'positive' as const,
+    category: 'pr' as const,
+    text: `New PR · ${pr.exerciseName} — ${pr.topSetWeight}×${pr.topSetReps} (e1RM ${Math.round(pr.e1rm)} ${pr.weightUnit})`,
+    href: `/train/exercises/${pr.exerciseId}`,
+  }));
+
+  // Plateau suppression must mirror the chips actually emitted, not every recent PR.
+  const prExerciseIds = new Set<string>(recentPrRecords.map((pr) => pr.exerciseId));
+
+  // --- Rule B: Plateau with prescription (skip if exercise already has PR chip) ---
+  const latestOrmByExercise = new Map<string, OneRepMaxPoint>();
+  for (const point of bundle.oneRepMaxSeries) {
+    const existing = latestOrmByExercise.get(point.exerciseId);
+    if (!existing || point.workoutDate > existing.workoutDate) {
+      latestOrmByExercise.set(point.exerciseId, point);
+    }
+  }
+
+  const plateauChips: InsightMessage[] = [];
   for (const p of bundle.plateaus) {
     if (!p.isPlateauing) continue;
-    messages.push({
+    if (prExerciseIds.has(p.exerciseId)) continue;
+    const latest = latestOrmByExercise.get(p.exerciseId);
+    if (!latest) continue;
+    plateauChips.push({
       id: `plateau-${p.exerciseId}`,
       severity: 'warning',
-      text: `${p.exerciseName} has been flat for ${p.sessionsAnalyzed} sessions — try varying rep range or adding a deload week.`,
+      category: 'plateau',
+      text: `Plateau · ${p.exerciseName} — stalled ${p.sessionsAnalyzed} sessions at ${latest.topSetWeight}×${latest.topSetReps}. Try drop sets, pause reps, or a deload week.`,
+      href: `/train/exercises/${p.exerciseId}`,
     });
+    if (plateauChips.length >= 1) break;
   }
 
-  // --- Consistency messages ---
-  const { avgWorkoutsPerWeek, streakWeeks } = bundle.consistency;
+  // --- Rule C: Neglected group (≥10 days, must have been trained before) ---
+  // Eligibility requires the group to appear at least once in ORM-backed data —
+  // bodyweight/zero-weight-only samples surface in lastSeenByGroup but never
+  // produce OneRepMaxPoints and must not trigger gap chips.
+  const ormTrainedGroups = new Set<string>();
+  for (const point of bundle.oneRepMaxSeries) {
+    ormTrainedGroups.add(point.muscleGroup);
+  }
+  const gapCandidates: Array<{ key: string; daysSince: number }> = [];
+  for (const [key, lastSeen] of Object.entries(bundle.lastSeenByGroup)) {
+    if (!ormTrainedGroups.has(key)) continue;
+    const daysSince = Math.floor((nowMs - new Date(lastSeen).getTime()) / DAY_MS);
+    if (daysSince >= 10) {
+      gapCandidates.push({ key, daysSince });
+    }
+  }
+  gapCandidates.sort((a, b) => b.daysSince - a.daysSince);
 
-  if (streakWeeks >= 4) {
-    messages.push({
-      id: 'consistency-streak-strong',
-      severity: 'positive',
-      text: `You've hit your training target ${streakWeeks} weeks in a row — outstanding consistency.`,
-    });
-  } else if (streakWeeks >= 2) {
-    messages.push({
-      id: 'consistency-streak',
-      severity: 'positive',
-      text: `You've met your weekly training goal ${streakWeeks} weeks running — keep it up.`,
-    });
-  } else if (avgWorkoutsPerWeek > 0 && avgWorkoutsPerWeek < 1) {
-    messages.push({
-      id: 'consistency-low',
+  const gapChips: InsightMessage[] = gapCandidates.slice(0, 1).map(({ key, daysSince }) => {
+    const formatted = formatGroupKey(key, ctx);
+    return {
+      id: `gap-${key}`,
       severity: 'warning',
-      text: `Your training frequency has dipped below one session per week — even a short workout helps you stay on track.`,
-    });
-  } else if (avgWorkoutsPerWeek > 0 && avgWorkoutsPerWeek < 2) {
-    messages.push({
-      id: 'consistency-moderate-low',
-      severity: 'info',
-      text: `You're averaging fewer than two sessions per week — adding one more day could accelerate your progress.`,
-    });
-  }
+      category: 'gap',
+      text: `Gap · ${formatted} — no ${formatted} work in ${daysSince} days`,
+      href: '/train',
+    };
+  });
 
-  // --- Volume trend messages (most recent week per group key only) ---
-  const latestByGroup = new Map<string, VolumeTrendPoint>();
+  // --- Rule D: Volume delta with numbers ---
+  const latestVolumeByGroup = new Map<string, VolumeTrendPoint>();
   for (const point of bundle.volumeTrend) {
-    const existing = latestByGroup.get(point.groupKey);
+    const existing = latestVolumeByGroup.get(point.groupKey);
     if (!existing || point.weekStart > existing.weekStart) {
-      latestByGroup.set(point.groupKey, point);
+      latestVolumeByGroup.set(point.groupKey, point);
     }
   }
 
-  for (const [groupKey, point] of latestByGroup) {
-    const name = formatGroupKey(groupKey, ctx);
-
+  const volumeCandidates: Array<{ chip: InsightMessage; absPct: number }> = [];
+  for (const [groupKey, point] of latestVolumeByGroup) {
+    if (point.direction === 'flat') continue;
+    if (point.deltaVolume === null) continue;
+    if (Math.abs(point.deltaVolume) < 500) continue;
+    const prevWeekVolume = point.totalVolume - point.deltaVolume;
+    if (prevWeekVolume <= 0) continue;
+    const pct = Math.round(Math.abs(point.deltaVolume / prevWeekVolume) * 100);
+    const formatted = formatGroupKey(groupKey, ctx);
+    const prevStr = Math.round(prevWeekVolume).toLocaleString();
+    const currStr = Math.round(point.totalVolume).toLocaleString();
     if (point.direction === 'up') {
-      messages.push({
-        id: `volume-up-${groupKey}`,
-        severity: 'positive',
-        text: `Volume for ${name} is trending up this week — great momentum.`,
+      volumeCandidates.push({
+        chip: {
+          id: `volume-up-${groupKey}`,
+          severity: 'positive',
+          category: 'volume',
+          text: `${formatted} volume +${pct}% vs last week (${prevStr} → ${currStr} lb)`,
+          href: '/train',
+        },
+        absPct: pct,
       });
-    } else if (point.direction === 'down' && point.deltaVolume !== null) {
-      messages.push({
-        id: `volume-down-${groupKey}`,
-        severity: 'info',
-        text: `Volume for ${name} dipped this week — that's fine if you planned a lighter session.`,
+    } else {
+      volumeCandidates.push({
+        chip: {
+          id: `volume-down-${groupKey}`,
+          severity: 'info',
+          category: 'volume',
+          text: `${formatted} volume −${pct}% vs last week (${prevStr} → ${currStr} lb) — was this planned?`,
+          href: '/train',
+        },
+        absPct: pct,
       });
     }
   }
+  volumeCandidates.sort((a, b) => b.absPct - a.absPct);
+  const volumeChips = volumeCandidates.map((c) => c.chip);
 
-  return messages;
+  // --- Ranking & cap ---
+  return [
+    ...prChips.slice(0, 2),
+    ...plateauChips.slice(0, 1),
+    ...gapChips.slice(0, 1),
+    ...volumeChips,
+  ].slice(0, 4);
 }

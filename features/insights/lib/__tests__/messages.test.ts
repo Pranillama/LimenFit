@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { generateInsightMessages } from '../messages';
-import type { InsightsBundle } from '../types';
+import type { InsightsBundle, OneRepMaxPoint, PersonalRecord, VolumeTrendPoint } from '../types';
+
+const NOW = new Date('2026-01-15T12:00:00Z');
 
 const EMPTY_BUNDLE: InsightsBundle = {
   oneRepMaxSeries: [],
@@ -8,6 +10,8 @@ const EMPTY_BUNDLE: InsightsBundle = {
   consistency: { avgWorkoutsPerWeek: 0, streakWeeks: 0, weeksAnalyzed: 4 },
   plateaus: [],
   workoutsPerWeek: [],
+  personalRecords: [],
+  lastSeenByGroup: {},
 };
 
 const noName = () => '';
@@ -19,13 +23,93 @@ const nameById = (id: string) => {
   return map[id] ?? '';
 };
 
+function makePR(overrides: Partial<PersonalRecord> = {}): PersonalRecord {
+  return {
+    exerciseId: 'bench',
+    exerciseName: 'Bench Press',
+    workoutDate: '2026-01-13T10:00:00Z',
+    topSetWeight: 225,
+    topSetReps: 5,
+    e1rm: 262.5,
+    weightUnit: 'lbs',
+    priorBestE1rm: 250,
+    ...overrides,
+  };
+}
+
+function makeOrm(overrides: Partial<OneRepMaxPoint> = {}): OneRepMaxPoint {
+  return {
+    workoutId: 'w1',
+    workoutDate: '2026-01-13T10:00:00Z',
+    exerciseId: 'bench',
+    exerciseName: 'Bench Press',
+    muscleGroup: 'chest',
+    e1rm: 250,
+    weightUnit: 'lbs',
+    topSetWeight: 215,
+    topSetReps: 5,
+    ...overrides,
+  };
+}
+
+function makeVolume(overrides: Partial<VolumeTrendPoint> = {}): VolumeTrendPoint {
+  return {
+    weekStart: '2026-01-12',
+    groupKey: 'chest',
+    totalVolume: 6000,
+    deltaVolume: 1000,
+    direction: 'up',
+    ...overrides,
+  };
+}
+
 describe('generateInsightMessages', () => {
-  it('returns empty array for an empty bundle', () => {
-    expect(generateInsightMessages(EMPTY_BUNDLE, { exerciseNameById: noName })).toEqual([]);
+  describe('cold start', () => {
+    it('returns empty array for an empty bundle', () => {
+      expect(generateInsightMessages(EMPTY_BUNDLE, { exerciseNameById: noName, now: NOW })).toEqual(
+        [],
+      );
+    });
   });
 
-  describe('plateau messages', () => {
-    it('emits a warning for each plateauing exercise', () => {
+  describe('Rule A — PR chips', () => {
+    it('fires for PRs within 7 days, sorted desc, capped at 2', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        personalRecords: [
+          makePR({ exerciseId: 'bench', workoutDate: '2026-01-10T10:00:00Z' }),
+          makePR({
+            exerciseId: 'squat',
+            exerciseName: 'Squat',
+            workoutDate: '2026-01-14T10:00:00Z',
+          }),
+          makePR({
+            exerciseId: 'dead',
+            exerciseName: 'Deadlift',
+            workoutDate: '2026-01-13T10:00:00Z',
+          }),
+        ],
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      const prMsgs = msgs.filter((m) => m.category === 'pr');
+      expect(prMsgs).toHaveLength(2);
+      expect(prMsgs[0]!.text).toContain('Squat');
+      expect(prMsgs[1]!.text).toContain('Deadlift');
+      expect(prMsgs[0]!.href).toBe('/train/exercises/squat');
+    });
+
+    it('does not fire for PRs older than 7 days', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        personalRecords: [makePR({ exerciseId: 'bench', workoutDate: '2026-01-01T10:00:00Z' })],
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      expect(msgs.filter((m) => m.category === 'pr')).toHaveLength(0);
+    });
+  });
+
+  describe('Rule B — Plateau chips', () => {
+    it('fires for plateauing exercise with prescription text', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         plateaus: [
@@ -33,362 +117,309 @@ describe('generateInsightMessages', () => {
             exerciseId: 'bench',
             exerciseName: 'Bench Press',
             sessionsAnalyzed: 4,
-            e1rmChangePct: 0.8,
+            e1rmChangePct: 0.5,
             topSetImproving: false,
             isPlateauing: true,
           },
         ],
+        oneRepMaxSeries: [makeOrm({ topSetWeight: 215, topSetReps: 5 })],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      expect(msgs).toHaveLength(1);
-      expect(msgs[0]!.severity).toBe('warning');
-      expect(msgs[0]!.id).toBe('plateau-bench');
-      expect(msgs[0]!.text).toContain('Bench Press');
-      expect(msgs[0]!.text).toContain('4 sessions');
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      const plateau = msgs.find((m) => m.category === 'plateau');
+      expect(plateau).toBeDefined();
+      expect(plateau!.text).toContain('Plateau · Bench Press');
+      expect(plateau!.text).toContain('215×5');
+      expect(plateau!.text).toContain('drop sets');
+      expect(plateau!.href).toBe('/train/exercises/bench');
     });
 
-    it('does not emit a message for non-plateauing exercises', () => {
+    it('does not fire when isPlateauing is false', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         plateaus: [
           {
-            exerciseId: 'squat',
-            exerciseName: 'Squat',
+            exerciseId: 'bench',
+            exerciseName: 'Bench Press',
             sessionsAnalyzed: 4,
             e1rmChangePct: 5,
             topSetImproving: true,
             isPlateauing: false,
           },
         ],
+        oneRepMaxSeries: [makeOrm()],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      expect(msgs).toHaveLength(0);
-    });
-  });
-
-  describe('consistency messages', () => {
-    it('emits a strong-streak positive for streakWeeks ≥ 4', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        consistency: { avgWorkoutsPerWeek: 3.5, streakWeeks: 5, weeksAnalyzed: 4 },
-      };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName });
-      const streak = msgs.find((m) => m.id === 'consistency-streak-strong');
-      expect(streak).toBeDefined();
-      expect(streak?.severity).toBe('positive');
-      expect(streak?.text).toContain('5 weeks');
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      expect(msgs.filter((m) => m.category === 'plateau')).toHaveLength(0);
     });
 
-    it('emits a streak positive for streakWeeks 2–3', () => {
+    it('plateau on a non-emitted PR exercise is still eligible when PR chips are capped', () => {
+      // Three recent PRs exist but PR chips cap at 2, so the third PR is dropped.
+      // A plateau on that third exercise must NOT be suppressed by Rule B.
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        consistency: { avgWorkoutsPerWeek: 3, streakWeeks: 2, weeksAnalyzed: 4 },
+        personalRecords: [
+          makePR({ exerciseId: 'bench', workoutDate: '2026-01-14T10:00:00Z' }),
+          makePR({
+            exerciseId: 'squat',
+            exerciseName: 'Squat',
+            workoutDate: '2026-01-13T10:00:00Z',
+          }),
+          makePR({
+            exerciseId: 'dead',
+            exerciseName: 'Deadlift',
+            workoutDate: '2026-01-12T10:00:00Z',
+          }),
+        ],
+        plateaus: [
+          {
+            exerciseId: 'dead',
+            exerciseName: 'Deadlift',
+            sessionsAnalyzed: 4,
+            e1rmChangePct: 0.5,
+            topSetImproving: false,
+            isPlateauing: true,
+          },
+        ],
+        oneRepMaxSeries: [makeOrm({ exerciseId: 'dead', exerciseName: 'Deadlift' })],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName });
-      const streak = msgs.find((m) => m.id === 'consistency-streak');
-      expect(streak?.severity).toBe('positive');
-      expect(streak?.text).toContain('2 weeks');
-    });
-
-    it('emits a warning when avgWorkoutsPerWeek < 1', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        consistency: { avgWorkoutsPerWeek: 0.5, streakWeeks: 0, weeksAnalyzed: 4 },
-      };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName });
-      const low = msgs.find((m) => m.id === 'consistency-low');
-      expect(low?.severity).toBe('warning');
-    });
-
-    it('emits info when avgWorkoutsPerWeek is between 1 and 2', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        consistency: { avgWorkoutsPerWeek: 1.5, streakWeeks: 0, weeksAnalyzed: 4 },
-      };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName });
-      const info = msgs.find((m) => m.id === 'consistency-moderate-low');
-      expect(info?.severity).toBe('info');
-    });
-
-    it('emits nothing for consistency when streak=1 and avg ≥ 2', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        consistency: { avgWorkoutsPerWeek: 2.5, streakWeeks: 1, weeksAnalyzed: 4 },
-      };
-      const consistencyMsgs = generateInsightMessages(bundle, { exerciseNameById: noName }).filter(
-        (m) => m.id.startsWith('consistency'),
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      expect(msgs.filter((m) => m.category === 'pr').map((m) => m.text)).toEqual(
+        expect.arrayContaining([expect.stringContaining('Bench')]),
       );
-      expect(consistencyMsgs).toHaveLength(0);
+      // PRs are capped at 2, so the Deadlift PR is not emitted.
+      expect(msgs.filter((m) => m.category === 'pr')).toHaveLength(2);
+      expect(msgs.some((m) => m.category === 'pr' && m.text.includes('Deadlift'))).toBe(false);
+      // The Deadlift plateau must therefore remain eligible.
+      const plateau = msgs.find((m) => m.category === 'plateau');
+      expect(plateau).toBeDefined();
+      expect(plateau!.text).toContain('Deadlift');
+    });
+
+    it('PR + plateau on same exercise: PR wins, plateau suppressed', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        personalRecords: [makePR({ exerciseId: 'bench', workoutDate: '2026-01-13T10:00:00Z' })],
+        plateaus: [
+          {
+            exerciseId: 'bench',
+            exerciseName: 'Bench Press',
+            sessionsAnalyzed: 4,
+            e1rmChangePct: 0.5,
+            topSetImproving: false,
+            isPlateauing: true,
+          },
+        ],
+        oneRepMaxSeries: [makeOrm()],
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      expect(msgs.filter((m) => m.category === 'pr')).toHaveLength(1);
+      expect(msgs.filter((m) => m.category === 'plateau')).toHaveLength(0);
     });
   });
 
-  describe('volume trend messages', () => {
-    it('emits a positive for an up-trending group', () => {
+  describe('Rule C — Gap chips', () => {
+    it('fires when a group is ≥10 days stale, sorted by daysSince desc', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'bench',
-            totalVolume: 5000,
-            deltaVolume: 500,
-            direction: 'up',
-          },
+        oneRepMaxSeries: [
+          makeOrm({ muscleGroup: 'chest', workoutDate: '2026-01-01T10:00:00Z' }),
+          makeOrm({ muscleGroup: 'legs', workoutDate: '2026-01-03T10:00:00Z' }),
+          makeOrm({ muscleGroup: 'back', workoutDate: '2026-01-13T10:00:00Z' }),
         ],
+        lastSeenByGroup: {
+          chest: '2026-01-01T10:00:00Z', // ~14 days
+          legs: '2026-01-03T10:00:00Z', // ~12 days
+          back: '2026-01-13T10:00:00Z', // 2 days — does not fire
+        },
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      const vol = msgs.find((m) => m.id === 'volume-up-bench');
-      expect(vol?.severity).toBe('positive');
-      expect(vol?.text).toContain('Bench Press');
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      const gaps = msgs.filter((m) => m.category === 'gap');
+      expect(gaps).toHaveLength(1);
+      expect(gaps[0]!.text).toContain('Chest');
+      expect(gaps[0]!.text).toMatch(/14 days/);
+      expect(gaps[0]!.href).toBe('/train');
     });
 
-    it('emits an info for a down-trending group', () => {
+    it('does not fire when no group is ≥10 days stale', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        oneRepMaxSeries: [makeOrm({ muscleGroup: 'chest' })],
+        lastSeenByGroup: { chest: '2026-01-13T10:00:00Z' },
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      expect(msgs.filter((m) => m.category === 'gap')).toHaveLength(0);
+    });
+
+    it('does not fire for a stale group absent from one-rep-max-backed data', () => {
+      // `lastSeenByGroup` carries the group (e.g. bodyweight-only work) but it
+      // never produced an OneRepMaxPoint → Rule C must reject it.
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        oneRepMaxSeries: [],
+        lastSeenByGroup: { chest: '2026-01-01T10:00:00Z' },
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      expect(msgs.filter((m) => m.category === 'gap')).toHaveLength(0);
+    });
+
+    it('fires for a stale group with matching one-rep-max-backed data', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        oneRepMaxSeries: [
+          makeOrm({ muscleGroup: 'chest', workoutDate: '2026-01-01T10:00:00Z' }),
+        ],
+        lastSeenByGroup: { chest: '2026-01-01T10:00:00Z' },
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      const gaps = msgs.filter((m) => m.category === 'gap');
+      expect(gaps).toHaveLength(1);
+      expect(gaps[0]!.text).toContain('Chest');
+    });
+  });
+
+  describe('Rule D — Volume chips', () => {
+    it('fires "up" with numbers when delta ≥ 500 and prev > 0', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
         volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'bench',
+          makeVolume({ groupKey: 'chest', totalVolume: 6000, deltaVolume: 1000, direction: 'up' }),
+        ],
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      const vol = msgs.find((m) => m.category === 'volume');
+      expect(vol).toBeDefined();
+      expect(vol!.severity).toBe('positive');
+      expect(vol!.text).toContain('+20%');
+      expect(vol!.text).toContain('5,000');
+      expect(vol!.text).toContain('6,000');
+    });
+
+    it('fires "down" with planned-question text', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        volumeTrend: [
+          makeVolume({
+            groupKey: 'chest',
             totalVolume: 4000,
-            deltaVolume: -600,
+            deltaVolume: -1000,
             direction: 'down',
-          },
+          }),
         ],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      const vol = msgs.find((m) => m.id === 'volume-down-bench');
-      expect(vol?.severity).toBe('info');
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      const vol = msgs.find((m) => m.category === 'volume');
+      expect(vol!.severity).toBe('info');
+      expect(vol!.text).toContain('−20%');
+      expect(vol!.text).toContain('was this planned?');
     });
 
-    it('uses only the most recent week per groupKey', () => {
+    it('does not fire when |delta| < 500', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        volumeTrend: [
-          {
-            weekStart: '2024-01-08',
-            groupKey: 'bench',
-            totalVolume: 3000,
-            deltaVolume: null,
-            direction: 'flat',
-          },
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'bench',
-            totalVolume: 5000,
-            deltaVolume: 2000,
-            direction: 'up',
-          },
-        ],
+        volumeTrend: [makeVolume({ totalVolume: 5400, deltaVolume: 400, direction: 'up' })],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      // Only the most recent (Jan 15, direction=up) should generate a message
-      expect(msgs.filter((m) => m.id.startsWith('volume'))).toHaveLength(1);
-      expect(msgs.find((m) => m.id === 'volume-up-bench')).toBeDefined();
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      expect(msgs.filter((m) => m.category === 'volume')).toHaveLength(0);
     });
 
-    it('formats unknown groupKey as capitalized label (muscle group fallback)', () => {
+    it('does not fire when direction is flat', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'full_body',
-            totalVolume: 5000,
-            deltaVolume: 500,
-            direction: 'up',
-          },
-        ],
+        volumeTrend: [makeVolume({ totalVolume: 5050, deltaVolume: 50, direction: 'flat' })],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: () => '' });
-      const vol = msgs.find((m) => m.id === 'volume-up-full_body');
-      expect(vol?.text).toContain('Full Body');
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      expect(msgs.filter((m) => m.category === 'volume')).toHaveLength(0);
     });
 
-    it('does not emit a volume message when direction is flat', () => {
+    it('does not fire when prev week volume is 0', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'bench',
-            totalVolume: 4500,
-            deltaVolume: 50,
-            direction: 'flat',
-          },
-        ],
+        volumeTrend: [makeVolume({ totalVolume: 5000, deltaVolume: 5000, direction: 'up' })],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      expect(msgs.filter((m) => m.id.startsWith('volume'))).toHaveLength(0);
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: noName, now: NOW });
+      expect(msgs.filter((m) => m.category === 'volume')).toHaveLength(0);
     });
   });
 
-  describe('message text quality', () => {
-    it('messages contain no raw numeric coefficients from formulas', () => {
+  describe('ranking & cap', () => {
+    it('enforces priority order PR → plateau → gap → volume and caps at 4', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
+        personalRecords: [
+          makePR({ exerciseId: 'bench', workoutDate: '2026-01-14T10:00:00Z' }),
+          makePR({
+            exerciseId: 'squat',
+            exerciseName: 'Squat',
+            workoutDate: '2026-01-13T10:00:00Z',
+          }),
+          makePR({
+            exerciseId: 'dead',
+            exerciseName: 'Deadlift',
+            workoutDate: '2026-01-12T10:00:00Z',
+          }),
+        ],
         plateaus: [
           {
-            exerciseId: 'bench',
-            exerciseName: 'Bench Press',
-            sessionsAnalyzed: 4,
-            e1rmChangePct: 0.8,
-            topSetImproving: false,
-            isPlateauing: true,
-          },
-        ],
-        consistency: { avgWorkoutsPerWeek: 4, streakWeeks: 4, weeksAnalyzed: 4 },
-        volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'bench',
-            totalVolume: 5000,
-            deltaVolume: 500,
-            direction: 'up',
-          },
-        ],
-      };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      for (const msg of msgs) {
-        // No lone decimals like "0.8" or coefficients like "1 +"
-        expect(msg.text).not.toMatch(/\b1 \+/);
-        expect(msg.text).not.toMatch(/\b0\.\d+\b/);
-      }
-    });
-
-    it('all messages have non-empty id and text', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        plateaus: [
-          {
-            exerciseId: 'bench',
-            exerciseName: 'Bench Press',
+            exerciseId: 'ohp',
+            exerciseName: 'Overhead Press',
             sessionsAnalyzed: 4,
             e1rmChangePct: 0.5,
             topSetImproving: false,
             isPlateauing: true,
           },
         ],
-        consistency: { avgWorkoutsPerWeek: 4.5, streakWeeks: 5, weeksAnalyzed: 4 },
+        oneRepMaxSeries: [
+          makeOrm({ exerciseId: 'ohp', exerciseName: 'Overhead Press' }),
+          makeOrm({
+            exerciseId: 'leg-press',
+            exerciseName: 'Leg Press',
+            workoutId: 'w-legs',
+            muscleGroup: 'legs',
+            workoutDate: '2026-01-01T10:00:00Z',
+          }),
+        ],
+        lastSeenByGroup: { legs: '2026-01-01T10:00:00Z' },
         volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'squat',
-            totalVolume: 6000,
-            deltaVolume: 1000,
-            direction: 'up',
-          },
+          makeVolume({ groupKey: 'chest', totalVolume: 6000, deltaVolume: 1000, direction: 'up' }),
+          makeVolume({ groupKey: 'back', totalVolume: 7000, deltaVolume: 2000, direction: 'up' }),
         ],
       };
-      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById });
-      for (const msg of msgs) {
-        expect(msg.id.length).toBeGreaterThan(0);
-        expect(msg.text.length).toBeGreaterThan(0);
-        expect(['info', 'positive', 'warning']).toContain(msg.severity);
-      }
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      expect(msgs).toHaveLength(4);
+      expect(msgs.map((m) => m.category)).toEqual(['pr', 'pr', 'plateau', 'gap']);
+    });
+
+    it('always caps at 4', () => {
+      const bundle: InsightsBundle = {
+        ...EMPTY_BUNDLE,
+        personalRecords: [
+          makePR({ exerciseId: 'a', exerciseName: 'A', workoutDate: '2026-01-14T10:00:00Z' }),
+          makePR({ exerciseId: 'b', exerciseName: 'B', workoutDate: '2026-01-13T10:00:00Z' }),
+        ],
+        volumeTrend: [
+          makeVolume({ groupKey: 'chest', totalVolume: 6000, deltaVolume: 1000, direction: 'up' }),
+          makeVolume({ groupKey: 'back', totalVolume: 7000, deltaVolume: 2000, direction: 'up' }),
+          makeVolume({ groupKey: 'legs', totalVolume: 8000, deltaVolume: 3000, direction: 'up' }),
+        ],
+      };
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      expect(msgs.length).toBeLessThanOrEqual(4);
     });
   });
 
-  describe('message snapshots', () => {
-    it('plateau bundle — full text and order', () => {
+  describe('schema', () => {
+    it('every message has id, text, severity, and category', () => {
       const bundle: InsightsBundle = {
         ...EMPTY_BUNDLE,
-        plateaus: [
-          {
-            exerciseId: 'bench',
-            exerciseName: 'Bench Press',
-            sessionsAnalyzed: 4,
-            e1rmChangePct: 0.8,
-            topSetImproving: false,
-            isPlateauing: true,
-          },
-        ],
+        personalRecords: [makePR()],
       };
-      expect(generateInsightMessages(bundle, { exerciseNameById: nameById })).toEqual([
-        {
-          id: 'plateau-bench',
-          severity: 'warning',
-          text: 'Bench Press has been flat for 4 sessions — try varying rep range or adding a deload week.',
-        },
-      ]);
-    });
-
-    it('consistency bundle — strong streak full text and order', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        consistency: { avgWorkoutsPerWeek: 4, streakWeeks: 5, weeksAnalyzed: 4 },
-      };
-      expect(generateInsightMessages(bundle, { exerciseNameById: noName })).toEqual([
-        {
-          id: 'consistency-streak-strong',
-          severity: 'positive',
-          text: "You've hit your training target 5 weeks in a row — outstanding consistency.",
-        },
-      ]);
-    });
-
-    it('volume bundle — up direction full text and order', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'bench',
-            totalVolume: 5000,
-            deltaVolume: 500,
-            direction: 'up',
-          },
-        ],
-      };
-      expect(generateInsightMessages(bundle, { exerciseNameById: nameById })).toEqual([
-        {
-          id: 'volume-up-bench',
-          severity: 'positive',
-          text: 'Volume for Bench Press is trending up this week — great momentum.',
-        },
-      ]);
-    });
-
-    it('combined plateau + consistency + volume — full text and order', () => {
-      const bundle: InsightsBundle = {
-        ...EMPTY_BUNDLE,
-        plateaus: [
-          {
-            exerciseId: 'bench',
-            exerciseName: 'Bench Press',
-            sessionsAnalyzed: 4,
-            e1rmChangePct: 0.5,
-            topSetImproving: false,
-            isPlateauing: true,
-          },
-        ],
-        consistency: { avgWorkoutsPerWeek: 4.5, streakWeeks: 5, weeksAnalyzed: 4 },
-        volumeTrend: [
-          {
-            weekStart: '2024-01-15',
-            groupKey: 'squat',
-            totalVolume: 6000,
-            deltaVolume: 1000,
-            direction: 'up',
-          },
-        ],
-      };
-      expect(generateInsightMessages(bundle, { exerciseNameById: nameById })).toEqual([
-        {
-          id: 'plateau-bench',
-          severity: 'warning',
-          text: 'Bench Press has been flat for 4 sessions — try varying rep range or adding a deload week.',
-        },
-        {
-          id: 'consistency-streak-strong',
-          severity: 'positive',
-          text: "You've hit your training target 5 weeks in a row — outstanding consistency.",
-        },
-        {
-          id: 'volume-up-squat',
-          severity: 'positive',
-          text: 'Volume for Squat is trending up this week — great momentum.',
-        },
-      ]);
+      const msgs = generateInsightMessages(bundle, { exerciseNameById: nameById, now: NOW });
+      for (const m of msgs) {
+        expect(m.id.length).toBeGreaterThan(0);
+        expect(m.text.length).toBeGreaterThan(0);
+        expect(['info', 'positive', 'warning']).toContain(m.severity);
+        expect(['pr', 'plateau', 'gap', 'volume', 'consistency']).toContain(m.category);
+      }
     });
   });
 });

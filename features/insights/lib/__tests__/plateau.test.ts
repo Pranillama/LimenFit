@@ -15,6 +15,7 @@ function point(
     exerciseName,
     workoutId: `w-${workoutDate}`,
     workoutDate,
+    muscleGroup: 'chest',
     e1rm,
     weightUnit: 'kg',
     topSetWeight,
