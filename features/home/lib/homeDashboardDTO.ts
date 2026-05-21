@@ -65,12 +65,6 @@ export interface HomeInsightsDTO {
   hasEnoughData: boolean;
 }
 
-const SEVERITY_ORDER: Record<InsightMessage['severity'], number> = {
-  warning: 0,
-  positive: 1,
-  info: 2,
-};
-
 function buildConsistencyMessage(avgPerWeek: number, streakWeeks: number): string {
   if (avgPerWeek === 0) return 'Start logging to build a streak';
   if (streakWeeks >= 4) return `${streakWeeks}-week streak — outstanding`;
@@ -107,9 +101,7 @@ export function buildHomeInsightsDTO(
 
   const hasEnoughData = bundle.completedWorkoutCount >= 3;
 
-  const topMessages = [...bundle.messages]
-    .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
-    .slice(0, 3);
+  const topMessages = bundle.messages.slice(0, 4);
 
   const latestByGroup = new Map<string, VolumeTrendPoint>();
   for (const point of bundle.volumeTrend) {
