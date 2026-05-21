@@ -1,23 +1,31 @@
 'use client';
 
 import type { User } from '@supabase/supabase-js';
-import { Dumbbell, Home, LogOut, User as UserIcon } from 'lucide-react';
+import { Dumbbell, Home, LogOut, Sparkles, User as UserIcon } from 'lucide-react';
 
 import { NavItem } from './NavItem';
 import { useHardenedSignOut } from './useHardenedSignOut';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/train', label: 'Train', icon: Dumbbell },
-  { href: '/profile', label: 'Profile', icon: UserIcon },
 ] as const;
+
+const ASK_ITEM = { href: '/ask', label: 'Ask', icon: Sparkles } as const;
+
+const PROFILE_ITEM = { href: '/profile', label: 'Profile', icon: UserIcon } as const;
 
 interface AppSidebarProps {
   user: User;
+  aiEnabled: boolean;
 }
 
-export function AppSidebar({ user }: AppSidebarProps) {
+export function AppSidebar({ user, aiEnabled }: AppSidebarProps) {
   const { handleSignOut, isPending } = useHardenedSignOut();
+
+  const items = aiEnabled
+    ? [...BASE_NAV_ITEMS, ASK_ITEM, PROFILE_ITEM]
+    : [...BASE_NAV_ITEMS, PROFILE_ITEM];
 
   return (
     <aside className="fixed left-0 top-0 hidden h-full bg-background md:flex md:w-60 md:flex-col md:border-r">
@@ -27,7 +35,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <NavItem key={item.href} {...item} variant="sidebar" />
           ))}
         </nav>

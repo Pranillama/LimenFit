@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { AppShell } from '@/features/shell';
+import { isAiAssistantEnabled } from '@/lib/ai/env';
 import { createSupabaseServerClient } from '@/lib/supabase/server-exports';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -13,5 +14,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect('/auth');
   }
 
-  return <AppShell user={user}>{children}</AppShell>;
+  const aiEnabled = isAiAssistantEnabled();
+
+  return (
+    <AppShell user={user} aiEnabled={aiEnabled}>
+      {children}
+    </AppShell>
+  );
 }
