@@ -304,15 +304,30 @@ The following packages were installed in Phase 1. Most are reserved for later ti
 | `recharts ^2`                               | Chart components — **installed but unused in Phase 1**, reserved for T18 Progress Engine (ticket:75146556-4dd0-418c-9f5e-1d0fc95d0981/2e98b1cb-c672-40ac-aa46-b4aa597a8603) | T18                                                                      |
 | `@tanstack/react-query-devtools ^5` _(dev)_ | Floating devtools panel — dynamically imported via `next/dynamic`, excluded from production bundles                                                                         | Dev server only                                                          |
 
+> **Phase 3 note:** T20a surfaces the same Progress Engine outputs as richer chips (rule-based, no new libraries). T20b will introduce a Gemini SDK and an SSE streaming helper — exact packages will be selected at T20b planning time and are **not pre-installed**.
+
 React Query Devtools are loaded via `next/dynamic` with `{ ssr: false }` and are **only included in non-production bundles**. The `process.env.NODE_ENV !== 'production'` guard is statically inlined by Next.js, so the devtools chunk is dead-code-eliminated in `pnpm build`.
 
 ---
 
 ## Phase 3 expansion (informational)
 
-When the CV microservice lands in Phase 3, the repository will graduate to a monorepo layout with `apps/web/` and `apps/form-analysis/`. The Gemini AI wrapper will live at `apps/web/app/api/ai/` and `apps/web/lib/ai/`.
+Phase 3 has been split into three independent tickets. The Epic Brief (`spec:75146556-4dd0-418c-9f5e-1d0fc95d0981/a6d956b5-8967-479f-a52d-9c74f2ad15bc`) is the Phase 3 source of truth; the four design specs in [`docs/superpowers/specs/`](docs/superpowers/specs/) hold the full rationale, data flow, and acceptance criteria for each piece.
 
-**Do not pre-create an `apps/` directory in Phase 1** — the migration will be handled as a dedicated task when the microservice is ready.
+| Ticket   | Scope                                                                     | Lands where                                                                                                           |
+| -------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **T19**  | Form Analysis (CV pipeline)                                               | Drives the monorepo migration to `apps/web/` + `apps/form-analysis/`                                                  |
+| **T20a** | Rule-based insight chips (Progress Engine v2 surface)                     | In-monolith; no schema or AI changes. Pure-function additions under `features/insights/lib/`                          |
+| **T20b** | Conversational AI assistant at `/ask` (Gemini, tool calling, server-side) | In-monolith; `app/(app)/ask/`, `app/api/ask/`, `lib/ai/`, `prompts/ask/`. **Does not require the `apps/` migration.** |
+
+**Do not pre-create an `apps/` directory in Phase 1.** That guidance applies only to T19 — the monorepo migration is handled as a dedicated task when the CV microservice is ready. T20a and T20b both ship inside the current Next.js tree.
+
+Design specs (rationale + acceptance criteria):
+
+- [`docs/superpowers/specs/2026-05-20-rule-based-insight-chips-design.md`](docs/superpowers/specs/2026-05-20-rule-based-insight-chips-design.md) — T20a design
+- [`docs/superpowers/specs/2026-05-20-rule-based-insight-chips-traycer-brief.md`](docs/superpowers/specs/2026-05-20-rule-based-insight-chips-traycer-brief.md) — T20a ticket brief
+- [`docs/superpowers/specs/2026-05-20-ai-assistant-design.md`](docs/superpowers/specs/2026-05-20-ai-assistant-design.md) — T20b design
+- [`docs/superpowers/specs/2026-05-20-ai-assistant-traycer-brief.md`](docs/superpowers/specs/2026-05-20-ai-assistant-traycer-brief.md) — T20b ticket brief
 
 ---
 

@@ -25,6 +25,20 @@ features/insights/
     weekHelpers.ts               getMondayDate(), toIsoDateString()
 ```
 
+## Upcoming (T20a)
+
+The T20a ticket extends this pipeline with two new pure-function modules and rewrites the existing message generator. No schema changes, no new DB queries, no new runtime libraries. Full rule definitions and ranking order are in [`docs/superpowers/specs/2026-05-20-rule-based-insight-chips-design.md`](../../docs/superpowers/specs/2026-05-20-rule-based-insight-chips-design.md).
+
+| File                 | Status     | Purpose                                                                                            |
+| -------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| `personalRecords.ts` | new (T20a) | `derivePersonalRecords(oneRepMaxSeries)` → `PersonalRecord[]` (also consumed by T20b's tool layer) |
+| `lastSeen.ts`        | new (T20a) | `deriveLastSeenByGroup(allExerciseSamples)` → `Record<MuscleGroup, string>`                        |
+| `messages.ts`        | rewritten  | Four ranked rules: PR, Plateau (with prescription), Neglected group, Volume delta with numbers     |
+
+Both new derivations are added to `InsightsBundle` inside `lib/insights/server.ts` and are computed alongside the existing kernels from data already loaded by `fetchWorkoutRows` — no extra round-trips.
+
+The `InsightsBundle` shape gains two fields (`personalRecords`, `lastSeenByGroup`) but the cache key, the `insightsTag(userId)` invalidation contract, and the 1-hour revalidation window are unchanged.
+
 ## Server entry points (`lib/insights/`)
 
 All Supabase I/O lives in `lib/insights/server.ts` (server-only module). The public API:
