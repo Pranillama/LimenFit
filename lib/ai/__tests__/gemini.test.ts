@@ -55,7 +55,10 @@ async function* fromArray<T>(items: T[]): AsyncGenerator<T> {
   for (const it of items) yield it;
 }
 
-function textChunk(text: string, usage?: { promptTokenCount?: number; candidatesTokenCount?: number }) {
+function textChunk(
+  text: string,
+  usage?: { promptTokenCount?: number; candidatesTokenCount?: number },
+) {
   return {
     candidates: [{ content: { parts: [{ text }] } }],
     ...(usage ? { usageMetadata: usage } : {}),
@@ -107,9 +110,7 @@ describe('runAskTurn', () => {
     const err = Object.assign(new Error('upstream 503'), { status: 503 });
     generateContentStreamMock.mockRejectedValueOnce(err).mockRejectedValueOnce(err);
 
-    await expect(collect(runAskTurn(baseInput()))).rejects.toBeInstanceOf(
-      GeminiUnavailableError,
-    );
+    await expect(collect(runAskTurn(baseInput()))).rejects.toBeInstanceOf(GeminiUnavailableError);
     expect(generateContentStreamMock).toHaveBeenCalledTimes(2);
   });
 
@@ -130,18 +131,14 @@ describe('runAskTurn', () => {
 
   it('dispatches one tool round then yields final text + done', async () => {
     generateContentStreamMock
-      .mockResolvedValueOnce(
-        fromArray([functionCallChunk('get_recent_workouts', { days: 7 })]),
-      )
+      .mockResolvedValueOnce(fromArray([functionCallChunk('get_recent_workouts', { days: 7 })]))
       .mockResolvedValueOnce(
         fromArray([
           textChunk('You did 3 workouts.', { promptTokenCount: 100, candidatesTokenCount: 8 }),
         ]),
       );
 
-    vi.mocked(dispatchToolCall).mockResolvedValueOnce([
-      { id: 'wk-1', name: 'Push' },
-    ]);
+    vi.mocked(dispatchToolCall).mockResolvedValueOnce([{ id: 'wk-1', name: 'Push' }]);
 
     const events = await collect(runAskTurn(baseInput()));
 
@@ -151,10 +148,7 @@ describe('runAskTurn', () => {
       'get_recent_workouts',
     );
 
-    const done = events.find((e) => e.kind === 'done') as Extract<
-      StreamEvent,
-      { kind: 'done' }
-    >;
+    const done = events.find((e) => e.kind === 'done') as Extract<StreamEvent, { kind: 'done' }>;
     expect(done).toBeDefined();
     expect(done.tokensIn).toBe(100);
     expect(done.tokensOut).toBe(8);

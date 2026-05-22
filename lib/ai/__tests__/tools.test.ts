@@ -47,9 +47,7 @@ function makeRawRow(
         id: 'we-001',
         exercise_id: EXERCISE_ID,
         exercises: { name: 'Bench Press', category: 'chest' },
-        sets: [
-          { id: 's1', weight_value: 100, weight_unit: 'lbs', reps: 5, logged_at: STARTED_AT },
-        ],
+        sets: [{ id: 's1', weight_value: 100, weight_unit: 'lbs', reps: 5, logged_at: STARTED_AT }],
       },
     ],
     ...overrides,

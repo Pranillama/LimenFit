@@ -16,12 +16,7 @@ vi.mock('@/lib/supabase/service-role', () => ({
   createSupabaseServiceRoleClient: vi.fn(),
 }));
 
-import {
-  DAILY_TOKEN_CAP,
-  checkDailyBudget,
-  recordTokens,
-  todayUtc,
-} from '@/lib/ai/costGuard';
+import { DAILY_TOKEN_CAP, checkDailyBudget, recordTokens, todayUtc } from '@/lib/ai/costGuard';
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service-role';
 
 const USER_ID = 'user-cg-1';
@@ -111,9 +106,7 @@ describe('costGuard', () => {
     });
 
     it('propagates RPC errors', async () => {
-      const rpc = vi
-        .fn()
-        .mockResolvedValue({ data: null, error: new Error('rpc failed') });
+      const rpc = vi.fn().mockResolvedValue({ data: null, error: new Error('rpc failed') });
       vi.mocked(createSupabaseServiceRoleClient).mockReturnValue({ rpc } as any);
 
       await expect(recordTokens(USER_ID, 1, 1)).rejects.toThrow('rpc failed');

@@ -28,12 +28,17 @@ import { buildBaseContext } from '@/lib/ai/baseContext';
 import { getInsightsBundle } from '@/lib/insights/server';
 import { getOrCreateUserSettings } from '@/lib/settings/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import type { InsightsBundle } from '@/features/insights/lib/types';
+import type { InsightMessage, InsightsBundle } from '@/features/insights/lib/types';
+
+type MockedInsightsBundle = InsightsBundle & {
+  messages: InsightMessage[];
+  completedWorkoutCount: number;
+};
 
 const USER_ID = 'user-abc';
 const NOW = new Date('2026-01-19T12:00:00.000Z'); // Monday — week start
 
-function makeBundle(overrides: Partial<InsightsBundle> = {}): InsightsBundle {
+function makeBundle(overrides: Partial<MockedInsightsBundle> = {}): MockedInsightsBundle {
   return {
     oneRepMaxSeries: [],
     volumeTrend: [],
@@ -42,6 +47,8 @@ function makeBundle(overrides: Partial<InsightsBundle> = {}): InsightsBundle {
     workoutsPerWeek: [{ weekStart: '2026-01-19', count: 2 }],
     personalRecords: [],
     lastSeenByGroup: {},
+    messages: [],
+    completedWorkoutCount: 0,
     ...overrides,
   };
 }

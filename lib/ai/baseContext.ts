@@ -67,9 +67,7 @@ export async function buildBaseContext(
 
   // workoutCount mirrors home-dashboard counting (every completed workout,
   // including ones with no 1RM-eligible sets).
-  const currentWeekPoint = bundle.workoutsPerWeek.find(
-    (w) => w.weekStart === currentWeekStart,
-  );
+  const currentWeekPoint = bundle.workoutsPerWeek.find((w) => w.weekStart === currentWeekStart);
   const workoutCount = currentWeekPoint?.count ?? 0;
 
   // sessionsByGroup is ORM-backed: it only reflects workouts with sets that

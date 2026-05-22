@@ -56,10 +56,7 @@ describe('InMemorySlidingWindowLimiter', () => {
 
 describe('rateLimit.ts file header', () => {
   it('documents the per-serverless-instance caveat', () => {
-    const src = readFileSync(
-      join(process.cwd(), 'lib/ai/rateLimit.ts'),
-      'utf8',
-    );
+    const src = readFileSync(join(process.cwd(), 'lib/ai/rateLimit.ts'), 'utf8');
     expect(src).toMatch(/per-serverless-instance/);
   });
 });

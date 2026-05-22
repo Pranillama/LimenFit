@@ -198,9 +198,7 @@ describe('POST /api/ask — integration (mocked Gemini + real tool dispatch)', (
           candidates: [
             {
               content: {
-                parts: [
-                  { functionCall: { name: 'get_recent_workouts', args: { days: 7 } } },
-                ],
+                parts: [{ functionCall: { name: 'get_recent_workouts', args: { days: 7 } } }],
               },
             },
           ],
@@ -310,8 +308,7 @@ describe('POST /api/ask — integration (mocked Gemini + real tool dispatch)', (
     // default message delta frames follow, and the last frame is event: done.
     const firstRelevantIdx = frames.findIndex(
       (f) =>
-        f.event === 'tool_call' ||
-        (f.event === 'message' && (f.data as any)?.delta !== undefined),
+        f.event === 'tool_call' || (f.event === 'message' && (f.data as any)?.delta !== undefined),
     );
     expect(firstRelevantIdx).toBeGreaterThanOrEqual(0);
     expect(frames[firstRelevantIdx]!.event).toBe('tool_call');

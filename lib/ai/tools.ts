@@ -4,10 +4,7 @@ import type { FunctionDeclaration } from '@google/genai';
 
 import { assertServerOnly } from '@/lib/env';
 import type { Database } from '@/lib/supabase/types';
-import {
-  getInsightsBundle,
-  rowsToKernelInput,
-} from '@/lib/insights/server';
+import { getInsightsBundle, rowsToKernelInput } from '@/lib/insights/server';
 import { estimateOneRepMax } from '@/features/insights/lib/oneRepMax';
 import type { PersonalRecord, WeightUnit } from '@/features/insights/lib/types';
 
@@ -290,13 +287,10 @@ async function handleSearchSetsByCriteria(
   if (args.weightLte !== undefined) query = query.lte('weight_value', args.weightLte);
   if (args.repsGte !== undefined) query = query.gte('reps', args.repsGte);
   if (args.repsLte !== undefined) query = query.lte('reps', args.repsLte);
-  if (args.dateFrom)
-    query = query.gte('workout_exercises.workouts.started_at', args.dateFrom);
+  if (args.dateFrom) query = query.gte('workout_exercises.workouts.started_at', args.dateFrom);
   if (args.dateTo) query = query.lte('workout_exercises.workouts.started_at', args.dateTo);
 
-  const { data, error } = await query
-    .order('logged_at', { ascending: false })
-    .limit(args.limit);
+  const { data, error } = await query.order('logged_at', { ascending: false }).limit(args.limit);
 
   if (error) throw error;
 
@@ -392,10 +386,7 @@ async function handleGetRecentWorkouts(
     const setCount = wes.reduce((sum, we) => sum + (we.sets?.length ?? 0), 0);
 
     const endedIso = w.completed_at ?? w.started_at;
-    const durationMs = Math.max(
-      0,
-      new Date(endedIso).getTime() - new Date(w.started_at).getTime(),
-    );
+    const durationMs = Math.max(0, new Date(endedIso).getTime() - new Date(w.started_at).getTime());
 
     return {
       id: w.id,
@@ -443,9 +434,9 @@ export const READONLY_TOOLS: Record<ToolName, ToolEntry> = {
   },
 };
 
-export const READONLY_TOOL_DECLARATIONS: FunctionDeclaration[] = Object.values(
-  READONLY_TOOLS,
-).map((t) => t.declaration);
+export const READONLY_TOOL_DECLARATIONS: FunctionDeclaration[] = Object.values(READONLY_TOOLS).map(
+  (t) => t.declaration,
+);
 
 export async function dispatchToolCall(
   name: string,

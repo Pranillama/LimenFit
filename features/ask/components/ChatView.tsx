@@ -74,7 +74,10 @@ export function ChatView({ suggestedPrompts }: ChatViewProps) {
             {messages.map((m) => (
               <li
                 key={m.id}
-                className={cn('flex flex-col gap-2', m.role === 'user' ? 'items-end' : 'items-start')}
+                className={cn(
+                  'flex flex-col gap-2',
+                  m.role === 'user' ? 'items-end' : 'items-start',
+                )}
               >
                 {m.role === 'assistant' && m.toolCalls && m.toolCalls.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
@@ -123,7 +126,7 @@ export function ChatView({ suggestedPrompts }: ChatViewProps) {
           rows={1}
           placeholder="Ask about your training…"
           aria-label="Message"
-          className="min-h-[44px] max-h-40 flex-1 resize-none rounded-md border bg-background px-3 py-2.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="max-h-40 min-h-[44px] flex-1 resize-none rounded-md border bg-background px-3 py-2.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
         <Button
           type="submit"
@@ -140,10 +143,7 @@ export function ChatView({ suggestedPrompts }: ChatViewProps) {
 
 function StreamingDots() {
   return (
-    <span
-      aria-label="Coach is thinking"
-      className="inline-flex items-center gap-1 align-middle"
-    >
+    <span aria-label="Coach is thinking" className="inline-flex items-center gap-1 align-middle">
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70" />

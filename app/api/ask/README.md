@@ -47,12 +47,12 @@ The body is a sequence of SSE frames. Frames without an `event:` line default to
 
 ### Event types
 
-| Event       | Data payload                                  | When emitted                                                                                  |
-| ----------- | --------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| _(default)_ | `{ "delta": "string" }`                       | Each text chunk produced by the model. Multiple frames per turn.                              |
+| Event       | Data payload                                  | When emitted                                                                                                                                                                                                                                                                                                                                                   |
+| ----------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _(default)_ | `{ "delta": "string" }`                       | Each text chunk produced by the model. Multiple frames per turn.                                                                                                                                                                                                                                                                                               |
 | `tool_call` | `{ "name": "string", "args": { … } }`         | The model called one of the read-only tools. `args` is the **raw** function-call arguments object Gemini emitted — it is forwarded into the SSE frame _before_ validation runs. Argument validation happens inside `dispatchToolCall()`; failures are recovered by feeding a tool error back to the model as a `functionResponse`, not by aborting the stream. |
-| `done`      | `{ "tokensIn": number, "tokensOut": number }` | Final usage totals for the turn. Always the last frame on success.                            |
-| `error`     | `{ "code": "string", "message": "string" }`   | Mid-stream failure (Gemini unavailable, timeout, etc.). The stream then closes.               |
+| `done`      | `{ "tokensIn": number, "tokensOut": number }` | Final usage totals for the turn. Always the last frame on success.                                                                                                                                                                                                                                                                                             |
+| `error`     | `{ "code": "string", "message": "string" }`   | Mid-stream failure (Gemini unavailable, timeout, etc.). The stream then closes.                                                                                                                                                                                                                                                                                |
 
 Example frames (one turn, one tool call, two text chunks):
 

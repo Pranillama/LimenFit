@@ -212,10 +212,8 @@ export async function* runAskTurn(input: RunAskTurnInput): AsyncIterable<StreamE
         }
 
         if (chunk.usageMetadata) {
-          streamPromptTokens =
-            chunk.usageMetadata.promptTokenCount ?? streamPromptTokens;
-          streamOutputTokens =
-            chunk.usageMetadata.candidatesTokenCount ?? streamOutputTokens;
+          streamPromptTokens = chunk.usageMetadata.promptTokenCount ?? streamPromptTokens;
+          streamOutputTokens = chunk.usageMetadata.candidatesTokenCount ?? streamOutputTokens;
         }
       }
     } catch (err) {

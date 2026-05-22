@@ -29,7 +29,8 @@ export async function logTurn(input: LogTurnInput): Promise<void> {
     const row: Database['public']['Tables']['ai_chat_logs']['Insert'] = {
       user_id: input.userId,
       prompt_hash: sha256(input.promptText),
-      tool_calls: (input.toolCalls ?? []) as Database['public']['Tables']['ai_chat_logs']['Insert']['tool_calls'],
+      tool_calls: (input.toolCalls ??
+        []) as Database['public']['Tables']['ai_chat_logs']['Insert']['tool_calls'],
       tokens_in: input.tokensIn,
       tokens_out: input.tokensOut,
       latency_ms: input.latencyMs,

@@ -28,9 +28,10 @@ import { shouldLogPromptText } from '@/lib/ai/env';
 const USER_ID = 'user-log-1';
 const PROMPT = 'How many sets did I do this week?';
 
-function makeInsertSpy(
-  result: { error: Error | null } = { error: null },
-): { insert: ReturnType<typeof vi.fn>; from: ReturnType<typeof vi.fn> } {
+function makeInsertSpy(result: { error: Error | null } = { error: null }): {
+  insert: ReturnType<typeof vi.fn>;
+  from: ReturnType<typeof vi.fn>;
+} {
   const insert = vi.fn().mockResolvedValue(result);
   const from = vi.fn().mockReturnValue({ insert });
   vi.mocked(createSupabaseServiceRoleClient).mockReturnValue({ from } as any);
