@@ -169,6 +169,41 @@ WHERE status = 'expired'
 -- Expected: the row is deleted; workout_exercises and sets cascade-deleted
 ```
 
+---
+
+## AI assistant tables (T20b)
+
+Two tables back the `/ask` AI assistant (see `lib/ai/README.md` and `app/api/ask/README.md`). Both are written **exclusively by the service-role client** (`lib/supabase/service-role.ts`) — the migrations intentionally declare no `INSERT`/`UPDATE`/`DELETE` policies, so RLS blocks every write that doesn't bypass it.
+
+| Table             | Migration                                       | Purpose                                                                                       |
+| ----------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `ai_chat_logs`    | `20260521000001_ai_chat_logs.sql`               | One row per assistant turn — `prompt_hash`, `tool_calls`, `tokens_in/out`, `latency_ms`, `status` (`ok` / `error` / `rate_limit` / `cost_cap`). `prompt_text` is nullable and only populated when `LIMENFIT_AI_LOG_PROMPT_TEXT=1`. |
+| `ai_usage_daily`  | `20260521000002_ai_usage_daily.sql`             | Per-user, per-day token rollup keyed by `(user_id, date)`. Drives the durable daily cost cap in `lib/ai/costGuard.ts` — the real ceiling that survives across serverless instances. |
+
+A third migration, `20260521000003_record_ai_tokens.sql`, installs the `record_ai_tokens(p_user_id, p_date, p_tokens_in, p_tokens_out)` RPC used by `recordTokens()` to upsert into `ai_usage_daily` atomically.
+
+### RLS contract
+
+Both tables have RLS enabled with a **read-only owner policy** and no write policies:
+
+```sql
+-- ai_chat_logs
+CREATE POLICY ai_chat_logs_select ON public.ai_chat_logs
+  FOR SELECT USING (user_id = auth.uid());
+
+-- ai_usage_daily
+CREATE POLICY ai_usage_daily_select ON public.ai_usage_daily
+  FOR SELECT USING (user_id = auth.uid());
+```
+
+Practical consequences:
+
+- **Anon / authenticated clients can only read their own rows.** No client (the browser, the user-scoped server client in route handlers, RSC, etc.) can insert or modify either table — the absence of write policies is intentional.
+- **Only the service-role client writes.** `lib/ai/logging.ts` and `lib/ai/costGuard.ts` both use `createSupabaseServiceRoleClient()`, which bypasses RLS by design. Any future writer must use the same factory or add an explicit policy here.
+- **Cascade on user delete** — both tables `REFERENCES auth.users(id) ON DELETE CASCADE`, so a deleted user's chat history and usage rollup are removed automatically.
+
+---
+
 ### Local development note
 
 The local Supabase stack (`pnpm db:start`) includes pg_cron. If a developer's local Docker image has pg_cron disabled, `pnpm db:reset` will surface a clear error at the `CREATE EXTENSION` step in this migration — no silent failure.

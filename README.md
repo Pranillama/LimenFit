@@ -131,13 +131,17 @@ Authenticated routes (`/home`, `/train`, `/profile`, and their subpaths) are pro
 
 Copy `.env.example` to `.env.local` and fill in the values before running the dev server.
 
-| Variable                        | Required     | Description                                                                     |
-| ------------------------------- | ------------ | ------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Yes          | Your Supabase project URL                                                       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes          | Supabase anon/public key                                                        |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Yes (server) | Service role key — never exposed to the browser                                 |
-| `NEXT_PUBLIC_SITE_URL`          | Yes          | Canonical site URL (no trailing slash) — used by `robots.txt` and `sitemap.xml` |
-| `NODE_ENV`                      | No           | Defaults to `development`                                                       |
+| Variable                        | Required                                        | Description                                                                                                                                        |
+| ------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes                                             | Your Supabase project URL                                                                                                                          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes                                             | Supabase anon/public key                                                                                                                           |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes (server)                                    | Service role key — never exposed to the browser                                                                                                    |
+| `NEXT_PUBLIC_SITE_URL`          | Yes                                             | Canonical site URL (no trailing slash) — used by `robots.txt` and `sitemap.xml`                                                                    |
+| `NODE_ENV`                      | No                                              | Defaults to `development`                                                                                                                          |
+| `GOOGLE_GENAI_API_KEY`          | Only when `LIMENFIT_FEATURE_AI_ASSISTANT` is on | Google Gemini API key consumed by `lib/ai/*` — server-only. Enforced at the call site (`lib/ai/env.ts`), not at boot                               |
+| `LIMENFIT_FEATURE_AI_ASSISTANT` | No                                              | Feature flag for the `/ask` AI assistant. Accepts `1`/`true` (enable) or `0`/`false` (disable); defaults to off — the route returns 404 when unset |
+| `LIMENFIT_AI_LOG_PROMPT_TEXT`   | No                                              | When `1`/`true`, `ai_chat_logs` stores raw prompt text alongside the hash. Early-rollout debugging only; keep off in production                    |
+| `REDIS_URL`                     | No (reserved)                                   | Reserved for the future Redis-backed AI rate limiter — not consumed yet. See `lib/ai/README.md` for the swap path                                  |
 
 `lib/env.ts` validates all variables at import time and throws a single readable error listing every missing or invalid variable. The server variables are guarded by a browser Proxy that throws if accessed in client bundles.
 
@@ -193,6 +197,8 @@ Set the following in the Vercel project under **Settings → Environment Variabl
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key                                                                  |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Service role key — server-only, never exposed to the browser                              |
 | `NEXT_PUBLIC_SITE_URL`          | Canonical site URL (e.g. `https://limenfit.com`) — used by `robots.txt` and `sitemap.xml` |
+
+**AI assistant (`/ask`) variables.** When enabling `LIMENFIT_FEATURE_AI_ASSISTANT=1` in a Vercel environment, `GOOGLE_GENAI_API_KEY` **must** also be set in that environment — `lib/ai/env.ts` throws at the first `/api/ask` call without it. `LIMENFIT_AI_LOG_PROMPT_TEXT` and `REDIS_URL` are optional (debug logging and the future Redis-backed limiter respectively); leave them unset in Production unless explicitly needed. See the main [Environment variables](#environment-variables) table above for full descriptions.
 
 See `.env.example` for the variable names. In CI (`ci.yml`), `pnpm build` runs against placeholder values for these three variables purely to satisfy `lib/env.ts`'s import-time Zod validation — the build step does not connect to Supabase. The values set in Vercel must be the real credentials.
 
@@ -328,6 +334,20 @@ Design specs (rationale + acceptance criteria):
 - [`docs/superpowers/specs/2026-05-20-rule-based-insight-chips-traycer-brief.md`](docs/superpowers/specs/2026-05-20-rule-based-insight-chips-traycer-brief.md) — T20a ticket brief
 - [`docs/superpowers/specs/2026-05-20-ai-assistant-design.md`](docs/superpowers/specs/2026-05-20-ai-assistant-design.md) — T20b design
 - [`docs/superpowers/specs/2026-05-20-ai-assistant-traycer-brief.md`](docs/superpowers/specs/2026-05-20-ai-assistant-traycer-brief.md) — T20b ticket brief
+
+---
+
+## AI Assistant
+
+The `/ask` conversational coach (T20b) is gated by `LIMENFIT_FEATURE_AI_ASSISTANT` and ships with no schema or runtime dependency cost when the flag is off. When enabled it streams Gemini responses over Server-Sent Events, calls a small set of read-only tools against the user's own data, and writes per-turn usage to two new Supabase tables.
+
+Three READMEs document the layer:
+
+- [`features/ask/README.md`](features/ask/README.md) — page + React layer (`/ask`, `ChatView`, `useAskStream`, session-only memory contract, how to add a suggested prompt).
+- [`app/api/ask/README.md`](app/api/ask/README.md) — `POST /api/ask` request body, SSE event types (`tool_call`, default `data` with `delta`, `done`, `error`), response headers, error envelope codes (`RATE_LIMIT`, `COST_CAP`, `GEMINI_UNAVAILABLE`).
+- [`lib/ai/README.md`](lib/ai/README.md) — "AI never computes, never mutates" rule, how to add a read-only tool, how to bump the prompt version, how to plug in a Redis-backed rate limiter, and the in-memory-limiter caveat.
+
+Design spec: [`docs/superpowers/specs/2026-05-20-ai-assistant-design.md`](docs/superpowers/specs/2026-05-20-ai-assistant-design.md). New Supabase tables (`ai_chat_logs`, `ai_usage_daily`) are documented in [`supabase/README.md`](supabase/README.md).
 
 ---
 
