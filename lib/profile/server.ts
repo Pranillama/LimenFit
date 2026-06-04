@@ -6,12 +6,12 @@ import type { ProfileDTO } from '@/lib/schemas/profile';
 
 assertServerOnly();
 
-const PROFILE_COLUMNS =
+export const PROFILE_COLUMNS =
   'first_name, last_name, display_name, username, avatar_url, date_of_birth, gender, ' +
   'height_cm, starting_weight_kg, time_zone, primary_goal, goal_weight_kg, ' +
   'target_daily_calories, activity_level, training_experience, weekly_training_frequency';
 
-type ProfileRow = {
+export type ProfileRow = {
   first_name: string | null;
   last_name: string | null;
   display_name: string | null;
@@ -30,7 +30,7 @@ type ProfileRow = {
   weekly_training_frequency: number | null;
 };
 
-function rowToDTO(row: ProfileRow): ProfileDTO {
+export function rowToDTO(row: ProfileRow): ProfileDTO {
   return {
     firstName: row.first_name,
     lastName: row.last_name,
