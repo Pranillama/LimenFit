@@ -1,18 +1,19 @@
 'use client';
 
 import { CreditCard, Ruler, Sliders, Target, UserRound } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
 import { SignOutButton } from '@/app/(app)/profile/sign-out-button';
 
 import { SectionRow } from './ui/SectionRow';
 
+export type SectionKey = 'personal' | 'fitness' | 'body' | 'preferences' | 'subscription';
+
 interface SectionListProps {
   activeSection?: SectionKey;
   className?: string;
 }
-
-export type SectionKey = 'personal' | 'fitness' | 'body' | 'preferences' | 'subscription';
 
 const SECTIONS: Array<{
   key: SectionKey;
@@ -28,7 +29,15 @@ const SECTIONS: Array<{
   { key: 'subscription', href: '/profile/subscription', label: 'Subscription',      sublabel: 'Plan & usage',                    icon: CreditCard },
 ];
 
+function pathToKey(pathname: string | null): SectionKey | undefined {
+  if (!pathname) return undefined;
+  return SECTIONS.find((s) => pathname.startsWith(s.href))?.key;
+}
+
 export function SectionList({ activeSection, className }: SectionListProps) {
+  const pathname = usePathname();
+  const resolved = activeSection ?? pathToKey(pathname);
+
   return (
     <nav className={className} aria-label="Profile sections">
       <ul className="flex flex-col gap-1">
@@ -39,7 +48,7 @@ export function SectionList({ activeSection, className }: SectionListProps) {
               label={s.label}
               sublabel={s.sublabel}
               href={s.href}
-              active={s.key === activeSection}
+              active={s.key === resolved}
             />
           </li>
         ))}
