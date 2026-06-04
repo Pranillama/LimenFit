@@ -22,6 +22,10 @@ export default async function ProfileLayout({ children }: { children: React.Reac
 
   return (
     <PageContainer title="Profile" className="lg:max-w-5xl">
+      <p className="-mt-2 mb-6 text-sm text-muted-foreground">
+        Manage your account, training profile, and preferences.
+      </p>
+
       <div className="mb-6">
         {profile ? <ProfileHeader profile={profile} email={email} /> : null}
       </div>

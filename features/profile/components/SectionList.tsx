@@ -1,6 +1,6 @@
 'use client';
 
-import { CreditCard, Ruler, Sliders, Target, UserRound } from 'lucide-react';
+import { CreditCard, Ruler, Shield, Sliders, Target, UserRound } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
@@ -8,7 +8,13 @@ import { SignOutButton } from '@/app/(app)/profile/sign-out-button';
 
 import { SectionRow } from './ui/SectionRow';
 
-export type SectionKey = 'personal' | 'fitness' | 'body' | 'preferences' | 'subscription';
+export type SectionKey =
+  | 'personal'
+  | 'fitness'
+  | 'body'
+  | 'preferences'
+  | 'subscription'
+  | 'account';
 
 interface SectionListProps {
   activeSection?: SectionKey;
@@ -57,6 +63,13 @@ const SECTIONS: Array<{
     sublabel: 'Plan & usage',
     icon: CreditCard,
   },
+  {
+    key: 'account',
+    href: '/profile/account',
+    label: 'Account',
+    sublabel: 'Password & security',
+    icon: Shield,
+  },
 ];
 
 function pathToKey(pathname: string | null): SectionKey | undefined {
@@ -70,7 +83,7 @@ export function SectionList({ activeSection, className }: SectionListProps) {
 
   return (
     <nav className={className} aria-label="Profile sections">
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-1 rounded-xl border border-border bg-card p-2">
         {SECTIONS.map((s) => (
           <li key={s.key}>
             <SectionRow
@@ -83,7 +96,7 @@ export function SectionList({ activeSection, className }: SectionListProps) {
           </li>
         ))}
       </ul>
-      <div className="mt-6">
+      <div className="mt-4">
         <SignOutButton />
       </div>
     </nav>
