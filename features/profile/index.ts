@@ -5,3 +5,4 @@ export { ProfileHeader } from './components/ProfileHeader';
 export { SectionList } from './components/SectionList';
 export { AccountSection } from './components/AccountSection';
 export { useUpdateSettingsMutation } from './hooks/useUpdateSettingsMutation';
+export { SectionStub } from './components/SectionStub';
