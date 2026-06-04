@@ -52,7 +52,10 @@ describe('POST /api/account/delete', () => {
   });
 
   it('returns 400 when confirm string is missing or wrong', async () => {
-    mockRequireUser.mockResolvedValue({ supabase: makeSignOutSupabase(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValue({
+      supabase: makeSignOutSupabase(),
+      user: { id: USER_ID } as any,
+    });
     expect((await POST(makeRequest({}))).status).toBe(400);
     expect((await POST(makeRequest({ confirm: 'delete' }))).status).toBe(400);
     expect((await POST(makeRequest({ confirm: 'YES' }))).status).toBe(400);
@@ -60,7 +63,10 @@ describe('POST /api/account/delete', () => {
   });
 
   it('calls admin.deleteUser with the caller user_id and returns 200', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSignOutSupabase(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSignOutSupabase(),
+      user: { id: USER_ID } as any,
+    });
     const res = await POST(makeRequest({ confirm: 'DELETE' }));
     expect(res.status).toBe(200);
     expect(deleteUser).toHaveBeenCalledWith(USER_ID);
@@ -68,7 +74,10 @@ describe('POST /api/account/delete', () => {
 
   it('returns 500 when admin.deleteUser errors', async () => {
     deleteUser.mockResolvedValueOnce({ data: null, error: { message: 'boom' } });
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSignOutSupabase(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSignOutSupabase(),
+      user: { id: USER_ID } as any,
+    });
     const res = await POST(makeRequest({ confirm: 'DELETE' }));
     expect(res.status).toBe(500);
   });

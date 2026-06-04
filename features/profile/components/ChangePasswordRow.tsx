@@ -16,7 +16,7 @@ export function ChangePasswordRow({ email }: ChangePasswordRowProps) {
         type="button"
         onClick={() => void send(email)}
         disabled={isSending}
-        className="flex w-full min-h-[3.25rem] items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
+        className="flex min-h-[3.25rem] w-full items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
       >
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground">
           <Lock className="h-4 w-4" />

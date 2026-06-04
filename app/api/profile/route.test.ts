@@ -67,7 +67,10 @@ function makeSupabaseForGet(): any {
   };
 }
 
-function makeSupabaseForPatch(rowAfter: Record<string, unknown>): { client: any; upsert: ReturnType<typeof vi.fn> } {
+function makeSupabaseForPatch(rowAfter: Record<string, unknown>): {
+  client: any;
+  upsert: ReturnType<typeof vi.fn>;
+} {
   const upsert = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
       single: vi.fn().mockResolvedValue({ data: rowAfter, error: null }),
@@ -87,7 +90,10 @@ describe('/api/profile', () => {
   });
 
   it('GET returns 200 with camelCase DTO', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSupabaseForGet(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabaseForGet(),
+      user: { id: USER_ID } as any,
+    });
     const res = await GET(makeRequest('GET'));
     expect(res.status).toBe(200);
     const json = await res.json();
@@ -96,19 +102,29 @@ describe('/api/profile', () => {
   });
 
   it('PATCH returns 400 on empty body', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSupabaseForPatch(FULL_ROW).client, user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabaseForPatch(FULL_ROW).client,
+      user: { id: USER_ID } as any,
+    });
     const res = await PATCH(makeRequest('PATCH', {}));
     expect(res.status).toBe(400);
   });
 
   it('PATCH 400 on invalid enum', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSupabaseForPatch(FULL_ROW).client, user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabaseForPatch(FULL_ROW).client,
+      user: { id: USER_ID } as any,
+    });
     const res = await PATCH(makeRequest('PATCH', { primaryGoal: 'bulking' }));
     expect(res.status).toBe(400);
   });
 
   it('PATCH passes snake_case fields to upsert', async () => {
-    const { client, upsert } = makeSupabaseForPatch({ ...FULL_ROW, first_name: 'Ada', primary_goal: 'strength' });
+    const { client, upsert } = makeSupabaseForPatch({
+      ...FULL_ROW,
+      first_name: 'Ada',
+      primary_goal: 'strength',
+    });
     mockRequireUser.mockResolvedValueOnce({ supabase: client, user: { id: USER_ID } as any });
     await PATCH(makeRequest('PATCH', { firstName: 'Ada', primaryGoal: 'strength' }));
     expect(upsert).toHaveBeenCalledWith(

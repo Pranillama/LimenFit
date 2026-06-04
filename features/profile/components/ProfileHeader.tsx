@@ -36,11 +36,7 @@ export function ProfileHeader({ profile, email }: ProfileHeaderProps) {
       <div className="relative">
         {profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.avatarUrl}
-            alt=""
-            className="h-14 w-14 rounded-full object-cover"
-          />
+          <img src={profile.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
         ) : (
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-base font-semibold text-foreground">
             {initials(profile, email)}
@@ -50,16 +46,16 @@ export function ProfileHeader({ profile, email }: ProfileHeaderProps) {
           type="button"
           disabled
           aria-label="Change profile photo (coming soon)"
-          className="absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-secondary text-muted-foreground opacity-60 hover:bg-brand hover:text-brand-foreground disabled:cursor-not-allowed"
+          className="hover:text-brand-foreground absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-secondary text-muted-foreground opacity-60 hover:bg-brand disabled:cursor-not-allowed"
         >
           <Pencil className="h-3 w-3" />
         </button>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[18px] font-semibold leading-tight">{displayName(profile, email)}</p>
-        {subtitle ? (
-          <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
-        ) : null}
+        <p className="truncate text-[18px] font-semibold leading-tight">
+          {displayName(profile, email)}
+        </p>
+        {subtitle ? <p className="truncate text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
     </div>
   );

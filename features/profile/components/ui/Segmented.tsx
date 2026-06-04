@@ -41,7 +41,6 @@ export function Segmented<T extends string>({
             type="button"
             role="radio"
             aria-checked={active}
-            aria-pressed={active}
             onClick={() => onChange(opt.value)}
             className={cn(
               'inline-flex h-8 min-w-[2.5rem] items-center justify-center rounded-[0.4rem] px-3 text-sm font-medium transition-colors',

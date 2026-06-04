@@ -22,11 +22,41 @@ const SECTIONS: Array<{
   sublabel: string;
   icon: typeof UserRound;
 }> = [
-  { key: 'personal',     href: '/profile/personal',     label: 'Personal info',     sublabel: 'Name, age, height & basics',     icon: UserRound },
-  { key: 'fitness',      href: '/profile/fitness',      label: 'Fitness profile',   sublabel: 'Goals, activity & experience',   icon: Target },
-  { key: 'body',         href: '/profile/body-metrics', label: 'Body metrics',      sublabel: 'BMI, weight & measurements',     icon: Ruler },
-  { key: 'preferences',  href: '/profile/preferences',  label: 'Preferences',       sublabel: 'Units, rest timer & defaults',   icon: Sliders },
-  { key: 'subscription', href: '/profile/subscription', label: 'Subscription',      sublabel: 'Plan & usage',                    icon: CreditCard },
+  {
+    key: 'personal',
+    href: '/profile/personal',
+    label: 'Personal info',
+    sublabel: 'Name, age, height & basics',
+    icon: UserRound,
+  },
+  {
+    key: 'fitness',
+    href: '/profile/fitness',
+    label: 'Fitness profile',
+    sublabel: 'Goals, activity & experience',
+    icon: Target,
+  },
+  {
+    key: 'body',
+    href: '/profile/body-metrics',
+    label: 'Body metrics',
+    sublabel: 'BMI, weight & measurements',
+    icon: Ruler,
+  },
+  {
+    key: 'preferences',
+    href: '/profile/preferences',
+    label: 'Preferences',
+    sublabel: 'Units, rest timer & defaults',
+    icon: Sliders,
+  },
+  {
+    key: 'subscription',
+    href: '/profile/subscription',
+    label: 'Subscription',
+    sublabel: 'Plan & usage',
+    icon: CreditCard,
+  },
 ];
 
 function pathToKey(pathname: string | null): SectionKey | undefined {

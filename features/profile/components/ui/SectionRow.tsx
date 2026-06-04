@@ -34,9 +34,15 @@ export function SectionRow({
       <IconChip icon={icon} active={active} />
       <span className="flex min-w-0 flex-1 flex-col text-left">
         <span className="truncate text-sm font-medium text-foreground">{label}</span>
-        {sublabel ? <span className="truncate text-xs text-muted-foreground">{sublabel}</span> : null}
+        {sublabel ? (
+          <span className="truncate text-xs text-muted-foreground">{sublabel}</span>
+        ) : null}
       </span>
-      {trailing ?? <ChevronRight className={cn('h-4 w-4 shrink-0', active ? 'text-brand' : 'text-muted-foreground')} />}
+      {trailing ?? (
+        <ChevronRight
+          className={cn('h-4 w-4 shrink-0', active ? 'text-brand' : 'text-muted-foreground')}
+        />
+      )}
     </>
   );
 

@@ -27,7 +27,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <div className="hidden lg:block lg:sticky lg:top-10 lg:self-start">
+        <div className="hidden lg:sticky lg:top-10 lg:block lg:self-start">
           <SectionList />
         </div>
         <div className="min-w-0">{children}</div>

@@ -10,7 +10,12 @@ interface IconChipProps {
   ariaHidden?: boolean;
 }
 
-export function IconChip({ icon: Icon, active = false, className, ariaHidden = true }: IconChipProps) {
+export function IconChip({
+  icon: Icon,
+  active = false,
+  className,
+  ariaHidden = true,
+}: IconChipProps) {
   return (
     <span
       aria-hidden={ariaHidden}

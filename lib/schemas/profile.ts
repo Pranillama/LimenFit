@@ -28,25 +28,37 @@ export const TRAINING_EXPERIENCES = [
   'advanced',
 ] as const satisfies readonly [TrainingExperience, ...TrainingExperience[]];
 
-export const GENDERS = [
-  'male',
-  'female',
-  'prefer_not_to_say',
-] as const satisfies readonly [Gender, ...Gender[]];
+export const GENDERS = ['male', 'female', 'prefer_not_to_say'] as const satisfies readonly [
+  Gender,
+  ...Gender[],
+];
 
 const nullableTrimmedText = z
   .string()
   .trim()
   .max(120)
   .nullable()
-  .or(z.string().trim().max(120).transform((v) => (v.length === 0 ? null : v)));
+  .or(
+    z
+      .string()
+      .trim()
+      .max(120)
+      .transform((v) => (v.length === 0 ? null : v)),
+  );
 
 export const profilePatchBodySchema = z
   .object({
     firstName: nullableTrimmedText.optional(),
     lastName: nullableTrimmedText.optional(),
     displayName: nullableTrimmedText.optional(),
-    username: z.string().trim().min(2).max(32).regex(/^[a-z0-9_.-]+$/i).nullable().optional(),
+    username: z
+      .string()
+      .trim()
+      .min(2)
+      .max(32)
+      .regex(/^[a-z0-9_.-]+$/i)
+      .nullable()
+      .optional(),
     avatarUrl: z.string().url().max(2048).nullable().optional(),
     dateOfBirth: z
       .string()
