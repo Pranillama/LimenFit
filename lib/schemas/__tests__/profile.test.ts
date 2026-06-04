@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { profilePatchBodySchema, type ProfileDTO } from '@/lib/schemas/profile';
 
 describe('profilePatchBodySchema', () => {
-  it('accepts an empty patch is rejected (at least one field required)', () => {
+  it('rejects an empty patch (at least one field required)', () => {
     const result = profilePatchBodySchema.safeParse({});
     expect(result.success).toBe(false);
   });
