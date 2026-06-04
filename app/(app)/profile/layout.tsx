@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import * as React from 'react';
 
 import { PageContainer } from '@/components/page-container';
-import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
+import { ProfileChrome } from '@/features/profile/components/ProfileChrome';
 import { SectionList } from '@/features/profile/components/SectionList';
 import { getOrCreateProfile } from '@/lib/profile';
 import { createSupabaseServerClient } from '@/lib/supabase/server-exports';
@@ -21,14 +21,8 @@ export default async function ProfileLayout({ children }: { children: React.Reac
   const email = user?.email ?? null;
 
   return (
-    <PageContainer title="Profile" className="lg:max-w-5xl">
-      <p className="-mt-2 mb-6 text-sm text-muted-foreground">
-        Manage your account, training profile, and preferences.
-      </p>
-
-      <div className="mb-6">
-        {profile ? <ProfileHeader profile={profile} email={email} /> : null}
-      </div>
+    <PageContainer className="lg:max-w-5xl">
+      <ProfileChrome profile={profile} email={email} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
         <div className="hidden lg:sticky lg:top-10 lg:block lg:self-start">
