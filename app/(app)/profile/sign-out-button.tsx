@@ -1,5 +1,7 @@
 'use client';
 
+import { LogOut } from 'lucide-react';
+
 import { useHardenedSignOut } from '@/features/shell/useHardenedSignOut';
 
 export function SignOutButton() {
@@ -10,9 +12,10 @@ export function SignOutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={isPending}
-      className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
+      className="flex w-full items-center justify-center gap-2 rounded-md bg-destructive px-4 py-3 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive disabled:opacity-50"
     >
-      {isPending ? 'Signing out…' : 'Sign Out'}
+      <LogOut className="h-4 w-4" />
+      {isPending ? 'Signing out…' : 'Sign out'}
     </button>
   );
 }
