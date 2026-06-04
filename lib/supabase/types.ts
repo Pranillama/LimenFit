@@ -239,6 +239,75 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          activity_level: Database["public"]["Enums"]["activity_level"] | null
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          display_name: string | null
+          first_name: string | null
+          gender: Database["public"]["Enums"]["gender"] | null
+          goal_weight_kg: number | null
+          height_cm: number | null
+          id: string
+          last_name: string | null
+          primary_goal: Database["public"]["Enums"]["fitness_goal"] | null
+          starting_weight_kg: number | null
+          target_daily_calories: number | null
+          time_zone: string | null
+          training_experience: Database["public"]["Enums"]["training_experience"] | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          weekly_training_frequency: number | null
+        }
+        Insert: {
+          activity_level?: Database["public"]["Enums"]["activity_level"] | null
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          display_name?: string | null
+          first_name?: string | null
+          gender?: Database["public"]["Enums"]["gender"] | null
+          goal_weight_kg?: number | null
+          height_cm?: number | null
+          id?: string
+          last_name?: string | null
+          primary_goal?: Database["public"]["Enums"]["fitness_goal"] | null
+          starting_weight_kg?: number | null
+          target_daily_calories?: number | null
+          time_zone?: string | null
+          training_experience?: Database["public"]["Enums"]["training_experience"] | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          weekly_training_frequency?: number | null
+        }
+        Update: {
+          activity_level?: Database["public"]["Enums"]["activity_level"] | null
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          display_name?: string | null
+          first_name?: string | null
+          gender?: Database["public"]["Enums"]["gender"] | null
+          goal_weight_kg?: number | null
+          height_cm?: number | null
+          id?: string
+          last_name?: string | null
+          primary_goal?: Database["public"]["Enums"]["fitness_goal"] | null
+          starting_weight_kg?: number | null
+          target_daily_calories?: number | null
+          time_zone?: string | null
+          training_experience?: Database["public"]["Enums"]["training_experience"] | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          weekly_training_frequency?: number | null
+        }
+        Relationships: []
+      }
       sets: {
         Row: {
           client_mutation_id: string | null
@@ -283,6 +352,7 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          height_unit: Database["public"]["Enums"]["height_unit"]
           id: string
           rest_timer_default_seconds: number
           updated_at: string
@@ -291,6 +361,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          height_unit?: Database["public"]["Enums"]["height_unit"]
           id?: string
           rest_timer_default_seconds?: number
           updated_at?: string
@@ -299,6 +370,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          height_unit?: Database["public"]["Enums"]["height_unit"]
           id?: string
           rest_timer_default_seconds?: number
           updated_at?: string
@@ -430,6 +502,11 @@ export type Database = {
       }
     }
     Enums: {
+      activity_level: "sedentary" | "lightly_active" | "moderately_active" | "very_active"
+      fitness_goal: "fat_loss" | "muscle_gain" | "strength" | "endurance" | "general_fitness"
+      gender: "male" | "female" | "prefer_not_to_say"
+      height_unit: "ft" | "cm"
+      training_experience: "beginner" | "intermediate" | "advanced"
       weight_unit: "lbs" | "kg"
       workout_status: "in_progress" | "completed" | "expired"
     }

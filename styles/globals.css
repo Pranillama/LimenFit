@@ -151,3 +151,14 @@
   background: currentColor;
   animation: pulse-ring 1.9s ease-out infinite;
 }
+
+@keyframes profile-push {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

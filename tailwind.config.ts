@@ -46,6 +46,10 @@ const config: Config = {
         },
         warning: 'hsl(var(--warning) / <alpha-value>)',
         'brand-orange': '#e85500',
+        brand: {
+          DEFAULT: '#e85500',
+          600: '#cc4a00',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
