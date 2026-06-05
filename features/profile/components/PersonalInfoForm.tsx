@@ -265,159 +265,159 @@ export function PersonalInfoForm({
         <h1 className="text-xl font-semibold">Personal info</h1>
         <p className="mt-1 text-sm text-muted-foreground">Your identity and physical baseline.</p>
       </div>
-
       <div className="rounded-xl border border-border bg-card">
-      <div className="space-y-6 p-6">
-        {/* First name + Last name */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="First name" htmlFor="first-name">
-            <Input id="first-name" {...register('firstName')} placeholder="First name" />
-          </Field>
-          <Field label="Last name" htmlFor="last-name">
-            <Input id="last-name" {...register('lastName')} placeholder="Last name" />
-          </Field>
-        </div>
-
-        {/* Date of birth + Gender */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
-            label="Date of birth"
-            htmlFor="date-of-birth"
-            hint={age !== null ? `Age: ${age} yrs` : undefined}
-            error={formState.errors.dateOfBirth?.message}
-          >
-            <Input id="date-of-birth" type="date" {...register('dateOfBirth')} />
-          </Field>
-
-          <Field label="Gender" hint="Optional.">
-            <Segmented
-              options={GENDER_OPTIONS}
-              value={genderValue}
-              onChange={(val) =>
-                setValue('gender', genderValue === val ? '' : (val as FormValues['gender']), {
-                  shouldDirty: true,
-                })
-              }
-              ariaLabel="Gender"
-            />
-          </Field>
-        </div>
-
-        {/* Height */}
-        <Field label="Height">
-          <div className="flex flex-wrap items-center gap-2">
-            {heightUnit === 'ft' ? (
-              <>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={9}
-                  value={heightFt}
-                  onChange={(e) => handleHeightFtChange(e.target.value)}
-                  placeholder="0"
-                  aria-label="Feet"
-                  className="w-20"
-                />
-                <span className="text-sm text-muted-foreground">ft</span>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={11}
-                  value={heightIn}
-                  onChange={(e) => handleHeightInChange(e.target.value)}
-                  placeholder="0"
-                  aria-label="Inches"
-                  className="w-20"
-                />
-                <span className="text-sm text-muted-foreground">in</span>
-              </>
-            ) : (
-              <>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={300}
-                  value={heightCmDisplay}
-                  onChange={(e) => handleHeightCmDisplayChange(e.target.value)}
-                  placeholder="0"
-                  aria-label="Height in centimetres"
-                  className="w-28"
-                />
-                <span className="text-sm text-muted-foreground">cm</span>
-              </>
-            )}
-            <Segmented
-              options={HEIGHT_UNIT_OPTIONS}
-              value={heightUnit}
-              onChange={handleHeightUnitChange}
-              ariaLabel="Height unit"
-            />
+        <div className="space-y-6 p-6">
+          {/* First name + Last name */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="First name" htmlFor="first-name">
+              <Input id="first-name" {...register('firstName')} placeholder="First name" />
+            </Field>
+            <Field label="Last name" htmlFor="last-name">
+              <Input id="last-name" {...register('lastName')} placeholder="Last name" />
+            </Field>
           </div>
-        </Field>
 
-        {/* Starting weight */}
-        <Field label="Starting weight">
-          <div className="flex flex-wrap items-center gap-2">
-            <Input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={999}
-              value={weightDisplay}
-              onChange={(e) => handleWeightDisplayChange(e.target.value)}
-              placeholder="0"
-              aria-label="Starting weight"
-              className="w-28"
-            />
-            <Segmented
-              options={WEIGHT_UNIT_OPTIONS}
-              value={weightUnit}
-              onChange={handleWeightUnitChange}
-              ariaLabel="Weight unit"
-            />
+          {/* Date of birth + Gender */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field
+              label="Date of birth"
+              htmlFor="date-of-birth"
+              hint={age !== null ? `Age: ${age} yrs` : undefined}
+              error={formState.errors.dateOfBirth?.message}
+            >
+              <Input id="date-of-birth" type="date" {...register('dateOfBirth')} />
+            </Field>
+
+            <Field label="Gender" hint="Optional.">
+              <Segmented
+                options={GENDER_OPTIONS}
+                value={genderValue}
+                onChange={(val) =>
+                  setValue('gender', genderValue === val ? '' : (val as FormValues['gender']), {
+                    shouldDirty: true,
+                  })
+                }
+                ariaLabel="Gender"
+              />
+            </Field>
           </div>
-        </Field>
 
-        {/* Time zone */}
-        <Field label="Time zone" htmlFor="time-zone">
-          <select
-            id="time-zone"
-            value={watch('timeZone')}
-            onChange={(e) => setValue('timeZone', e.target.value, { shouldDirty: true })}
-            className={cn(
-              'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1',
-              'text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1',
-              'focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-              '[&>option]:bg-card',
-            )}
+          {/* Height */}
+          <Field label="Height">
+            <div className="flex flex-wrap items-center gap-2">
+              {heightUnit === 'ft' ? (
+                <>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={9}
+                    value={heightFt}
+                    onChange={(e) => handleHeightFtChange(e.target.value)}
+                    placeholder="0"
+                    aria-label="Feet"
+                    className="w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">ft</span>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={11}
+                    value={heightIn}
+                    onChange={(e) => handleHeightInChange(e.target.value)}
+                    placeholder="0"
+                    aria-label="Inches"
+                    className="w-20"
+                  />
+                  <span className="text-sm text-muted-foreground">in</span>
+                </>
+              ) : (
+                <>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={300}
+                    value={heightCmDisplay}
+                    onChange={(e) => handleHeightCmDisplayChange(e.target.value)}
+                    placeholder="0"
+                    aria-label="Height in centimetres"
+                    className="w-28"
+                  />
+                  <span className="text-sm text-muted-foreground">cm</span>
+                </>
+              )}
+              <Segmented
+                options={HEIGHT_UNIT_OPTIONS}
+                value={heightUnit}
+                onChange={handleHeightUnitChange}
+                ariaLabel="Height unit"
+              />
+            </div>
+          </Field>
+
+          {/* Starting weight */}
+          <Field label="Starting weight">
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={999}
+                value={weightDisplay}
+                onChange={(e) => handleWeightDisplayChange(e.target.value)}
+                placeholder="0"
+                aria-label="Starting weight"
+                className="w-28"
+              />
+              <Segmented
+                options={WEIGHT_UNIT_OPTIONS}
+                value={weightUnit}
+                onChange={handleWeightUnitChange}
+                ariaLabel="Weight unit"
+              />
+            </div>
+          </Field>
+
+          {/* Time zone */}
+          <Field label="Time zone" htmlFor="time-zone">
+            <select
+              id="time-zone"
+              value={watch('timeZone')}
+              onChange={(e) => setValue('timeZone', e.target.value, { shouldDirty: true })}
+              className={cn(
+                'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1',
+                'text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1',
+                'focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+                '[&>option]:bg-card',
+              )}
+            >
+              <option value="">Select your time zone</option>
+              {COMMON_TIMEZONES.map((tz) => (
+                <option key={tz.value} value={tz.value}>
+                  {tz.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>{' '}
+        {/* end fields */}
+        <div className="flex justify-end gap-3 border-t border-border px-6 py-4">
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={!isDirty || mutation.isPending}
+            onClick={handleCancel}
           >
-            <option value="">Select your time zone</option>
-            {COMMON_TIMEZONES.map((tz) => (
-              <option key={tz.value} value={tz.value}>
-                {tz.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div> {/* end fields */}
-
-      <div className="flex justify-end gap-3 border-t border-border px-6 py-4">
-        <Button
-          type="button"
-          variant="ghost"
-          disabled={!isDirty || mutation.isPending}
-          onClick={handleCancel}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={!isDirty || mutation.isPending}>
-          {mutation.isPending ? 'Saving…' : 'Save changes'}
-        </Button>
-      </div>
-      </div> {/* end card */}
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!isDirty || mutation.isPending}>
+            {mutation.isPending ? 'Saving…' : 'Save changes'}
+          </Button>
+        </div>
+      </div>{' '}
+      {/* end card */}
     </form>
   );
 }

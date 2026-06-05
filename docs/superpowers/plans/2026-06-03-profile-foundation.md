@@ -5,6 +5,7 @@
 **Goal:** Ship the data foundation (schema + types + API) and the visible profile shell (header, master/detail desktop layout, mobile push routes, Account inline section with password reset + delete account, Sign Out), so each follow-up plan (Personal, Fitness, Body Metrics, Preferences, Subscription) can plug into established hooks and components.
 
 **Architecture:**
+
 - New `public.profiles` table holds identity + fitness fields, separate from `public.user_settings` which keeps display preferences (weight unit, rest timer, and the new height unit). All bodyweight/measurement values store canonically in kg/cm; UI converts at render time.
 - Per-route sub-pages under `app/(app)/profile/*` driven by a shared `layout.tsx`: on `lg` and up, layout renders the master-detail grid with section list as a sticky left rail; on mobile, the same routes are full screens with an iOS-style CSS slide transition.
 - Shared profile primitives (`Segmented`, `Pill`, `IconChip`, `SectionRow`, `Field`) live under `features/profile/components/ui/` and wrap existing shadcn primitives. Brand orange added to Tailwind for accent-only use; primary CTAs stay near-white.
@@ -17,6 +18,7 @@
 ## File structure
 
 **New:**
+
 - `supabase/migrations/20260603000001_profiles.sql`
 - `lib/schemas/profile.ts`
 - `lib/profile/server.ts`
@@ -45,6 +47,7 @@
 - `app/(app)/profile/subscription/page.tsx`
 
 **Modify:**
+
 - `tailwind.config.ts` (add `brand` color scale)
 - `lib/supabase/types.ts` (regenerated/hand-edited to include `profiles` table + new enums + new `height_unit` column on `user_settings`)
 - `app/(app)/profile/page.tsx` (renders new landing — header + SectionList; the previous body moves into the new shell)
@@ -52,6 +55,7 @@
 - `features/profile/components/ProfileView.tsx` (rewritten as the landing — uses Header + SectionList + AccountSection + SignOutButton)
 
 **Leave alone (still wired through to /profile/preferences in a future plan):**
+
 - `features/profile/components/SettingsForm.tsx`
 - `features/profile/components/AccountInfo.tsx`
 - `features/profile/hooks/useUpdateSettingsMutation.ts`
@@ -61,6 +65,7 @@
 ## Task 1: Add `brand` color scale to Tailwind
 
 **Files:**
+
 - Modify: `tailwind.config.ts:48`
 
 - [ ] **Step 1: Edit tailwind.config.ts to replace `brand-orange` literal with a `brand` scale**
@@ -92,6 +97,7 @@ git commit -m "feat(theme): add brand color scale for profile accents"
 ## Task 2: Profiles migration — enums + table + RLS
 
 **Files:**
+
 - Create: `supabase/migrations/20260603000001_profiles.sql`
 
 - [ ] **Step 1: Write the migration**
@@ -166,10 +172,12 @@ Expected: Migration applies without error; last log line shows `Finished supabas
 - [ ] **Step 3: Smoke-check the table exists**
 
 Run:
+
 ```bash
 docker exec -i supabase_db_LimenFit psql -U postgres -d postgres -c "\d public.profiles" 2>/dev/null || \
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -c "\d public.profiles"
 ```
+
 Expected: Table description listing every column above.
 
 - [ ] **Step 4: Commit**
@@ -184,6 +192,7 @@ git commit -m "feat(db): add profiles table, fitness/identity enums, user_settin
 ## Task 3: Regenerate Database types
 
 **Files:**
+
 - Modify: `lib/supabase/types.ts`
 
 - [ ] **Step 1: Regenerate types from the local database**
@@ -192,6 +201,7 @@ Run: `pnpm dlx supabase gen types typescript --local > lib/supabase/types.ts`
 Expected: File rewritten; no errors.
 
 If the CLI isn't available, hand-edit `lib/supabase/types.ts` to add:
+
 - `profiles` Tables entry mirroring the Row/Insert/Update shape (see Task 2 columns)
 - `height_unit` Enum: `'ft' | 'cm'`
 - `fitness_goal`, `activity_level`, `training_experience`, `gender` Enums
@@ -214,6 +224,7 @@ git commit -m "chore(db-types): regenerate types for profiles table and new enum
 ## Task 4: Zod schemas for the profile DTO
 
 **Files:**
+
 - Create: `lib/schemas/profile.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -303,27 +314,43 @@ export const TRAINING_EXPERIENCES = [
   'advanced',
 ] as const satisfies readonly [TrainingExperience, ...TrainingExperience[]];
 
-export const GENDERS = [
-  'male',
-  'female',
-  'prefer_not_to_say',
-] as const satisfies readonly [Gender, ...Gender[]];
+export const GENDERS = ['male', 'female', 'prefer_not_to_say'] as const satisfies readonly [
+  Gender,
+  ...Gender[],
+];
 
 const nullableTrimmedText = z
   .string()
   .trim()
   .max(120)
   .nullable()
-  .or(z.string().trim().max(120).transform((v) => (v.length === 0 ? null : v)));
+  .or(
+    z
+      .string()
+      .trim()
+      .max(120)
+      .transform((v) => (v.length === 0 ? null : v)),
+  );
 
 export const profilePatchBodySchema = z
   .object({
     firstName: nullableTrimmedText.optional(),
     lastName: nullableTrimmedText.optional(),
     displayName: nullableTrimmedText.optional(),
-    username: z.string().trim().min(2).max(32).regex(/^[a-z0-9_.-]+$/i).nullable().optional(),
+    username: z
+      .string()
+      .trim()
+      .min(2)
+      .max(32)
+      .regex(/^[a-z0-9_.-]+$/i)
+      .nullable()
+      .optional(),
     avatarUrl: z.string().url().max(2048).nullable().optional(),
-    dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    dateOfBirth: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .optional(),
     gender: z.enum(GENDERS).nullable().optional(),
     heightCm: z.number().positive().max(300).nullable().optional(),
     startingWeightKg: z.number().positive().max(500).nullable().optional(),
@@ -378,6 +405,7 @@ git commit -m "feat(schemas): add profilePatchBodySchema and ProfileDTO"
 ## Task 5: Server helper — `getOrCreateProfile`
 
 **Files:**
+
 - Create: `lib/profile/server.ts`
 - Create: `lib/profile/index.ts`
 
@@ -496,6 +524,7 @@ git commit -m "feat(profile): add getOrCreateProfile server helper"
 ## Task 6: `/api/profile` route (GET + PATCH) with tests
 
 **Files:**
+
 - Create: `app/api/profile/route.ts`
 - Create: `app/api/profile/route.test.ts`
 
@@ -569,7 +598,10 @@ function makeSupabaseForGet(): any {
   };
 }
 
-function makeSupabaseForPatch(rowAfter: Record<string, unknown>): { client: any; upsert: ReturnType<typeof vi.fn> } {
+function makeSupabaseForPatch(rowAfter: Record<string, unknown>): {
+  client: any;
+  upsert: ReturnType<typeof vi.fn>;
+} {
   const upsert = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
       single: vi.fn().mockResolvedValue({ data: rowAfter, error: null }),
@@ -589,7 +621,10 @@ describe('/api/profile', () => {
   });
 
   it('GET returns 200 with camelCase DTO', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSupabaseForGet(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabaseForGet(),
+      user: { id: USER_ID } as any,
+    });
     const res = await GET(makeRequest('GET'));
     expect(res.status).toBe(200);
     const json = await res.json();
@@ -598,19 +633,29 @@ describe('/api/profile', () => {
   });
 
   it('PATCH returns 400 on empty body', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSupabaseForPatch(FULL_ROW).client, user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabaseForPatch(FULL_ROW).client,
+      user: { id: USER_ID } as any,
+    });
     const res = await PATCH(makeRequest('PATCH', {}));
     expect(res.status).toBe(400);
   });
 
   it('PATCH 400 on invalid enum', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSupabaseForPatch(FULL_ROW).client, user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabaseForPatch(FULL_ROW).client,
+      user: { id: USER_ID } as any,
+    });
     const res = await PATCH(makeRequest('PATCH', { primaryGoal: 'bulking' }));
     expect(res.status).toBe(400);
   });
 
   it('PATCH passes snake_case fields to upsert', async () => {
-    const { client, upsert } = makeSupabaseForPatch({ ...FULL_ROW, first_name: 'Ada', primary_goal: 'strength' });
+    const { client, upsert } = makeSupabaseForPatch({
+      ...FULL_ROW,
+      first_name: 'Ada',
+      primary_goal: 'strength',
+    });
     mockRequireUser.mockResolvedValueOnce({ supabase: client, user: { id: USER_ID } as any });
     await PATCH(makeRequest('PATCH', { firstName: 'Ada', primaryGoal: 'strength' }));
     expect(upsert).toHaveBeenCalledWith(
@@ -766,6 +811,7 @@ git commit -m "feat(api): add GET/PATCH /api/profile with zod validation"
 This calls Supabase admin to delete the user via the service-role key. RLS cascade then wipes all owned rows.
 
 **Files:**
+
 - Create: `app/api/account/delete/route.ts`
 - Create: `app/api/account/delete/route.test.ts`
 
@@ -824,7 +870,10 @@ describe('POST /api/account/delete', () => {
   });
 
   it('returns 400 when confirm string is missing or wrong', async () => {
-    mockRequireUser.mockResolvedValue({ supabase: makeSignOutSupabase(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValue({
+      supabase: makeSignOutSupabase(),
+      user: { id: USER_ID } as any,
+    });
     expect((await POST(makeRequest({}))).status).toBe(400);
     expect((await POST(makeRequest({ confirm: 'delete' }))).status).toBe(400);
     expect((await POST(makeRequest({ confirm: 'YES' }))).status).toBe(400);
@@ -832,7 +881,10 @@ describe('POST /api/account/delete', () => {
   });
 
   it('calls admin.deleteUser with the caller user_id and returns 200', async () => {
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSignOutSupabase(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSignOutSupabase(),
+      user: { id: USER_ID } as any,
+    });
     const res = await POST(makeRequest({ confirm: 'DELETE' }));
     expect(res.status).toBe(200);
     expect(deleteUser).toHaveBeenCalledWith(USER_ID);
@@ -840,7 +892,10 @@ describe('POST /api/account/delete', () => {
 
   it('returns 500 when admin.deleteUser errors', async () => {
     deleteUser.mockResolvedValueOnce({ data: null, error: { message: 'boom' } });
-    mockRequireUser.mockResolvedValueOnce({ supabase: makeSignOutSupabase(), user: { id: USER_ID } as any });
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSignOutSupabase(),
+      user: { id: USER_ID } as any,
+    });
     const res = await POST(makeRequest({ confirm: 'DELETE' }));
     expect(res.status).toBe(500);
   });
@@ -914,6 +969,7 @@ git commit -m "feat(api): add POST /api/account/delete with DELETE confirmation"
 ## Task 8: Profile primitive — `Segmented`
 
 **Files:**
+
 - Create: `features/profile/components/ui/Segmented.tsx`
 
 - [ ] **Step 1: Implement `Segmented.tsx`**
@@ -997,6 +1053,7 @@ git commit -m "feat(profile-ui): add Segmented control"
 ## Task 9: Profile primitives — `Pill`, `IconChip`, `Field`
 
 **Files:**
+
 - Create: `features/profile/components/ui/Pill.tsx`
 - Create: `features/profile/components/ui/IconChip.tsx`
 - Create: `features/profile/components/ui/Field.tsx`
@@ -1050,7 +1107,12 @@ interface IconChipProps {
   ariaHidden?: boolean;
 }
 
-export function IconChip({ icon: Icon, active = false, className, ariaHidden = true }: IconChipProps) {
+export function IconChip({
+  icon: Icon,
+  active = false,
+  className,
+  ariaHidden = true,
+}: IconChipProps) {
   return (
     <span
       aria-hidden={ariaHidden}
@@ -1118,6 +1180,7 @@ git commit -m "feat(profile-ui): add Pill, IconChip, and Field primitives"
 ## Task 10: `SectionRow` primitive
 
 **Files:**
+
 - Create: `features/profile/components/ui/SectionRow.tsx`
 
 - [ ] **Step 1: Implement `SectionRow.tsx`**
@@ -1159,9 +1222,15 @@ export function SectionRow({
       <IconChip icon={icon} active={active} />
       <span className="flex min-w-0 flex-1 flex-col text-left">
         <span className="truncate text-sm font-medium text-foreground">{label}</span>
-        {sublabel ? <span className="truncate text-xs text-muted-foreground">{sublabel}</span> : null}
+        {sublabel ? (
+          <span className="truncate text-xs text-muted-foreground">{sublabel}</span>
+        ) : null}
       </span>
-      {trailing ?? <ChevronRight className={cn('h-4 w-4 shrink-0', active ? 'text-brand' : 'text-muted-foreground')} />}
+      {trailing ?? (
+        <ChevronRight
+          className={cn('h-4 w-4 shrink-0', active ? 'text-brand' : 'text-muted-foreground')}
+        />
+      )}
     </>
   );
 
@@ -1204,6 +1273,7 @@ git commit -m "feat(profile-ui): add SectionRow primitive with active state"
 ## Task 11: `ProfileHeader` component (read-only for v1)
 
 **Files:**
+
 - Create: `features/profile/components/ProfileHeader.tsx`
 
 The avatar pencil badge is rendered but disabled (upload flow is a follow-up plan). Display name comes from `displayName || firstName + lastName || email-prefix`.
@@ -1249,11 +1319,7 @@ export function ProfileHeader({ profile, email }: ProfileHeaderProps) {
       <div className="relative">
         {profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={profile.avatarUrl}
-            alt=""
-            className="h-14 w-14 rounded-full object-cover"
-          />
+          <img src={profile.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
         ) : (
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-base font-semibold text-foreground">
             {initials(profile, email)}
@@ -1263,16 +1329,16 @@ export function ProfileHeader({ profile, email }: ProfileHeaderProps) {
           type="button"
           disabled
           aria-label="Change profile photo (coming soon)"
-          className="absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-secondary text-muted-foreground opacity-60 hover:bg-brand hover:text-brand-foreground disabled:cursor-not-allowed"
+          className="hover:text-brand-foreground absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-secondary text-muted-foreground opacity-60 hover:bg-brand disabled:cursor-not-allowed"
         >
           <Pencil className="h-3 w-3" />
         </button>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[18px] font-semibold leading-tight">{displayName(profile, email)}</p>
-        {subtitle ? (
-          <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
-        ) : null}
+        <p className="truncate text-[18px] font-semibold leading-tight">
+          {displayName(profile, email)}
+        </p>
+        {subtitle ? <p className="truncate text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
     </div>
   );
@@ -1296,6 +1362,7 @@ git commit -m "feat(profile): add ProfileHeader with initials fallback"
 ## Task 12: `SectionList` — six rows + sign-out
 
 **Files:**
+
 - Create: `features/profile/components/SectionList.tsx`
 
 - [ ] **Step 1: Implement `SectionList.tsx`**
@@ -1324,11 +1391,41 @@ const SECTIONS: Array<{
   sublabel: string;
   icon: typeof UserRound;
 }> = [
-  { key: 'personal',     href: '/profile/personal',     label: 'Personal info',     sublabel: 'Name, age, height & basics',     icon: UserRound },
-  { key: 'fitness',      href: '/profile/fitness',      label: 'Fitness profile',   sublabel: 'Goals, activity & experience',   icon: Target },
-  { key: 'body',         href: '/profile/body-metrics', label: 'Body metrics',      sublabel: 'BMI, weight & measurements',     icon: Ruler },
-  { key: 'preferences',  href: '/profile/preferences',  label: 'Preferences',       sublabel: 'Units, rest timer & defaults',   icon: Sliders },
-  { key: 'subscription', href: '/profile/subscription', label: 'Subscription',      sublabel: 'Plan & usage',                    icon: CreditCard },
+  {
+    key: 'personal',
+    href: '/profile/personal',
+    label: 'Personal info',
+    sublabel: 'Name, age, height & basics',
+    icon: UserRound,
+  },
+  {
+    key: 'fitness',
+    href: '/profile/fitness',
+    label: 'Fitness profile',
+    sublabel: 'Goals, activity & experience',
+    icon: Target,
+  },
+  {
+    key: 'body',
+    href: '/profile/body-metrics',
+    label: 'Body metrics',
+    sublabel: 'BMI, weight & measurements',
+    icon: Ruler,
+  },
+  {
+    key: 'preferences',
+    href: '/profile/preferences',
+    label: 'Preferences',
+    sublabel: 'Units, rest timer & defaults',
+    icon: Sliders,
+  },
+  {
+    key: 'subscription',
+    href: '/profile/subscription',
+    label: 'Subscription',
+    sublabel: 'Plan & usage',
+    icon: CreditCard,
+  },
 ];
 
 export function SectionList({ activeSection, className }: SectionListProps) {
@@ -1372,6 +1469,7 @@ git commit -m "feat(profile): add SectionList with six rows and sign-out"
 ## Task 13: Change-password row + hook
 
 **Files:**
+
 - Create: `features/profile/hooks/useChangePassword.ts`
 - Create: `features/profile/components/ChangePasswordRow.tsx`
 
@@ -1442,7 +1540,7 @@ export function ChangePasswordRow({ email }: ChangePasswordRowProps) {
         type="button"
         onClick={() => void send(email)}
         disabled={isSending}
-        className="flex w-full min-h-[3.25rem] items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
+        className="flex min-h-[3.25rem] w-full items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60"
       >
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground">
           <Lock className="h-4 w-4" />
@@ -1485,6 +1583,7 @@ git commit -m "feat(profile): add change-password row backed by reset-email flow
 ## Task 14: Delete-account dialog + hook
 
 **Files:**
+
 - Create: `features/profile/hooks/useDeleteAccount.ts`
 - Create: `features/profile/components/DeleteAccountDialog.tsx`
 
@@ -1574,14 +1673,16 @@ export function DeleteAccountDialog() {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="flex w-full min-h-[3.25rem] items-center gap-3 rounded-xl border border-destructive/25 bg-card px-4 py-3 text-left transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive"
+          className="flex min-h-[3.25rem] w-full items-center gap-3 rounded-xl border border-destructive/25 bg-card px-4 py-3 text-left transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive"
         >
           <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-destructive/30 bg-destructive/10 text-destructive">
             <Trash2 className="h-4 w-4" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-sm font-medium text-destructive">Delete account</span>
-            <span className="truncate text-xs text-muted-foreground">This action cannot be undone</span>
+            <span className="truncate text-xs text-muted-foreground">
+              This action cannot be undone
+            </span>
           </span>
         </button>
       </DialogTrigger>
@@ -1589,8 +1690,9 @@ export function DeleteAccountDialog() {
         <DialogHeader>
           <DialogTitle>Delete your account?</DialogTitle>
           <DialogDescription>
-            This permanently deletes your account, workouts, plans, and all related data. This cannot be undone.
-            Type <span className="font-mono font-semibold text-foreground">DELETE</span> to confirm.
+            This permanently deletes your account, workouts, plans, and all related data. This
+            cannot be undone. Type{' '}
+            <span className="font-mono font-semibold text-foreground">DELETE</span> to confirm.
           </DialogDescription>
         </DialogHeader>
         <Input
@@ -1604,11 +1706,7 @@ export function DeleteAccountDialog() {
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isDeleting}>
             Cancel
           </Button>
-          <Button
-            variant="destructive"
-            disabled={!canConfirm}
-            onClick={() => void deleteAccount()}
-          >
+          <Button variant="destructive" disabled={!canConfirm} onClick={() => void deleteAccount()}>
             {isDeleting ? 'Deleting…' : 'Delete account'}
           </Button>
         </DialogFooter>
@@ -1635,6 +1733,7 @@ git commit -m "feat(profile): add delete-account dialog with DELETE confirmation
 ## Task 15: `AccountSection` — wraps password row + delete row
 
 **Files:**
+
 - Create: `features/profile/components/AccountSection.tsx`
 
 - [ ] **Step 1: Implement `AccountSection.tsx`**
@@ -1685,6 +1784,7 @@ git commit -m "feat(profile): add AccountSection grouping password + danger zone
 ## Task 16: Profile layout — master/detail desktop + mobile push wrapper
 
 **Files:**
+
 - Create: `app/(app)/profile/layout.tsx`
 
 On `lg`+, layout renders a 300px sticky section list on the left and the route segment in a right pane. Below `lg`, the layout renders the section list **only when the route is exactly `/profile`** (handled by the page) and otherwise lets the segment fill the screen — the visual "push" is handled by routing + the parallax animation in Task 19.
@@ -1723,7 +1823,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <div className="hidden lg:block lg:sticky lg:top-10 lg:self-start">
+        <div className="hidden lg:sticky lg:top-10 lg:block lg:self-start">
           <SectionList />
         </div>
         <div className="min-w-0">{children}</div>
@@ -1752,6 +1852,7 @@ git commit -m "feat(profile): add layout with sticky section list on desktop"
 ## Task 17: Drive SectionList active row from current route
 
 **Files:**
+
 - Modify: `features/profile/components/SectionList.tsx`
 
 - [ ] **Step 1: Edit `SectionList.tsx` to read `usePathname` when no explicit `activeSection` is passed**
@@ -1783,11 +1884,41 @@ const SECTIONS: Array<{
   sublabel: string;
   icon: typeof UserRound;
 }> = [
-  { key: 'personal',     href: '/profile/personal',     label: 'Personal info',     sublabel: 'Name, age, height & basics',     icon: UserRound },
-  { key: 'fitness',      href: '/profile/fitness',      label: 'Fitness profile',   sublabel: 'Goals, activity & experience',   icon: Target },
-  { key: 'body',         href: '/profile/body-metrics', label: 'Body metrics',      sublabel: 'BMI, weight & measurements',     icon: Ruler },
-  { key: 'preferences',  href: '/profile/preferences',  label: 'Preferences',       sublabel: 'Units, rest timer & defaults',   icon: Sliders },
-  { key: 'subscription', href: '/profile/subscription', label: 'Subscription',      sublabel: 'Plan & usage',                    icon: CreditCard },
+  {
+    key: 'personal',
+    href: '/profile/personal',
+    label: 'Personal info',
+    sublabel: 'Name, age, height & basics',
+    icon: UserRound,
+  },
+  {
+    key: 'fitness',
+    href: '/profile/fitness',
+    label: 'Fitness profile',
+    sublabel: 'Goals, activity & experience',
+    icon: Target,
+  },
+  {
+    key: 'body',
+    href: '/profile/body-metrics',
+    label: 'Body metrics',
+    sublabel: 'BMI, weight & measurements',
+    icon: Ruler,
+  },
+  {
+    key: 'preferences',
+    href: '/profile/preferences',
+    label: 'Preferences',
+    sublabel: 'Units, rest timer & defaults',
+    icon: Sliders,
+  },
+  {
+    key: 'subscription',
+    href: '/profile/subscription',
+    label: 'Subscription',
+    sublabel: 'Plan & usage',
+    icon: CreditCard,
+  },
 ];
 
 function pathToKey(pathname: string | null): SectionKey | undefined {
@@ -1839,6 +1970,7 @@ git commit -m "feat(profile): highlight section row matching current route"
 ## Task 18: Rewrite `/profile` landing — header lives in layout; page renders SectionList (mobile) + AccountSection
 
 **Files:**
+
 - Modify: `app/(app)/profile/page.tsx`
 - Modify: `features/profile/components/ProfileView.tsx`
 - Modify: `features/profile/index.ts`
@@ -1916,6 +2048,7 @@ git commit -m "feat(profile): landing renders SectionList (mobile) + AccountSect
 Each stub renders a "Coming soon" placeholder so navigation works end-to-end. Real content lands in follow-up plans.
 
 **Files:**
+
 - Create: `app/(app)/profile/personal/page.tsx`
 - Create: `app/(app)/profile/fitness/page.tsx`
 - Create: `app/(app)/profile/body-metrics/page.tsx`
@@ -1966,6 +2099,7 @@ export default function PersonalPage() {
 ```
 
 Repeat with appropriate copy:
+
 - `fitness/page.tsx` — title `"Fitness profile"`, description `"Goals, activity and experience."`
 - `body-metrics/page.tsx` — title `"Body metrics"`, description `"BMI, weight log and measurements."`
 - `preferences/page.tsx` — title `"Preferences"`, description `"Units, rest timer and defaults."`
@@ -1993,6 +2127,7 @@ git commit -m "feat(profile): add sub-page stubs for personal/fitness/body-metri
 For v1, we use a CSS-only slide via `template.tsx` (Next.js animates route changes by remounting the template). Honors `prefers-reduced-motion`.
 
 **Files:**
+
 - Create: `app/(app)/profile/template.tsx`
 
 - [ ] **Step 1: Implement `app/(app)/profile/template.tsx`**
@@ -2012,7 +2147,7 @@ export default function ProfileTemplate({ children }: { children: React.ReactNod
   return (
     <div
       className={cn(
-        'lg:contents motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out',
+        'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out lg:contents',
         // Mobile only: slide content in from the right on sub-pages.
         // Landing uses translate-x-0 too — there is no animation to play on /profile itself.
         !isLanding && 'motion-safe:animate-[profile-push_300ms_ease-out]',
@@ -2030,8 +2165,14 @@ Append to `styles/globals.css` (locate the existing `@layer base` or the bottom 
 
 ```css
 @keyframes profile-push {
-  from { transform: translateX(100%); opacity: 0.4; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 ```
 
@@ -2085,25 +2226,26 @@ git commit -m "fix(profile): smoke-test follow-ups"
 
 ### Spec coverage
 
-| Spec section | Covered by |
-|---|---|
-| §2 Tokens — brand color | Task 1 |
-| §3 Routing & file structure (per-route layout) | Tasks 16, 17, 19 |
-| §4 Shared components — Segmented, Pill, Field, Row | Tasks 8, 9, 10 (full forms ship in follow-ups) |
-| §5 Profile header | Task 11 (avatar upload deferred) |
-| §6.1–6.5 Section sub-pages | Stubbed in Task 19; full builds in follow-up plans |
-| §6.6 Account inline (Change password + Delete account) | Tasks 13, 14, 15 |
-| Sign Out (bottom of section list) | Task 12 (reuses existing `sign-out-button.tsx`) |
-| §7 Desktop master/detail | Task 16 |
-| §7 Mobile iOS push | Task 20 |
-| §7 Confirmations — delete typed-`DELETE` modal | Task 14 |
-| §7 Confirmations — password reset toast | Task 13 |
-| §8 Reduced-motion | Task 20 (`motion-safe:` utilities) |
-| §10 Canonical kg/cm | Tasks 2, 4 (storage), and stated in plan header |
-| §10 Per-route vs single-page | Per-route, Tasks 16/19 |
-| §10 Primary CTA color | Near-white (default `Button` variant retained) |
+| Spec section                                           | Covered by                                         |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| §2 Tokens — brand color                                | Task 1                                             |
+| §3 Routing & file structure (per-route layout)         | Tasks 16, 17, 19                                   |
+| §4 Shared components — Segmented, Pill, Field, Row     | Tasks 8, 9, 10 (full forms ship in follow-ups)     |
+| §5 Profile header                                      | Task 11 (avatar upload deferred)                   |
+| §6.1–6.5 Section sub-pages                             | Stubbed in Task 19; full builds in follow-up plans |
+| §6.6 Account inline (Change password + Delete account) | Tasks 13, 14, 15                                   |
+| Sign Out (bottom of section list)                      | Task 12 (reuses existing `sign-out-button.tsx`)    |
+| §7 Desktop master/detail                               | Task 16                                            |
+| §7 Mobile iOS push                                     | Task 20                                            |
+| §7 Confirmations — delete typed-`DELETE` modal         | Task 14                                            |
+| §7 Confirmations — password reset toast                | Task 13                                            |
+| §8 Reduced-motion                                      | Task 20 (`motion-safe:` utilities)                 |
+| §10 Canonical kg/cm                                    | Tasks 2, 4 (storage), and stated in plan header    |
+| §10 Per-route vs single-page                           | Per-route, Tasks 16/19                             |
+| §10 Primary CTA color                                  | Near-white (default `Button` variant retained)     |
 
 Out-of-scope (follow-up plans):
+
 - Personal, Fitness, Preferences forms (data layer is ready)
 - Body Metrics (BMI calc + weight chart + measurements + photos placeholder)
 - Subscription stub UI
@@ -2111,9 +2253,11 @@ Out-of-scope (follow-up plans):
 - Bodyweight + measurements tables (separate migration when Body Metrics plan ships)
 
 ### Type consistency
+
 - `ProfileDTO` properties in Task 4 are used identically in Tasks 5, 6, 11, 14.
 - `SectionKey` values in Task 12 match the `pathToKey` matching in Task 17 (`personal | fitness | body | preferences | subscription`).
 - API DTO field names match across `useChangePassword` / `useDeleteAccount` (no DTO needed) and `/api/account/delete` body `{ confirm: 'DELETE' }`.
 
 ### Placeholders
+
 None — every step shows the code or command.

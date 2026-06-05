@@ -14,6 +14,7 @@ Build a standalone form analysis feature that lets users upload a workout video 
 LimenFit is a **responsive web application** (Next.js, Vercel). All UI must work well on both desktop (sidebar nav) and mobile browsers (bottom nav). No native app code.
 
 **In scope:**
+
 - New `/form-analysis` page with upload flow, job status, and results view
 - AWS async pipeline: S3 → SQS → ECS Fargate worker (Python + FastAPI + MediaPipe)
 - Stable score interface: Form, Control, Range, Overall + rep count + Gemini coaching tips
@@ -24,6 +25,7 @@ LimenFit is a **responsive web application** (Next.js, Vercel). All UI must work
 - Responsive layout across desktop and mobile web
 
 **Out of scope for v1:**
+
 - Deadlift, bench press, or any other exercise analysers (architecture supports adding them later)
 - Live camera analysis (upload-only)
 - Linking analysis to a specific workout session (standalone — user uploads freely)
@@ -174,23 +176,23 @@ The output shape **never changes** regardless of exercise. This means the fronte
 ```typescript
 // Always this shape — exercise-specific calculators are swappable internals
 interface AnalysisResult {
-  form:     number;   // 0–10
-  control:  number;   // 0–10
-  range:    number;   // 0–10
-  overall:  number;   // weighted average
-  reps:     number;   // rep count detected
-  feedback: string;   // Gemini coaching tips
+  form: number; // 0–10
+  control: number; // 0–10
+  range: number; // 0–10
+  overall: number; // weighted average
+  reps: number; // rep count detected
+  feedback: string; // Gemini coaching tips
 }
 ```
 
 ### What each metric means per exercise
 
-| Metric  | Squat (v1)                              | Deadlift (future)             | Bench (future)               |
-|---------|----------------------------------------|-------------------------------|------------------------------|
-| Form    | Back angle + knee-over-toe tracking    | Spine neutrality + bar path   | Bar path + wrist alignment   |
-| Control | Descent smoothness + time under tension | Hinge control + lockout tempo | Eccentric control + pause    |
-| Range   | Knee angle at bottom (depth)           | Hip hinge depth               | Elbow angle at bottom        |
-| Overall | Weighted average (Form×0.4, Control×0.3, Range×0.3) | Same weights | Same weights    |
+| Metric  | Squat (v1)                                          | Deadlift (future)             | Bench (future)             |
+| ------- | --------------------------------------------------- | ----------------------------- | -------------------------- |
+| Form    | Back angle + knee-over-toe tracking                 | Spine neutrality + bar path   | Bar path + wrist alignment |
+| Control | Descent smoothness + time under tension             | Hinge control + lockout tempo | Eccentric control + pause  |
+| Range   | Knee angle at bottom (depth)                        | Hip hinge depth               | Elbow angle at bottom      |
+| Overall | Weighted average (Form×0.4, Control×0.3, Range×0.3) | Same weights                  | Same weights               |
 
 Adding a new exercise = add one new `ExerciseAnalyser` class. No schema changes, no API changes, no frontend changes.
 
@@ -368,17 +370,24 @@ services/
 
 CloudWatch alarms:
 
-| Alarm | Condition | Action |
-|---|---|---|
-| DLQ depth | > 0 messages | SNS notification |
-| Worker error rate | > 5% of jobs fail | SNS notification |
-| Analysis latency | p95 > 60s | SNS notification |
-| ECS task health | < 1 running task | ECS auto-restarts |
+| Alarm             | Condition         | Action            |
+| ----------------- | ----------------- | ----------------- |
+| DLQ depth         | > 0 messages      | SNS notification  |
+| Worker error rate | > 5% of jobs fail | SNS notification  |
+| Analysis latency  | p95 > 60s         | SNS notification  |
+| ECS task health   | < 1 running task  | ECS auto-restarts |
 
 Structured JSON logs from the worker:
+
 ```json
-{ "job_id": "...", "exercise": "squat", "status": "completed",
-  "duration_s": 14.3, "reps": 5, "overall": 7.5 }
+{
+  "job_id": "...",
+  "exercise": "squat",
+  "status": "completed",
+  "duration_s": 14.3,
+  "reps": 5,
+  "overall": 7.5
+}
 ```
 
 ---
@@ -387,16 +396,16 @@ Structured JSON logs from the worker:
 
 This feature requires AWS/DevOps knowledge. Suggested sequence:
 
-| Week | Focus |
-|---|---|
-| 1 | Docker — containerise a small FastAPI app, run locally |
-| 2 | ECS Fargate — deploy that container manually via console to understand the pieces |
-| 3 | Terraform — provision ECS + VPC + ALB with Terraform, destroy, repeat |
-| 4 | ECR + GitHub Actions — full CI/CD: push → ECR → ECS |
-| 5 | S3 + SQS + EventBridge — wire up the async trigger |
-| 6 | MediaPipe — pose estimation on sample squat videos locally in Python |
-| 7 | Connect everything — integrate worker into the full pipeline |
-| 8 | Connect to LimenFit — presigned URL upload, Realtime subscription, results UI |
+| Week | Focus                                                                             |
+| ---- | --------------------------------------------------------------------------------- |
+| 1    | Docker — containerise a small FastAPI app, run locally                            |
+| 2    | ECS Fargate — deploy that container manually via console to understand the pieces |
+| 3    | Terraform — provision ECS + VPC + ALB with Terraform, destroy, repeat             |
+| 4    | ECR + GitHub Actions — full CI/CD: push → ECR → ECS                               |
+| 5    | S3 + SQS + EventBridge — wire up the async trigger                                |
+| 6    | MediaPipe — pose estimation on sample squat videos locally in Python              |
+| 7    | Connect everything — integrate worker into the full pipeline                      |
+| 8    | Connect to LimenFit — presigned URL upload, Realtime subscription, results UI     |
 
 ---
 
