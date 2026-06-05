@@ -12,7 +12,7 @@ export async function getOrCreateUserSettings(
 ): Promise<UserSettingsDTO> {
   const { data, error } = await supabase
     .from('user_settings')
-    .select('weight_unit, rest_timer_default_seconds')
+    .select('weight_unit, height_unit, rest_timer_default_seconds')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -21,6 +21,7 @@ export async function getOrCreateUserSettings(
   if (data) {
     return {
       weightUnit: data.weight_unit,
+      heightUnit: data.height_unit,
       restTimerDefaultSeconds: data.rest_timer_default_seconds,
     };
   }
@@ -28,19 +29,20 @@ export async function getOrCreateUserSettings(
   const { data: inserted, error: insertError } = await supabase
     .from('user_settings')
     .insert({ user_id: userId })
-    .select('weight_unit, rest_timer_default_seconds')
+    .select('weight_unit, height_unit, rest_timer_default_seconds')
     .single();
 
   if (insertError) {
     if (insertError.code === '23505') {
       const { data: existing, error: existingError } = await supabase
         .from('user_settings')
-        .select('weight_unit, rest_timer_default_seconds')
+        .select('weight_unit, height_unit, rest_timer_default_seconds')
         .eq('user_id', userId)
         .single();
       if (existingError) throw existingError;
       return {
         weightUnit: existing.weight_unit,
+        heightUnit: existing.height_unit,
         restTimerDefaultSeconds: existing.rest_timer_default_seconds,
       };
     }
@@ -49,6 +51,7 @@ export async function getOrCreateUserSettings(
 
   return {
     weightUnit: inserted.weight_unit,
+    heightUnit: inserted.height_unit,
     restTimerDefaultSeconds: inserted.rest_timer_default_seconds,
   };
 }

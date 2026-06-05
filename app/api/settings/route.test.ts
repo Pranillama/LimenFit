@@ -117,7 +117,11 @@ describe('PATCH /api/settings', () => {
 
   it('returns 200 with updated settings on partial update (weightUnit only)', async () => {
     mockRequireUser.mockResolvedValueOnce({
-      supabase: makeSupabase({ weight_unit: 'kg', rest_timer_default_seconds: 90 }),
+      supabase: makeSupabase({
+        weight_unit: 'kg',
+        height_unit: 'ft',
+        rest_timer_default_seconds: 90,
+      }),
       user: { id: USER_ID } as any,
     });
 
@@ -126,12 +130,17 @@ describe('PATCH /api/settings', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.weightUnit).toBe('kg');
+    expect(json.heightUnit).toBe('ft');
     expect(json.restTimerDefaultSeconds).toBe(90);
   });
 
   it('returns 200 with updated settings on partial update (restTimerDefaultSeconds only)', async () => {
     mockRequireUser.mockResolvedValueOnce({
-      supabase: makeSupabase({ weight_unit: 'lbs', rest_timer_default_seconds: 120 }),
+      supabase: makeSupabase({
+        weight_unit: 'lbs',
+        height_unit: 'ft',
+        rest_timer_default_seconds: 120,
+      }),
       user: { id: USER_ID } as any,
     });
 
@@ -140,13 +149,50 @@ describe('PATCH /api/settings', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.weightUnit).toBe('lbs');
+    expect(json.heightUnit).toBe('ft');
     expect(json.restTimerDefaultSeconds).toBe(120);
+  });
+
+  it('returns 200 with updated settings on partial update (heightUnit only)', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabase({
+        weight_unit: 'lbs',
+        height_unit: 'cm',
+        rest_timer_default_seconds: 60,
+      }),
+      user: { id: USER_ID } as any,
+    });
+
+    const res = await PATCH(makeRequest({ heightUnit: 'cm' }));
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.heightUnit).toBe('cm');
+    expect(json.weightUnit).toBe('lbs');
+    expect(json.restTimerDefaultSeconds).toBe(60);
+  });
+
+  it('returns 400 VALIDATION_ERROR for invalid heightUnit value', async () => {
+    mockRequireUser.mockResolvedValueOnce({
+      supabase: makeSupabase(null),
+      user: { id: USER_ID } as any,
+    });
+
+    const res = await PATCH(makeRequest({ heightUnit: 'inches' }));
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('returns 200 with DB defaults overlaid by patch on first-time-create', async () => {
     // Row was absent — upsert creates it; DB default supplies weight_unit='lbs'
     mockRequireUser.mockResolvedValueOnce({
-      supabase: makeSupabase({ weight_unit: 'lbs', rest_timer_default_seconds: 180 }),
+      supabase: makeSupabase({
+        weight_unit: 'lbs',
+        height_unit: 'ft',
+        rest_timer_default_seconds: 180,
+      }),
       user: { id: USER_ID } as any,
     });
 
@@ -155,6 +201,7 @@ describe('PATCH /api/settings', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.weightUnit).toBe('lbs');
+    expect(json.heightUnit).toBe('ft');
     expect(json.restTimerDefaultSeconds).toBe(180);
   });
 
@@ -162,7 +209,7 @@ describe('PATCH /api/settings', () => {
     const upsertSpy = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({
-          data: { weight_unit: 'kg', rest_timer_default_seconds: 60 },
+          data: { weight_unit: 'kg', height_unit: 'cm', rest_timer_default_seconds: 60 },
           error: null,
         }),
       }),
@@ -172,10 +219,10 @@ describe('PATCH /api/settings', () => {
     };
     mockRequireUser.mockResolvedValueOnce({ supabase, user: { id: USER_ID } as any });
 
-    await PATCH(makeRequest({ weightUnit: 'kg', restTimerDefaultSeconds: 60 }));
+    await PATCH(makeRequest({ weightUnit: 'kg', heightUnit: 'cm', restTimerDefaultSeconds: 60 }));
 
     expect(upsertSpy).toHaveBeenCalledWith(
-      { user_id: USER_ID, weight_unit: 'kg', rest_timer_default_seconds: 60 },
+      { user_id: USER_ID, weight_unit: 'kg', height_unit: 'cm', rest_timer_default_seconds: 60 },
       { onConflict: 'user_id', ignoreDuplicates: false },
     );
   });

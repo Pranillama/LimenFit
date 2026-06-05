@@ -14,7 +14,7 @@ interface FieldProps {
 export function Field({ label, htmlFor, hint, error, className, children }: FieldProps) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={htmlFor} className="text-sm font-medium leading-none">
+      <label htmlFor={htmlFor} className="block text-sm font-medium leading-none">
         {label}
       </label>
       {children}

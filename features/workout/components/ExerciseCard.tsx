@@ -31,6 +31,7 @@ export function ExerciseCard({
   onDragHandlePointerDown,
 }: ExerciseCardProps) {
   const [deleteSetId, setDeleteSetId] = React.useState<string | null>(null);
+  const weightUnit = useActiveWorkoutStore((s) => s.settings.weightUnit);
 
   // Return a primitive string so useSyncExternalStore sees a stable snapshot.
   const pendingIdsKey = useActiveWorkoutStore(
@@ -99,7 +100,7 @@ export function ExerciseCard({
         <div className="border-t">
           <div className="grid grid-cols-[2.5rem_1fr_1fr_2.5rem_2rem] gap-x-2 px-4 py-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             <span>Set</span>
-            <span>Lbs</span>
+            <span>{weightUnit}</span>
             <span>Reps</span>
             <span className="text-center">✓</span>
             <span />

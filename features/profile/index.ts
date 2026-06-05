@@ -1,5 +1,6 @@
 export { ProfileView } from './components/ProfileView';
 export { PersonalInfoForm } from './components/PersonalInfoForm';
+export { PreferencesForm } from './components/PreferencesForm';
 export { AccountInfo } from './components/AccountInfo';
 export { SettingsForm } from './components/SettingsForm';
 export { ProfileHeader } from './components/ProfileHeader';

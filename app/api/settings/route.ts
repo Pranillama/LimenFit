@@ -12,6 +12,7 @@ export async function PATCH(request: Request): Promise<Response> {
 
     const patchFields: Record<string, unknown> = {};
     if (body.weightUnit !== undefined) patchFields.weight_unit = body.weightUnit;
+    if (body.heightUnit !== undefined) patchFields.height_unit = body.heightUnit;
     if (body.restTimerDefaultSeconds !== undefined) {
       patchFields.rest_timer_default_seconds = body.restTimerDefaultSeconds;
     }
@@ -22,13 +23,14 @@ export async function PATCH(request: Request): Promise<Response> {
         { user_id: user.id, ...patchFields },
         { onConflict: 'user_id', ignoreDuplicates: false },
       )
-      .select('weight_unit, rest_timer_default_seconds')
+      .select('weight_unit, height_unit, rest_timer_default_seconds')
       .single();
 
     if (error) throw error;
 
     return jsonOk<UserSettingsDTO>({
       weightUnit: data.weight_unit,
+      heightUnit: data.height_unit,
       restTimerDefaultSeconds: data.rest_timer_default_seconds,
     });
   } catch (err) {

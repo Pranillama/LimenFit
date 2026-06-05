@@ -62,6 +62,7 @@ describe('buildBaseContext', () => {
     vi.mocked(createSupabaseServerClient).mockResolvedValue(supabaseStub as any);
     vi.mocked(getOrCreateUserSettings).mockResolvedValue({
       weightUnit: 'lbs',
+      heightUnit: 'ft',
       restTimerDefaultSeconds: 90,
     });
   });
