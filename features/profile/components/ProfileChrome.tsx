@@ -1,8 +1,7 @@
 'use client';
 
 import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import type { ProfileDTO } from '@/lib/schemas/profile';
 
@@ -15,20 +14,31 @@ interface ProfileChromeProps {
 
 export function ProfileChrome({ profile, email }: ProfileChromeProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLanding = pathname === '/profile';
+
+  function handleBack() {
+    router.push('/profile');
+  }
 
   return (
     <>
       {!isLanding ? (
-        <div className="mb-4 lg:hidden">
-          <Link
-            href="/profile"
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Profile
-          </Link>
-        </div>
+        <>
+          {/* Fixed bar — always visible while scrolling on mobile/tablet */}
+          <div className="fixed inset-x-0 top-0 z-20 border-b border-border bg-background px-4 py-3 md:left-60 md:px-6 lg:hidden">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex items-center gap-1 text-sm font-medium text-brand"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Profile
+            </button>
+          </div>
+          {/* Spacer — bar ≈44px, PageContainer py-6=24px already, target ~24px visible gap so 44px extra */}
+          <div className="h-11 lg:hidden" aria-hidden="true" />
+        </>
       ) : null}
 
       <div className={isLanding ? '' : 'hidden lg:block'}>

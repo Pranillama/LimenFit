@@ -21,7 +21,7 @@ export function AppShell({ user, aiEnabled, children }: AppShellProps) {
       <ActiveWorkoutRuntime />
       <div className="min-h-screen">
         <AppSidebar user={user} aiEnabled={aiEnabled} />
-        <main className="pb-[calc(4rem+max(env(safe-area-inset-bottom),0px))] md:pb-0 md:pl-60">
+        <main className="overflow-x-hidden pb-[calc(4rem+max(env(safe-area-inset-bottom),0px))] md:pb-0 md:pl-60">
           {children}
         </main>
         <MobileBottomNav aiEnabled={aiEnabled} />

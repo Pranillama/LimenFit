@@ -12,7 +12,7 @@ export default function ProfileTemplate({ children }: { children: React.ReactNod
   return (
     <div
       className={cn(
-        'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out lg:contents',
+        'lg:contents',
         !isLanding && 'motion-safe:animate-[profile-push_300ms_ease-out]',
       )}
     >
