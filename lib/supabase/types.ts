@@ -7,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ai_chat_logs: {
@@ -66,6 +91,72 @@ export type Database = {
           tokens_in?: number
           tokens_out?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      body_measurements: {
+        Row: {
+          arms_cm: number | null
+          body_fat_pct: number | null
+          chest_cm: number | null
+          created_at: string
+          id: string
+          legs_cm: number | null
+          recorded_on: string
+          updated_at: string
+          user_id: string
+          waist_cm: number | null
+        }
+        Insert: {
+          arms_cm?: number | null
+          body_fat_pct?: number | null
+          chest_cm?: number | null
+          created_at?: string
+          id?: string
+          legs_cm?: number | null
+          recorded_on?: string
+          updated_at?: string
+          user_id: string
+          waist_cm?: number | null
+        }
+        Update: {
+          arms_cm?: number | null
+          body_fat_pct?: number | null
+          chest_cm?: number | null
+          created_at?: string
+          id?: string
+          legs_cm?: number | null
+          recorded_on?: string
+          updated_at?: string
+          user_id?: string
+          waist_cm?: number | null
+        }
+        Relationships: []
+      }
+      bodyweight_entries: {
+        Row: {
+          created_at: string
+          id: string
+          recorded_on: string
+          updated_at: string
+          user_id: string
+          weight_kg: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recorded_on?: string
+          updated_at?: string
+          user_id: string
+          weight_kg: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recorded_on?: string
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number
         }
         Relationships: []
       }
@@ -212,6 +303,7 @@ export type Database = {
           created_at: string
           id: string
           is_public: boolean
+          last_patch_mutation_id: string | null
           name: string
           share_slug: string
           updated_at: string
@@ -222,6 +314,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_public?: boolean
+          last_patch_mutation_id?: string | null
           name: string
           share_slug?: string
           updated_at?: string
@@ -232,6 +325,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_public?: boolean
+          last_patch_mutation_id?: string | null
           name?: string
           share_slug?: string
           updated_at?: string
@@ -256,7 +350,9 @@ export type Database = {
           starting_weight_kg: number | null
           target_daily_calories: number | null
           time_zone: string | null
-          training_experience: Database["public"]["Enums"]["training_experience"] | null
+          training_experience:
+            | Database["public"]["Enums"]["training_experience"]
+            | null
           updated_at: string
           user_id: string
           username: string | null
@@ -278,7 +374,9 @@ export type Database = {
           starting_weight_kg?: number | null
           target_daily_calories?: number | null
           time_zone?: string | null
-          training_experience?: Database["public"]["Enums"]["training_experience"] | null
+          training_experience?:
+            | Database["public"]["Enums"]["training_experience"]
+            | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -300,7 +398,9 @@ export type Database = {
           starting_weight_kg?: number | null
           target_daily_calories?: number | null
           time_zone?: string | null
-          training_experience?: Database["public"]["Enums"]["training_experience"] | null
+          training_experience?:
+            | Database["public"]["Enums"]["training_experience"]
+            | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -470,40 +570,79 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_share_slug: { Args: never; Returns: string }
-      reorder_workout_exercise: {
-        Args: { p_workout_exercise_id: string; p_position: number }
-        Returns: Array<{ id: string; workout_id: string }>
+      create_plan_with_children: {
+        Args: { p_client_mutation_id: string; p_name: string; p_workouts: Json }
+        Returns: {
+          plan_id: string
+          share_slug: string
+        }[]
       }
       delete_workout_exercise_in_progress: {
         Args: { p_workout_exercise_id: string }
-        Returns: Array<{ deleted: boolean; workout_id: string | null; workout_status: string | null }>
+        Returns: {
+          deleted: boolean
+          workout_id: string
+          workout_status: string
+        }[]
       }
-      create_plan_with_children: {
-        Args: { p_name: string; p_workouts: Json; p_client_mutation_id: string }
-        Returns: Array<{ plan_id: string; share_slug: string }>
-      }
-      update_plan_with_children: {
-        Args: { p_plan_id: string; p_name: string; p_workouts: Json; p_client_mutation_id: string }
-        Returns: Array<{ plan_id: string }>
-      }
-      update_plan_name: {
-        Args: { p_plan_id: string; p_name: string; p_client_mutation_id: string }
-        Returns: Array<{ plan_id: string }>
-      }
+      generate_share_slug: { Args: never; Returns: string }
       record_ai_tokens: {
         Args: {
-          p_user_id: string
           p_date: string
           p_tokens_in: number
           p_tokens_out: number
+          p_user_id: string
         }
-        Returns: void
+        Returns: undefined
       }
+      reorder_workout_exercise: {
+        Args: { p_position: number; p_workout_exercise_id: string }
+        Returns: {
+          id: string
+          workout_id: string
+        }[]
+      }
+      update_plan_name: {
+        Args: {
+          p_client_mutation_id: string
+          p_name: string
+          p_plan_id: string
+        }
+        Returns: {
+          plan_id: string
+        }[]
+      }
+      update_plan_with_children:
+        | {
+            Args: { p_name: string; p_plan_id: string; p_workouts: Json }
+            Returns: {
+              plan_id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_client_mutation_id: string
+              p_name: string
+              p_plan_id: string
+              p_workouts: Json
+            }
+            Returns: {
+              plan_id: string
+            }[]
+          }
     }
     Enums: {
-      activity_level: "sedentary" | "lightly_active" | "moderately_active" | "very_active"
-      fitness_goal: "fat_loss" | "muscle_gain" | "strength" | "endurance" | "general_fitness"
+      activity_level:
+        | "sedentary"
+        | "lightly_active"
+        | "moderately_active"
+        | "very_active"
+      fitness_goal:
+        | "fat_loss"
+        | "muscle_gain"
+        | "strength"
+        | "endurance"
+        | "general_fitness"
       gender: "male" | "female" | "prefer_not_to_say"
       height_unit: "ft" | "cm"
       training_experience: "beginner" | "intermediate" | "advanced"
@@ -632,3 +771,32 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      activity_level: [
+        "sedentary",
+        "lightly_active",
+        "moderately_active",
+        "very_active",
+      ],
+      fitness_goal: [
+        "fat_loss",
+        "muscle_gain",
+        "strength",
+        "endurance",
+        "general_fitness",
+      ],
+      gender: ["male", "female", "prefer_not_to_say"],
+      height_unit: ["ft", "cm"],
+      training_experience: ["beginner", "intermediate", "advanced"],
+      weight_unit: ["lbs", "kg"],
+      workout_status: ["in_progress", "completed", "expired"],
+    },
+  },
+} as const
+
