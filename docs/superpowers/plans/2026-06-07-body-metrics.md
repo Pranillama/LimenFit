@@ -9,6 +9,7 @@
 **Tech Stack:** Next.js 15 (App Router, RSC), TypeScript, Supabase (Postgres + RLS), Zod, TanStack Query, recharts (already installed), Vitest, Tailwind + shadcn/ui.
 
 **Conventions to follow (verified against the codebase):**
+
 - Migration mirrors `supabase/migrations/20260603000001_profiles.sql`: `set_updated_at` trigger + 4 RLS policies per table.
 - Server helpers mirror `lib/profile/server.ts` (`assertServerOnly()`, `rowToDTO`, `Number(...)` numeric coercion).
 - Routes mirror `app/api/profile/route.ts` / `app/api/settings/route.ts` (`requireUser`, `handleApiError`, `jsonOk`/`jsonCreated`, camel→snake map).
@@ -21,6 +22,7 @@
 ## File Structure
 
 **Create:**
+
 - `supabase/migrations/20260607000001_body_metrics.sql` — two tables + triggers + RLS
 - `lib/body-metrics/derive.ts` — pure `computeBmi`, `bmiCategory`, `weightDelta`
 - `lib/body-metrics/__tests__/derive.test.ts`
@@ -39,6 +41,7 @@
 - `features/profile/components/ProgressPhotosPlaceholder.tsx`
 
 **Modify:**
+
 - `features/profile/lib/unitConversions.ts` — add `inToCm`, `cmToIn`
 - `features/profile/index.ts` — export the four new section components
 - `app/(app)/profile/body-metrics/page.tsx` — replace stub with real page
@@ -49,6 +52,7 @@
 ## Task 1: Migration + regenerated types
 
 **Files:**
+
 - Create: `supabase/migrations/20260607000001_body_metrics.sql`
 - Modify (generated): `lib/supabase/types.ts`
 
@@ -150,6 +154,7 @@ git commit -m "feat(body-metrics): add bodyweight_entries and body_measurements 
 ## Task 2: Derive module (BMI + weight delta) — TDD
 
 **Files:**
+
 - Test: `lib/body-metrics/__tests__/derive.test.ts`
 - Create: `lib/body-metrics/derive.ts`
 
@@ -279,6 +284,7 @@ git commit -m "feat(body-metrics): add BMI and weight-delta derive functions"
 ## Task 3: Inch/cm conversions — TDD
 
 **Files:**
+
 - Modify: `features/profile/lib/unitConversions.ts`
 - Test: `features/profile/lib/__tests__/unitConversions.test.ts` (create if absent)
 
@@ -338,6 +344,7 @@ git commit -m "feat(body-metrics): add inch/cm conversion helpers"
 ## Task 4: Zod schemas + DTOs — TDD
 
 **Files:**
+
 - Test: `lib/schemas/__tests__/body-metrics.test.ts`
 - Create: `lib/schemas/body-metrics.ts`
 
@@ -346,10 +353,7 @@ git commit -m "feat(body-metrics): add inch/cm conversion helpers"
 ```ts
 import { describe, it, expect } from 'vitest';
 
-import {
-  bodyweightLogBodySchema,
-  measurementsPatchBodySchema,
-} from '../body-metrics';
+import { bodyweightLogBodySchema, measurementsPatchBodySchema } from '../body-metrics';
 
 describe('bodyweightLogBodySchema', () => {
   it('accepts a positive weight', () => {
@@ -445,6 +449,7 @@ git commit -m "feat(body-metrics): add bodyweight + measurements schemas and DTO
 ## Task 5: Server helpers
 
 **Files:**
+
 - Create: `lib/body-metrics/server.ts`
 - Create: `lib/body-metrics/index.ts`
 
@@ -590,6 +595,7 @@ git commit -m "feat(body-metrics): add server read/upsert helpers"
 ## Task 6: `POST /api/bodyweight` route — TDD
 
 **Files:**
+
 - Test: `app/api/bodyweight/route.test.ts`
 - Create: `app/api/bodyweight/route.ts`
 
@@ -744,6 +750,7 @@ git commit -m "feat(body-metrics): add POST /api/bodyweight upsert route"
 ## Task 7: `PATCH /api/measurements` route — TDD
 
 **Files:**
+
 - Test: `app/api/measurements/route.test.ts`
 - Create: `app/api/measurements/route.ts`
 
@@ -917,6 +924,7 @@ git commit -m "feat(body-metrics): add PATCH /api/measurements upsert route"
 ## Task 8: Mutation hooks
 
 **Files:**
+
 - Create: `features/profile/hooks/useLogBodyweightMutation.ts`
 - Create: `features/profile/hooks/useUpdateMeasurementsMutation.ts`
 
@@ -1021,6 +1029,7 @@ git commit -m "feat(body-metrics): add bodyweight + measurements mutation hooks"
 ## Task 9: BmiCard component
 
 **Files:**
+
 - Create: `features/profile/components/BmiCard.tsx`
 
 Presentational (no `'use client'`). Receives precomputed BMI + category. Scale bar runs 15→35; marker left% = clamp `((bmi - 15) / 20) * 100`. Category pill colour keyed by `category.key` (underweight=blue, normal=emerald, overweight=amber, obese=red).
@@ -1055,7 +1064,9 @@ export interface BmiCardProps {
 
 export function BmiCard({ bmi, category, heightLabel, weightLabel }: BmiCardProps) {
   const markerPct =
-    bmi === null ? 0 : Math.min(100, Math.max(0, ((bmi - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100));
+    bmi === null
+      ? 0
+      : Math.min(100, Math.max(0, ((bmi - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100));
 
   return (
     <div className="rounded-xl border border-border bg-card p-6">
@@ -1089,7 +1100,7 @@ export function BmiCard({ bmi, category, heightLabel, weightLabel }: BmiCardProp
           ) : null}
 
           <div className="mt-5">
-            <div className="relative h-2 rounded-full bg-gradient-to-r from-blue-500 via-emerald-500 via-amber-500 to-red-500">
+            <div className="relative h-2 rounded-full bg-gradient-to-r from-blue-500 via-amber-500 via-emerald-500 to-red-500">
               <span
                 className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-amber-400 shadow"
                 style={{ left: `${markerPct}%` }}
@@ -1126,6 +1137,7 @@ git commit -m "feat(body-metrics): add BmiCard with category pill and scale bar"
 ## Task 10: WeightChart component (recharts)
 
 **Files:**
+
 - Create: `features/profile/components/WeightChart.tsx`
 
 Client component. Takes already-converted display points `{ date: string; weight: number }[]` plus a unit label, so all kg→display conversion happens in the parent (`BodyweightSection`). Orange line + soft area fill, sparse date ticks.
@@ -1232,6 +1244,7 @@ git commit -m "feat(body-metrics): add WeightChart (recharts area chart)"
 ## Task 11: BodyweightSection (current + delta + chart + log form)
 
 **Files:**
+
 - Create: `features/profile/components/BodyweightSection.tsx`
 
 Client component. Computes CURRENT (last entry), trend pill via `weightDelta`, builds chart points (kg→display), and renders the "Log today's weight" input + "Add entry" using `useLogBodyweightMutation`, calling `router.refresh()` on success.
@@ -1278,7 +1291,10 @@ export function BodyweightSection({ entries, weightUnit }: BodyweightSectionProp
   const current = sorted.at(-1) ?? null;
   const delta = weightDelta(entries);
 
-  const points = sorted.map((e) => ({ date: e.recordedOn, weight: toDisplay(e.weightKg, weightUnit) }));
+  const points = sorted.map((e) => ({
+    date: e.recordedOn,
+    weight: toDisplay(e.weightKg, weightUnit),
+  }));
   const currentDisplay = current ? toDisplay(current.weightKg, weightUnit) : null;
   const deltaDisplay = delta ? toDisplay(Math.abs(delta.deltaKg), weightUnit) : null;
   const isLoss = delta ? delta.deltaKg < 0 : false;
@@ -1342,9 +1358,7 @@ export function BodyweightSection({ entries, weightUnit }: BodyweightSectionProp
             <WeightChart points={points} unitLabel={weightUnit} />
           </div>
         ) : (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Log a few entries to see your trend.
-          </p>
+          <p className="mt-4 text-sm text-muted-foreground">Log a few entries to see your trend.</p>
         )}
 
         <form onSubmit={handleSubmit} className="mt-6 border-t border-border pt-6">
@@ -1392,6 +1406,7 @@ git commit -m "feat(body-metrics): add BodyweightSection with chart and log form
 ## Task 12: MeasurementsForm
 
 **Files:**
+
 - Create: `features/profile/components/MeasurementsForm.tsx`
 
 Client component. Body fat is a plain `%`. Waist/Chest/Arms/Legs are lengths stored in cm; displayed in inches when `heightUnit === 'ft'`, else cm. Uses `inToCm`/`cmToIn`. Tracks a `saved` snapshot for dirty/cancel, submits only via "Save measurements", and `router.refresh()` on success.
@@ -1439,9 +1454,10 @@ export function MeasurementsForm({ measurements, heightUnit }: MeasurementsFormP
 
   const initial = React.useMemo(
     () => ({
-      bodyFat: measurements?.bodyFatPct === null || measurements === null
-        ? ''
-        : String(measurements.bodyFatPct),
+      bodyFat:
+        measurements?.bodyFatPct === null || measurements === null
+          ? ''
+          : String(measurements.bodyFatPct),
       waist: lengthToDisplay(measurements?.waistCm ?? null, imperial),
       chest: lengthToDisplay(measurements?.chestCm ?? null, imperial),
       arms: lengthToDisplay(measurements?.armsCm ?? null, imperial),
@@ -1565,6 +1581,7 @@ git commit -m "feat(body-metrics): add MeasurementsForm with in/cm unit handling
 ## Task 13: ProgressPhotosPlaceholder
 
 **Files:**
+
 - Create: `features/profile/components/ProgressPhotosPlaceholder.tsx`
 
 Static stub — no logic.
@@ -1612,6 +1629,7 @@ git commit -m "feat(body-metrics): add Progress photos placeholder"
 ## Task 14: Page wiring + barrel exports
 
 **Files:**
+
 - Modify: `features/profile/index.ts`
 - Modify: `app/(app)/profile/body-metrics/page.tsx`
 
@@ -1728,4 +1746,7 @@ git commit -m "feat(profile): wire up Body metrics page (/profile/body-metrics)"
 - **Spec coverage:** migration (Task 1) ✓; schemas+DTOs (Task 4) ✓; server helpers (Task 5) ✓; derive BMI/category/delta (Task 2) ✓; in/cm helpers (Task 3) ✓; POST /api/bodyweight (Task 6) ✓; PATCH /api/measurements (Task 7) ✓; hooks (Task 8) ✓; BmiCard (Task 9) ✓; WeightChart (Task 10) ✓; BodyweightSection (Task 11) ✓; MeasurementsForm (Task 12) ✓; ProgressPhotosPlaceholder (Task 13) ✓; page + exports (Task 14) ✓.
 - **Type consistency:** `BodyweightEntryDTO` (`id`, `weightKg`, `recordedOn`) and `MeasurementsDTO` (`bodyFatPct`, `waistCm`, `chestCm`, `armsCm`, `legsCm`, `recordedOn`) are used identically across schemas, server, routes, hooks, and components. Upsert `onConflict` is the string `'user_id,recorded_on'` everywhere. `bmiCategory().key` values (`underweight|normal|overweight|obese`) match `BmiCard`'s `PILL_BY_KEY`.
 - **Open follow-up (not in scope):** "today" is UTC; a `profiles.time_zone`-aware date is a future refinement noted in the migration comment. Progress photos remain a stub.
+
+```
+
 ```
