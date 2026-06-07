@@ -31,9 +31,7 @@ export function weightDelta(
 ): WeightDelta | null {
   if (entries.length < 2) return null;
   const sorted = [...entries].sort((a, b) => a.recordedOn.localeCompare(b.recordedOn));
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const first = sorted[0]!;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const last = sorted[sorted.length - 1]!;
   const deltaKg = Math.round((last.weightKg - first.weightKg) * 10) / 10;
   const ms = new Date(last.recordedOn).getTime() - new Date(first.recordedOn).getTime();

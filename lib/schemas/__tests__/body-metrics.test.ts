@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import {
-  bodyweightLogBodySchema,
-  measurementsPatchBodySchema,
-} from '../body-metrics';
+import { bodyweightLogBodySchema, measurementsPatchBodySchema } from '../body-metrics';
 
 describe('bodyweightLogBodySchema', () => {
   it('accepts a positive weight', () => {
