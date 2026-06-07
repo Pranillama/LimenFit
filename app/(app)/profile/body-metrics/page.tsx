@@ -5,7 +5,13 @@ import {
   ProgressPhotosPlaceholder,
 } from '@/features/profile';
 import { cmToFtIn, kgToLbs } from '@/features/profile/lib/unitConversions';
-import { bmiCategory, computeBmi } from '@/lib/body-metrics/derive';
+import {
+  ageFromDob,
+  bmiCategory,
+  computeBmi,
+  healthyWeightRange,
+  idealWeight,
+} from '@/lib/body-metrics/derive';
 import { getBodyweightEntries, getLatestMeasurements } from '@/lib/body-metrics/server';
 import { getOrCreateProfile } from '@/lib/profile';
 import { createSupabaseServerClient } from '@/lib/supabase/server-exports';
@@ -50,13 +56,24 @@ export default async function BodyMetricsPage() {
     }
   }
 
+  const formatWeight = (kg: number): string =>
+    weightUnit === 'lbs' ? `${kgToLbs(kg)}` : `${Math.round(kg * 10) / 10}`;
+
   let weightLabel: string | null = null;
   if (latestWeightKg !== null) {
-    weightLabel =
-      weightUnit === 'lbs'
-        ? `${kgToLbs(latestWeightKg)} lbs`
-        : `${Math.round(latestWeightKg * 10) / 10} kg`;
+    weightLabel = `${formatWeight(latestWeightKg)} ${weightUnit}`;
   }
+
+  const genderLabels: Record<string, string> = { male: 'Male', female: 'Female' };
+  const sexLabel = profile.gender ? (genderLabels[profile.gender] ?? null) : null;
+  const age = ageFromDob(profile.dateOfBirth);
+
+  const healthy = healthyWeightRange(profile.heightCm);
+  const healthyWeightLabel = healthy
+    ? `${formatWeight(healthy.minKg)} – ${formatWeight(healthy.maxKg)} ${weightUnit}`
+    : null;
+  const idealKg = idealWeight(profile.heightCm);
+  const idealWeightLabel = idealKg !== null ? `${formatWeight(idealKg)} ${weightUnit}` : null;
 
   return (
     <div className="space-y-8">
@@ -65,7 +82,16 @@ export default async function BodyMetricsPage() {
         <p className="mt-1 text-sm text-muted-foreground">Track your composition over time.</p>
       </div>
 
-      <BmiCard bmi={bmi} category={category} heightLabel={heightLabel} weightLabel={weightLabel} />
+      <BmiCard
+        bmi={bmi}
+        category={category}
+        sexLabel={sexLabel}
+        age={age}
+        heightLabel={heightLabel}
+        weightLabel={weightLabel}
+        healthyWeightLabel={healthyWeightLabel}
+        idealWeightLabel={idealWeightLabel}
+      />
       <BodyweightSection entries={entries} weightUnit={weightUnit} />
       <MeasurementsForm measurements={measurements} heightUnit={heightUnit} />
       <ProgressPhotosPlaceholder />
