@@ -16,3 +16,11 @@ export function kgToLbs(kg: number): number {
 export function lbsToKg(lbs: number): number {
   return Math.round((lbs / 2.20462) * 100) / 100;
 }
+
+export function inToCm(inches: number): number {
+  return Math.round(inches * 2.54 * 10) / 10;
+}
+
+export function cmToIn(cm: number): number {
+  return Math.round((cm / 2.54) * 10) / 10;
+}

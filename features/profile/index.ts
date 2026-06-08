@@ -9,3 +9,7 @@ export { SectionList } from './components/SectionList';
 export { AccountSection } from './components/AccountSection';
 export { useUpdateSettingsMutation } from './hooks/useUpdateSettingsMutation';
 export { SectionStub } from './components/SectionStub';
+export { BmiCard } from './components/BmiCard';
+export { BodyweightSection } from './components/BodyweightSection';
+export { MeasurementsForm } from './components/MeasurementsForm';
+export { ProgressPhotosPlaceholder } from './components/ProgressPhotosPlaceholder';
