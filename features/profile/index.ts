@@ -13,3 +13,4 @@ export { BmiCard } from './components/BmiCard';
 export { BodyweightSection } from './components/BodyweightSection';
 export { MeasurementsForm } from './components/MeasurementsForm';
 export { ProgressPhotosPlaceholder } from './components/ProgressPhotosPlaceholder';
+export { SubscriptionView } from './components/SubscriptionView';
