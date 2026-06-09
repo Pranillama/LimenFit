@@ -10,9 +10,10 @@ import { ProfileHeader } from './ProfileHeader';
 interface ProfileChromeProps {
   profile: ProfileDTO | null;
   email: string | null;
+  userId: string | null;
 }
 
-export function ProfileChrome({ profile, email }: ProfileChromeProps) {
+export function ProfileChrome({ profile, email, userId }: ProfileChromeProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isLanding = pathname === '/profile';
@@ -48,7 +49,9 @@ export function ProfileChrome({ profile, email }: ProfileChromeProps) {
         </p>
 
         <div className="mb-6">
-          {profile ? <ProfileHeader profile={profile} email={email} /> : null}
+          {profile && userId ? (
+            <ProfileHeader profile={profile} email={email} userId={userId} />
+          ) : null}
         </div>
       </div>
     </>
