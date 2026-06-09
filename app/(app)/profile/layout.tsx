@@ -22,7 +22,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
 
   return (
     <PageContainer className="lg:max-w-5xl">
-      <ProfileChrome profile={profile} email={email} />
+      <ProfileChrome profile={profile} email={email} userId={user?.id ?? null} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
         <div className="hidden lg:sticky lg:top-10 lg:block lg:self-start">
