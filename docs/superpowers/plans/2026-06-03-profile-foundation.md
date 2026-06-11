@@ -1,5 +1,7 @@
 # Profile Foundation + Shell Implementation Plan
 
+> **Status: Shipped ✓** — merged to `main` (PR #1). Historical record; not maintained.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship the data foundation (schema + types + API) and the visible profile shell (header, master/detail desktop layout, mobile push routes, Account inline section with password reset + delete account, Sign Out), so each follow-up plan (Personal, Fitness, Body Metrics, Preferences, Subscription) can plug into established hooks and components.

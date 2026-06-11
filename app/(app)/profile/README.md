@@ -1,64 +1,55 @@
 # app/(app)/profile
 
-Profile page — implemented in Phase 1 (T15).
+The profile area — a master/detail shell with six sections plus Account, under `/profile/*`. Authenticated (guarded by `middleware.ts`).
 
-## Route
+## Routes
 
-`/profile` — authenticated, inside the app shell.
+| Route                   | Section                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `/profile`              | Landing — section list (mobile); on desktop the list is the left rail      |
+| `/profile/personal`     | Personal info (name, age, gender, height, starting weight, time zone)      |
+| `/profile/fitness`      | Fitness profile (goal, activity, experience, frequency, goal weight, kcal) |
+| `/profile/body-metrics` | Body metrics (BMI card + gauge, weight log + chart, measurements)          |
+| `/profile/preferences`  | Preferences (weight/height units, default rest timer)                      |
+| `/profile/subscription` | Subscription (cosmetic: plan card, AI-usage meter, activity stats)         |
+| `/profile/account`      | Account (change password, delete account)                                  |
 
 ## Layout
 
+`layout.tsx` (server) loads the user + profile once and renders the master/detail shell:
+
+- **Desktop (`lg+`):** sticky `SectionList` rail (300px) + the active section.
+- **Mobile:** `ProfileChrome` provides a fixed back-to-Profile bar; the `/profile` landing shows the section list, and each row pushes to its route.
+
 ```
-┌────────────────────────────────────────────────┐
-│ Profile                                        │
-├────────────────────────────────────────────────┤
-│ Account                                        │
-│   you@example.com                              │
-│   Signed in                                    │
-│                                                │
-│ Settings                                       │
-│   Weight unit                                  │
-│     [ lbs | kg ]   ← Tabs segmented control    │
-│                                                │
-│   Default rest timer                           │
-│     [   90   ] seconds                         │
-│     Used when starting a new rest timer.       │
-│                                                │
-│ ─────────────────────────────────────────────  │
-│ [   Sign Out   ]   ← destructive               │
-└────────────────────────────────────────────────┘
+Desktop
+┌──────────────┬───────────────────────────────┐
+│ ProfileHeader (avatar + name + handle)        │
+├──────────────┼───────────────────────────────┤
+│ SectionList  │  <active section>             │
+│  Personal    │                               │
+│  Fitness     │                               │
+│  Body metrics│                               │
+│  Preferences │                               │
+│  Subscription│                               │
+│  Account     │                               │
+│  [Sign out]  │                               │
+└──────────────┴───────────────────────────────┘
 ```
 
 ## Files
 
-| File                  | Role                                                                                            |
-| --------------------- | ----------------------------------------------------------------------------------------------- |
-| `page.tsx`            | Server component — fetches the authenticated user, renders `ProfileView` inside `PageContainer` |
-| `sign-out-button.tsx` | Client component — full cleanup before sign-out (see below)                                     |
-| `actions.ts`          | Server action — Supabase sign-out + redirect to `/auth`                                         |
+| File                  | Role                                                                           |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `layout.tsx`          | Server — loads user/profile, renders `ProfileChrome` + `SectionList` + section |
+| `page.tsx`            | `/profile` landing — renders `ProfileView` (mobile section list)               |
+| `<section>/page.tsx`  | Server — reads that section's data, renders its form/view                      |
+| `template.tsx`        | Re-mounts on navigation (drives settings hydration)                            |
+| `sign-out-button.tsx` | Client — full client wipe before sign-out (see `features/profile/README.md`)   |
+| `actions.ts`          | Server action — Supabase sign-out + redirect to `/auth`                        |
 
-> **Settings hydration:** User settings (weight unit, default rest timer) are fetched in `app/(app)/template.tsx` via `getOrCreateUserSettings`, then pushed into the active-workout store by `<SettingsHydrator>`. `profile/page.tsx` does **not** independently fetch settings — it reads them from the already-hydrated store through `ProfileView`.
+## Data flow
 
-## Settings mutations
+Each section page server-reads its data (profile / `user_settings` / bodyweight entries / measurements / AI usage), computes any derived values, and passes them to a client form. Forms write through focused mutation hooks (`@/features/profile`) that hit `/api/profile`, `/api/settings`, `/api/bodyweight`, or `/api/measurements`, then call `router.refresh()` to re-read. Avatar uploads go to the public `avatars` Supabase Storage bucket (migration `20260608000001`), then patch `profiles.avatar_url`.
 
-Settings changes go through `useUpdateSettingsMutation` (TanStack Query) which:
-
-- Optimistically applies the patch to the active-workout store.
-- PATCHes `/api/settings`.
-- On success, re-applies the canonical server row.
-- On error, rolls back to the pre-mutation snapshot and shows a toast.
-
-## Sign-out cleanup contract
-
-`SignOutButton` performs a full client wipe before the server action:
-
-1. `useActiveWorkoutStore.getState().resetStore()` — resets all workout + settings state to initial defaults (`hydrated: true`).
-2. `useActiveWorkoutStore.persist.clearStorage()` — removes the persisted localStorage key (`limenfit:active-workout:v1`).
-3. `queryClient.clear()` — evicts all TanStack Query caches (exercises library, workout-detail, plans, etc.).
-4. `clearPendingDuplicate()` — removes the plan-duplicate `sessionStorage` entry.
-5. `toast.dismiss('persistence-degraded')` — dismisses any sticky storage-warning toast.
-6. `signOut()` server action — Supabase sign-out + `redirect('/auth')`.
-
-## Out of scope (Phase 2/3)
-
-Theme toggle, units beyond lbs/kg, AI preferences.
+See `features/profile/README.md` for the component/hook surface, and the data layer in `lib/body-metrics`, `lib/schemas`, and `app/api/*`.

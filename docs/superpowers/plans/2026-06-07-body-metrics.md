@@ -1,5 +1,7 @@
 # Body Metrics Implementation Plan
 
+> **Status: Shipped ✓** — merged to `main` (PR #2). Historical record; not maintained.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship the `/profile/body-metrics` section — a BMI card, a bodyweight log with chart, and a body-measurements form — backed by two new per-day time-series tables.

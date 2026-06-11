@@ -29,21 +29,20 @@ TDD for data-layer work (schemas, server helpers, API routes). UI primitives wit
 
 ## Recently shipped
 
-**Plan 1 (PR #1, merged 2026-06-04):** Profile foundation + master/detail shell + Account section.
+**Profile section — complete.** All master/detail sections live under `/profile/*`:
 
-- Plan: [docs/superpowers/plans/2026-06-03-profile-foundation.md](docs/superpowers/plans/2026-06-03-profile-foundation.md)
-- New: `profiles` table + 5 enums (`fitness_goal`, `activity_level`, `training_experience`, `gender`, `height_unit`); `/api/profile` GET/PATCH; `/api/account/delete`; shared UI primitives (`Segmented`, `Pill`, `IconChip`, `SectionRow`, `Field`); profile shell with iOS-style mobile push.
+- **Foundation** (Plan 1, PR #1): `profiles` table + 5 enums; `/api/profile` GET/PATCH; `/api/account/delete`; shared UI primitives (`Segmented`, `Pill`, `IconChip`, `SectionRow`, `Field`); profile shell + Account section. Plan: [docs/superpowers/plans/2026-06-03-profile-foundation.md](docs/superpowers/plans/2026-06-03-profile-foundation.md) (also the profile design source of truth).
+- **Personal info** (`/profile/personal`) — form on `profiles` identity/physical columns.
+- **Preferences** (`/profile/preferences`) — `user_settings` (weight_unit, height_unit, rest timer).
+- **Fitness profile** (`/profile/fitness`) — `profiles` fitness columns; added `GoalGrid`, `RangeSlider`, in-house `Select` primitives.
+- **Body metrics** (`/profile/body-metrics`, PR #2) — `bodyweight_entries` + `body_measurements` tables; BMI card with SVG `BmiGauge` + healthy/ideal weight + stats; recharts weight chart; measurements form. `lib/body-metrics/{server,derive}.ts`; `POST /api/bodyweight`, `PATCH /api/measurements`. Plan: [docs/superpowers/plans/2026-06-07-body-metrics.md](docs/superpowers/plans/2026-06-07-body-metrics.md).
+- **Subscription** (`/profile/subscription`) — cosmetic: Free plan card, **real** AI-token meter (`ai_usage_daily` vs the 50k/day `costGuard` cap), real activity stats (workouts this month, saved plans), Pro-features list.
+- **Avatar upload** (profile header, PR #3) — public `avatars` storage bucket + owner-scoped RLS (`20260608000001`); reusable `Avatar` + `AvatarUploader` (client-side square-512 webp resize, upload/remove); `features/profile/lib/avatar.ts`.
 
-## Pending follow-ups (priority order)
+## Open hooks / future
 
-1. **Personal info** (`/profile/personal`) — form on existing `profiles` columns (first_name, last_name, username, date_of_birth, gender, height_cm, starting_weight_kg, time_zone)
-2. **Preferences** (`/profile/preferences`) — extends existing `user_settings` (weight_unit, height_unit, rest timer)
-3. **Fitness profile** (`/profile/fitness`) — form on `profiles` fitness columns (primary_goal, goal_weight_kg, target_daily_calories, activity_level, training_experience, weekly_training_frequency)
-4. **Body metrics** (`/profile/body-metrics`) — biggest one: needs new `bodyweight_entries` + `body_measurements` tables, BMI card, weight chart, measurements form
-5. **Subscription** (`/profile/subscription`) — cosmetic stub
-6. **Avatar upload** (Supabase Storage) — pencil badge in `ProfileHeader` currently disabled
-
-Profile design source of truth: see the original spec the user pasted into Plan 1 (preserved at top of [docs/superpowers/plans/2026-06-03-profile-foundation.md](docs/superpowers/plans/2026-06-03-profile-foundation.md)).
+- The reusable **`Avatar`** component (`@/features/profile`) is ready for other surfaces (top nav, author chips).
+- Known stubs / not-yet-built: **Progress photos** (COMING SOON placeholder in Body metrics); Subscription **Upgrade** (no real billing/Stripe; no enforced free-tier limits except the 50k/day AI token cap).
 
 ## User preferences
 
@@ -52,8 +51,10 @@ Profile design source of truth: see the original spec the user pasted into Plan 
 
 ## Local dev notes
 
-- Migrations require `pnpm supabase start` + `pnpm db:reset` from the main repo path. Docker file-sharing must include `/Users/<you>` in Settings → Resources → File Sharing, otherwise containers fail to start.
-- `.env.local` controls whether the app hits local Supabase (`http://127.0.0.1:54321`) or the linked remote — verify before debugging "table not found" errors.
+- Migrations require `pnpm supabase start` from the main repo path. Docker file-sharing must include `/Users/<you>` in Settings → Resources → File Sharing, otherwise containers fail to start.
+- To apply a **new** migration to local without wiping data, use `pnpm exec supabase migration up --local`; `pnpm db:reset` re-runs all migrations and **wipes** local data (incl. your local test account).
+- **Production migrations auto-apply on merge to `main`** via the "Supabase Migrate" GitHub workflow — no manual `supabase db push` needed (a manual push is harmless/idempotent if you want it live before merge).
+- `.env.local` controls whether the app hits local Supabase (`http://127.0.0.1:54321`) or the linked remote — verify before debugging "table not found" errors. Restart `pnpm dev` after switching (env is read only at startup).
 - After adding a migration, if PostgREST returns `PGRST205`, restart the api container: `docker restart $(docker ps --filter "name=supabase_rest_limenfit" --format "{{.ID}}")` or stop/start supabase.
 
 ## Scripts
